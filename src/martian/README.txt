@@ -977,6 +977,61 @@ can show this by actually having it grok a ``TestOnce`` subclass::
   >>> executed
   ['TestSub']
 
+This also works for instance grokkers::
+
+  >>> class TestInstanceOnce(object):
+  ...   pass
+  >>> executed = []
+  >>> class somemodule(FakeModule):
+  ...   class TestGrokker(InstanceGrokker):
+  ...     component_class = TestInstanceOnce
+  ...     def grok(self, name, obj):
+  ...        executed.append(name)
+  ...        return True
+  >>> somemodule = fake_import(somemodule)
+  >>> module_grokker.clear()
+  >>> module_grokker.grok('somemodule', somemodule) # once
+  True
+  >>> module_grokker.grok('somemodule', somemodule) # twice
+  True
+  >>> class anothermodule(FakeModule):
+  ...   test = TestInstanceOnce()
+  >>> anothermodule = fake_import(anothermodule)
+  >>> module_grokker.grok('anothermodule', anothermodule)
+  True
+  >>> executed
+  ['test']
+
+It also works for global grokkers::
+
+  >>> executed = []
+  >>> class somemodule(FakeModule):
+  ...   class TestGrokker(GlobalGrokker):
+  ...     def grok(self, name, obj):
+  ...       executed.append(name)
+  ...       return True
+  >>> somemodule = fake_import(somemodule)
+  >>> module_grokker.clear()
+  >>> module_grokker.grok('somemodule', somemodule) # once
+  True
+  >>> module_grokker.grok('somemodule', somemodule) # twice
+  True
+
+The second grokking will already make ``somemodule`` grokked::
+
+  >>> executed
+  ['somemodule']
+
+Now let's grok another module::
+
+  >>> class anothermodule(FakeModule):
+  ...   pass
+  >>> anothermodule = fake_import(anothermodule)
+  >>> module_grokker.grok('anothermodule', anothermodule)
+  True
+  >>> executed
+  ['somemodule', 'anothermodule']
+
 Priority
 --------
 

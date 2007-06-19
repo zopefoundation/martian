@@ -137,8 +137,10 @@ class MultiGlobalGrokker(MultiGrokkerBase):
         self.clear()
 
     def register(self, grokker):
-        if grokker not in self._grokkers:
-            self._grokkers.append(grokker)
+        for g in self._grokkers:
+            if grokker.__class__ is g.__class__:
+                return
+        self._grokkers.append(grokker)
 
     def clear(self):
         self._grokkers = []
