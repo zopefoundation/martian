@@ -887,7 +887,7 @@ Our multi_grokker should now also be able to grok animals::
 A ``MetaMultiGrokker`` is a ``MultiGrokker`` that comes preconfigured with
 grokkers for ``ClassGrokker``, ``InstanceGrokker`` and ``GlobalGrokker``::
 
-  >>> from martian.core import MetaMultiGrokker
+  >>> from martian import MetaMultiGrokker
   >>> multi_grokker = MetaMultiGrokker()
 
 It works for ``ClassGrokker``::
