@@ -42,6 +42,10 @@ class IMultiGrokker(IComponentGrokker):
         """Register a martian.
         """
 
+    def clear():
+        """Clear all martians and go back to initial state.
+        """
+
 class IModuleInfo(Interface):
     def getModule():
         """Get the module object this module info is representing.

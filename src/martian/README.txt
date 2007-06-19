@@ -856,3 +856,87 @@ Let's also try this with a GlobalGrokker::
   Traceback (most recent call last):
     ...
   GrokError: <MyGrokker object at ...> returns 'Foo' instead of True or False.
+
+Meta Grokkers
+-------------
+
+Meta grokkers are grokkers that grok grokkers. This mechanism can be
+used to extend Martian. Let's register a ``ClassMetaGrokker`` that
+looks for subclasses of ``ClassGrokker``::
+
+  >>> from martian.core import MetaGrokker
+  >>> class ClassMetaGrokker(MetaGrokker):
+  ...   component_class = ClassGrokker
+  >>> multi_grokker = MultiGrokker()
+  >>> multi_grokker.register(ClassMetaGrokker(multi_grokker))
+
+``multi_grokker`` should now grok subclasses of ``ClassGrokker``, such
+as ``AnimalGrokker``::
+
+  >>> all_animals = {} # clean out animal registry
+  >>> multi_grokker.grok('AnimalGrokker', AnimalGrokker)
+  True
+
+Our multi_grokker should now also be able to grok animals::
+
+  >>> class Woodpecker(animal.Animal):
+  ...   pass
+  >>> multi_grokker.grok('Woodpecker', Woodpecker)
+  True
+
+A ``MetaMultiGrokker`` is a ``MultiGrokker`` that comes preconfigured with
+grokkers for ``ClassGrokker``, ``InstanceGrokker`` and ``GlobalGrokker``::
+
+  >>> from martian.core import MetaMultiGrokker
+  >>> multi_grokker = MetaMultiGrokker()
+
+It works for ``ClassGrokker``::
+  
+  >>> all_animals = {}
+  >>> multi_grokker.grok('AnimalGrokker', AnimalGrokker)
+  True
+  >>> multi_grokker.grok('Woodpecker', Woodpecker)
+  True
+  >>> all_animals
+  {'Woodpecker': <class 'Woodpecker'>}
+
+and for ``InstanceGrokker``::
+
+  >>> color.all_colors = {}
+  >>> multi_grokker.grok('ColorGrokker', ColorGrokker)
+  True
+  >>> multi_grokker.grok('color', Color(255, 0, 0))
+  True
+  >>> color.all_colors
+  {'color': <Color 255 0 0>}
+
+and for ``GlobalGrokker``::
+
+  >>> read_amount = {}
+  >>> multi_grokker.grok('AmountGrokker', AmountGrokker)
+  True
+  >>> grokker.grok('g', g)
+  True
+  >>> read_amount[None]
+  50
+
+We can clear the meta multi grokker::
+
+  >>> multi_grokker.clear()
+
+It won't grok particular classes or instances anymore::
+
+  >>> multi_grokker.grok('Woodpecker', Woodpecker)
+  False 
+  >>> multi_grokker.grok('color', Color(255, 0, 0))
+  False
+
+It can still grok grokkers::
+
+  >>> multi_grokker.grok('ColorGrokker', ColorGrokker)
+  True
+
+
+
+
+
