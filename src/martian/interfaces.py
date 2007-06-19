@@ -15,6 +15,8 @@
 from zope.interface import Interface, Attribute
 
 class IGrokker(Interface):
+    priority = Attribute('Priority during module grokking.')
+
     def grok(name, obj, **kw):
         """Grok obj.
 
@@ -27,7 +29,7 @@ class IGrokker(Interface):
         Returns True if grok is attempted, False if object is filtered
         out by this grokker.
         """
-
+    
 class IComponentGrokker(IGrokker):
     """A grokker that groks components in a module.
 

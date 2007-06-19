@@ -22,6 +22,8 @@ NOT_DEFINED = object()
 class GrokkerBase(object):
     implements(IGrokker)
 
+    priority = 0
+    
     def grok(self, name, obj, **kw):
         raise NotImplementedError
 

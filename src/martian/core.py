@@ -35,8 +35,7 @@ class MultiGrokkerBase(GrokkerBase):
         raise NotImplementedError
 
 class ModuleGrokker(MultiGrokkerBase):
-    implements(IMultiGrokker)
-
+  
     def __init__(self, grokker=None, prepare=None, finalize=None):
         if grokker is None:
             grokker = MultiGrokker()
@@ -51,17 +50,31 @@ class ModuleGrokker(MultiGrokkerBase):
         self._grokker.clear()
     
     def grok(self, name, module, **kw):
+        grokked_status = False
+
         # prepare module grok - this can also influence the kw dictionary
         if self.prepare is not None:
             self.prepare(name, module, kw)
 
-        # do the actual grokking
-        grokked_status = super(ModuleGrokker, self).grok(name, module, **kw)
-
+        # sort grokkers by priority
+        grokkers = sorted(self.grokkers(name, module),
+                          key=lambda (grokker, name, obj): grokker.priority)
+        # reverse so highest priority happens first
+        grokkers.reverse()
+        
+        for g, name, obj in grokkers:
+            grokked = g.grok(name, obj, **kw)
+            if grokked not in (True, False):
+                raise GrokError(
+                    "%r returns %r instead of True or False." %
+                    (g, grokked), None)
+            if grokked:
+                grokked_status = True
+                
         # finalize module grok
         if self.finalize is not None:
             self.finalize(name, module, kw)
-        
+
         return grokked_status
 
     def grokkers(self, name, module):
@@ -83,7 +96,6 @@ class ModuleGrokker(MultiGrokkerBase):
                 yield t
 
 class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
-    implements(IMultiGrokker)
 
     def __init__(self):
         self.clear()
@@ -119,7 +131,6 @@ class MultiClassGrokker(MultiInstanceOrClassGrokkerBase):
         return inspect.getmro(obj)
 
 class MultiGlobalGrokker(MultiGrokkerBase):
-    implements(IMultiGrokker)
 
     def __init__(self):
         self.clear()
@@ -135,7 +146,6 @@ class MultiGlobalGrokker(MultiGrokkerBase):
             yield grokker, name, module
     
 class MultiGrokker(MultiGrokkerBase):
-    implements(IMultiGrokker)
     
     def __init__(self):
         self.clear()

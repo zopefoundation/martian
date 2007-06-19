@@ -936,7 +936,87 @@ It can still grok grokkers::
   >>> multi_grokker.grok('ColorGrokker', ColorGrokker)
   True
 
+Priority
+--------
 
+When grokking a module using a ``ModuleGrokker``, grokker execution
+can be determined by their priority. By default, grokkers have a
+priority of ``0``. Let's define two base classes, ``A`` and ``B``, 
+which can be grokked::
 
+  >>> class A(object):
+  ...   pass
+
+  >>> class B(object):
+  ...   pass
+
+Let's define a special kind of class grokker that records the order in
+which names get grokked::
+
+  >>> order = []
+  >>> class OrderGrokker(ClassGrokker):
+  ...   def grok(self, name, obj):
+  ...     order.append(name)
+  ...     return True
+
+Now we define two grokkers for subclasses of ``A`` and ``B``, where
+the ``BGrokker`` has a higher priority::
+
+  >>> class AGrokker(OrderGrokker):
+  ...   component_class = A
+  >>> class BGrokker(OrderGrokker):
+  ...   component_class = B
+  ...   priority = 10
+
+Let's register these grokkers::
+
+  >>> multi_grokker = MetaMultiGrokker()
+  >>> multi_grokker.grok('AGrokker', AGrokker)
+  True
+  >>> multi_grokker.grok('BGrokker', BGrokker)
+  True
+
+Let's create a module containing ``A`` and ``B`` subclasses::
+
+  >>> class mymodule(FakeModule):
+  ...   class ASub(A):
+  ...     pass
+  ...   class BSub(B):
+  ...     pass
+  >>> mymodule = fake_import(mymodule)
+
+We'll grok it::
+
+  >>> module_grokker = ModuleGrokker(multi_grokker)
+  >>> module_grokker.grok('mymodule', mymodule)
+  True
+
+Since the ``BGrokker`` has a higher priority, we expect the following
+order of grokking::
+
+  >>> order 
+  ['BSub', 'ASub']
+
+This also works for GlobalGrokkers. We will define a GlobalGrokker
+that has a higher priority than the default, but lower than B::
+
+  >>> class MyGlobalGrokker(GlobalGrokker):
+  ...   priority = 5
+  ...   def grok(self, name, obj):
+  ...     order.append(name)
+  ...     return True
+  >>> multi_grokker.grok('MyGlobalGrokker', MyGlobalGrokker)
+  True
+
+We will grok the module again::
+  
+  >>> order = []
+  >>> module_grokker.grok('mymodule', mymodule)
+  True
+
+This time, the global grokker should appear after 'BSub' but before 'ASub'::
+
+  >>> order
+  ['BSub', 'mymodule', 'ASub']
 
 
