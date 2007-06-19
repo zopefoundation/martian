@@ -31,7 +31,7 @@ Motivation
 ----------
 
 "Deducing declarative configuration actions from Python code" - that
-sounds very abstracxt. What does it actually mean? In order to explain
+sounds very abstract. What does it actually mean? In order to explain
 this, let's first look at an example of a simple framework that can be
 *configured* with plugins. We will define a framework for handling
 files based on their extensions::
