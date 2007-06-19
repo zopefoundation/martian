@@ -8,7 +8,33 @@ from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
                                 GlobalGrokker)
 from martian.error import GrokError
 
-class ModuleGrokker(GrokkerBase):
+class MultiGrokkerBase(GrokkerBase):
+    implements(IMultiGrokker)
+
+    def register(self, grokker):
+        raise NotImplementedError
+    
+    def grok(self, name, obj, **kw):
+        grokked_status = False
+
+        for g, name, obj in self.grokkers(name, obj):
+            grokked = g.grok(name, obj, **kw)
+            if grokked not in (True, False):
+                raise GrokError(
+                    "%r returns %r instead of True or False." %
+                    (g, grokked), None)
+            if grokked:
+                grokked_status = True
+        
+        return grokked_status
+
+    def clear(self):
+        raise NotImplementedError
+    
+    def grokkers(self, name, obj):
+        raise NotImplementedError
+
+class ModuleGrokker(MultiGrokkerBase):
     implements(IMultiGrokker)
 
     def __init__(self, grokker=None, prepare=None, finalize=None):
@@ -25,18 +51,25 @@ class ModuleGrokker(GrokkerBase):
         self._grokker.clear()
     
     def grok(self, name, module, **kw):
-        grokked_status = False
-        grokker = self._grokker
-
         # prepare module grok - this can also influence the kw dictionary
         if self.prepare is not None:
             self.prepare(name, module, kw)
-        
-        # trigger any global grokkers
-        grokked = grokker.grok(name, module, **kw)
-        if grokked:
-            grokked_status = True
 
+        # do the actual grokking
+        grokked_status = super(ModuleGrokker, self).grok(name, module, **kw)
+
+        # finalize module grok
+        if self.finalize is not None:
+            self.finalize(name, module, kw)
+        
+        return grokked_status
+
+    def grokkers(self, name, module):
+        grokker = self._grokker
+        # get any global grokkers
+        for t in grokker.grokkers(name, module):
+            yield t
+        
         # try to grok everything in module
         for name in dir(module):
             if name.startswith('__grok_'):
@@ -46,17 +79,10 @@ class ModuleGrokker(GrokkerBase):
                 continue
             if util.is_baseclass(name, obj):
                 continue
-            grokked = grokker.grok(name, obj, **kw)
-            if grokked:
-                grokked_status = True
+            for t in grokker.grokkers(name, obj):
+                yield t
 
-        # finalize module grok
-        if self.finalize is not None:
-            self.finalize(name, module, kw)
-        
-        return grokked_status
-        
-class MultiGrokkerBase(GrokkerBase):
+class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
     implements(IMultiGrokker)
 
     def __init__(self):
@@ -70,37 +96,29 @@ class MultiGrokkerBase(GrokkerBase):
 
     def clear(self):
         self._grokkers = {}
-        
-    def grok(self, name, obj, **kw):
+
+    def grokkers(self, name, obj):
         used_grokkers = set()
-        grokked_status = False
         for base in self.get_bases(obj):
             grokkers = self._grokkers.get(base)
             if grokkers is None:
                 continue
             for grokker in grokkers:
                 if grokker not in used_grokkers:
-                    grokked = grokker.grok(name, obj, **kw)
-                    if grokked not in (True, False):
-                        raise GrokError(
-                            "%r returns %r instead of True or False." %
-                            (grokker, grokked), None)
-                    if grokked:
-                        grokked_status = True
+                    yield grokker, name, obj
                     used_grokkers.add(grokker)
-        return grokked_status
-    
-class MultiInstanceGrokker(MultiGrokkerBase):
+
+class MultiInstanceGrokker(MultiInstanceOrClassGrokkerBase):
     def get_bases(self, obj):
         return inspect.getmro(obj.__class__)
 
-class MultiClassGrokker(MultiGrokkerBase):
+class MultiClassGrokker(MultiInstanceOrClassGrokkerBase):
     def get_bases(self, obj):
         if type(obj) is types.ModuleType:
             return []
         return inspect.getmro(obj)
 
-class MultiGlobalGrokker(GrokkerBase):
+class MultiGlobalGrokker(MultiGrokkerBase):
     implements(IMultiGrokker)
 
     def __init__(self):
@@ -111,20 +129,12 @@ class MultiGlobalGrokker(GrokkerBase):
 
     def clear(self):
         self._grokkers = []
-        
-    def grok(self, name, module, **kw):
-        grokked_status = False
-        for grokker in self._grokkers:
-            grokked = grokker.grok(name, module, **kw)
-            if grokked not in (True, False):
-                raise GrokError(
-                    "%r returns %r instead of True or False." %
-                    (grokker, grokked), None)         
-            if grokked:
-                grokked_status = True
-        return grokked_status
 
-class MultiGrokker(GrokkerBase):
+    def grokkers(self, name, module):
+        for grokker in self._grokkers:
+            yield grokker, name, module
+    
+class MultiGrokker(MultiGrokkerBase):
     implements(IMultiGrokker)
     
     def __init__(self):
@@ -145,15 +155,15 @@ class MultiGrokker(GrokkerBase):
         self._multi_class_grokker = MultiClassGrokker()
         self._multi_global_grokker = MultiGlobalGrokker()
 
-    def grok(self, name, obj, **kw):
+    def grokkers(self, name, obj):
         obj_type = type(obj)
         if obj_type in (type, types.ClassType):
-            return self._multi_class_grokker.grok(name, obj, **kw)
+            return self._multi_class_grokker.grokkers(name, obj)
         elif obj_type is types.ModuleType:
-            return self._multi_global_grokker.grok(name, obj, **kw)
+            return self._multi_global_grokker.grokkers(name, obj)
         else:
-            return self._multi_instance_grokker.grok(name, obj, **kw)
-
+            return self._multi_instance_grokker.grokkers(name, obj)
+        
 class MetaMultiGrokker(MultiGrokker):
     """Multi grokker which comes pre-registered with meta-grokkers.
     """

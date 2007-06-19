@@ -25,25 +25,29 @@ class IGrokker(Interface):
         May do extra filtering based on name or obj.
 
         Returns True if grok is attempted, False if object is filtered
-        out by this martian.
+        out by this grokker.
         """
 
 class IComponentGrokker(IGrokker):
-    """A martian that groks components in a module.
+    """A grokker that groks components in a module.
 
     Components may be instances or classes indicated by component_class.
     """
     component_class = Attribute('Class of the component to match')
     
 class IMultiGrokker(IComponentGrokker):
-    """A martian that is composed out of multiple martians.
+    """A grokker that is composed out of multiple grokkers.
     """
-    def register(martian):
-        """Register a martian.
+    def register(grokker):
+        """Register a grokker.
         """
 
     def clear():
-        """Clear all martians and go back to initial state.
+        """Clear all grokkers and go back to initial state.
+        """
+
+    def grokkers(name, obj):
+        """Iterable of all grokkers that apply to obj.
         """
 
 class IModuleInfo(Interface):
