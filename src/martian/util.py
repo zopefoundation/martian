@@ -112,6 +112,21 @@ def check_implements_one_from_list(list, class_):
                         % class_, class_)
 
 
+def scan_for_classes(module, classes):
+    """Given a module, scan for classes.
+    """
+    result = []
+    for name in dir(module):
+        if name.startswith('__grok_'):
+            continue
+        obj = getattr(module, name)
+        if not defined_locally(obj, module.__name__):
+            continue
+        for class_ in classes:
+            if check_subclass(obj, class_):
+                result.append(obj)
+    return result
+
 def determine_module_context(module_info, models):
     if len(models) == 0:
         context = None
