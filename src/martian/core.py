@@ -58,9 +58,8 @@ class ModuleGrokker(MultiGrokkerBase):
 
         # sort grokkers by priority
         grokkers = sorted(self.grokkers(name, module),
-                          key=lambda (grokker, name, obj): grokker.priority)
-        # reverse so highest priority happens first
-        grokkers.reverse()
+                          key=lambda (grokker, name, obj): grokker.priority,
+                          reverse=True)
         
         for g, name, obj in grokkers:
             grokked = g.grok(name, obj, **kw)
@@ -103,8 +102,10 @@ class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
     def register(self, grokker):
         key = grokker.component_class
         grokkers = self._grokkers.setdefault(key, [])
-        if grokker not in grokkers:
-            grokkers.append(grokker)
+        for g in grokkers:
+            if g.__class__ is grokker.__class__:
+                return
+        grokkers.append(grokker)
 
     def clear(self):
         self._grokkers = {}
@@ -136,7 +137,8 @@ class MultiGlobalGrokker(MultiGrokkerBase):
         self.clear()
 
     def register(self, grokker):
-        self._grokkers.append(grokker)
+        if grokker not in self._grokkers:
+            self._grokkers.append(grokker)
 
     def clear(self):
         self._grokkers = []

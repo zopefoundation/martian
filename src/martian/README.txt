@@ -936,6 +936,47 @@ It can still grok grokkers::
   >>> multi_grokker.grok('ColorGrokker', ColorGrokker)
   True
 
+Executing meta grokkers only once
+---------------------------------
+
+In case of ``ClassGrokker`` and all other grokkers that are grokked
+by meta grokkers, we only want the grokking to occur once even if
+the same module (or package) is grokked twice::
+
+  >>> class TestOnce(object):
+  ...   pass
+  >>> executed = []
+  >>> class somemodule(FakeModule):
+  ...   class TestGrokker(ClassGrokker):
+  ...     component_class = TestOnce
+  ...     def grok(self, name, obj):
+  ...        executed.append(name)
+  ...        return True
+  >>> somemodule = fake_import(somemodule)
+  >>> module_grokker = ModuleGrokker(MetaMultiGrokker())
+
+Let's grok the module once::
+
+  >>> module_grokker.grok('somemodule', somemodule)
+  True
+
+Let's grok it twice::
+  
+  >>> module_grokker.grok('somemodule', somemodule)
+  True
+
+Even though we have grokked it twice, it is still only registered once. We
+can show this by actually having it grok a ``TestOnce`` subclass::
+
+  >>> class anothermodule(FakeModule):
+  ...   class TestSub(TestOnce):
+  ...      pass
+  >>> anothermodule = fake_import(anothermodule)
+  >>> module_grokker.grok('anothermodule', anothermodule)
+  True
+  >>> executed
+  ['TestSub']
+
 Priority
 --------
 
