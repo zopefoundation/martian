@@ -66,5 +66,7 @@ def test_suite():
                              optionflags=optionflags),
         doctest.DocFileSuite('../scan.txt',
                              optionflags=optionflags),
+        doctest.DocFileSuite('../directive.txt',
+                             optionflags=optionflags),
         ])
     return suite
