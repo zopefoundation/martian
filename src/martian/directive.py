@@ -23,13 +23,6 @@ from zope.interface.interfaces import IInterface
 from martian import util
 from martian.error import GrokImportError
 
-def frame_is_module(frame):
-    return frame.f_locals is frame.f_globals
-
-def frame_is_class(frame):
-    return '__module__' in frame.f_locals    
-
-
 class IDirectiveContext(interface.Interface):
     description = interface.Attribute("The correct place in which the "
                                       "directive can be used.")
@@ -45,7 +38,7 @@ class ClassDirectiveContext(object):
     description = "class"
 
     def matches(self, frame):
-        return frame_is_class(frame)
+        return util.frame_is_class(frame)
 
     
 class ModuleDirectiveContext(object):
@@ -54,7 +47,7 @@ class ModuleDirectiveContext(object):
     description = "module"
 
     def matches(self, frame):
-        return frame_is_module(frame)
+        return util.frame_is_module(frame)
     
 
 class ClassOrModuleDirectiveContext(object):
@@ -63,7 +56,7 @@ class ClassOrModuleDirectiveContext(object):
     description = "class or module"
 
     def matches(self, frame):
-        return frame_is_module(frame) or frame_is_class(frame)
+        return util.frame_is_module(frame) or util.frame_is_class(frame)
 
 
 class Directive(object):

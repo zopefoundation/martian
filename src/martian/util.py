@@ -155,3 +155,9 @@ def methods_from_class(class_):
                   if name != '__provides__' ]
     methods = [c for c in candidates if inspect.ismethod(c)]
     return methods
+
+def frame_is_module(frame):
+    return frame.f_locals is frame.f_globals
+
+def frame_is_class(frame):
+    return '__module__' in frame.f_locals    
