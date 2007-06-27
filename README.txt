@@ -6,7 +6,7 @@ Strange Land, by Robert A. Heinlein
 
 Martian provides infrastructure for declarative configuration of
 Python code. Martian is especially useful for the construction of
-frameworks that need to provide a flexible plugin infrastructure. 
+frameworks that need to provide a flexible plugin infrastructure.
 
 Why is this package named ``martian``? In the novel "Stranger in a
 Strange Land", the verb *grok* is introduced:
@@ -22,7 +22,7 @@ Mars. Martians *grok*. Since this package helps you grok code, it's
 called Martian.
 
 Martian provides a framework that allows configuration to be expressed
-in declarative Python code. These declarations can often be decuded
+in declarative Python code. These declarations can often be deduced
 from the structure of the code itself. The idea is to make these
 declarations so minimal and easy to read that even extensive
 configuration does not overly burden the programmers working with the
