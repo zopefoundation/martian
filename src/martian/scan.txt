@@ -162,3 +162,45 @@ For modules, a resource path will be a sibling of the module's file:
   >>> resource_path = cave_module_info.getResourcePath('cave-templates')
   >>> resource_path == expected_resource_path
   True
+
+Skipping test packages and modules
+----------------------------------
+
+By default functional tests and unit tests are skipped from the grokking
+procedure.
+
+Packages called 'tests' (the "de facto" standard name for packages containing
+unit tests) or 'ftests' (for functional tests) are skipped (and thus not
+grokked)::
+
+  >>> from martian.scan import ModuleInfo, module_info_from_dotted_name
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withtestspackages')
+  >>> module_info
+  <ModuleInfo object for 'martian.tests.withtestspackages'>
+  >>> # Will *not* contain the module info for the tests and ftests packages
+  >>> print module_info.getSubModuleInfos()
+  [<ModuleInfo object for 'martian.tests.withtestspackages.subpackage'>]
+
+Likewise modules called tests.py or ftests.py are skipped::
+
+  >>> from martian.scan import ModuleInfo, module_info_from_dotted_name
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withtestsmodules')
+  >>> module_info
+  <ModuleInfo object for 'martian.tests.withtestsmodules'>
+  >>> # Will *not* contain the module info for the tests and ftests modules
+  >>> print module_info.getSubModuleInfos()
+  [<ModuleInfo object for 'martian.tests.withtestsmodules.subpackage'>]
+
+You can still get to the module info of tests and ftests if you need to::
+
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withtestspackages')
+  >>> module_info
+  <ModuleInfo object for 'martian.tests.withtestspackages'>
+  >>> print module_info.getSubModuleInfos(exclude_tests=False)
+  [<ModuleInfo object for 'martian.tests.withtestspackages.ftests'>,
+  <ModuleInfo object for 'martian.tests.withtestspackages.subpackage'>,
+  <ModuleInfo object for 'martian.tests.withtestspackages.tests'>]
+
