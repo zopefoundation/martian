@@ -204,3 +204,11 @@ You can still get to the module info of tests and ftests if you need to::
   <ModuleInfo object for 'martian.tests.withtestspackages.subpackage'>,
   <ModuleInfo object for 'martian.tests.withtestspackages.tests'>]
 
+You can also explicitely grok tests and ftests packages::
+
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withtestspackages.tests')
+  >>> module_info
+  <ModuleInfo object for 'martian.tests.withtestspackages.tests'>
+  >>> print module_info.getSubModuleInfos()
+  foo
