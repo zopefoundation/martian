@@ -211,4 +211,4 @@ You can also explicitely grok tests and ftests packages::
   >>> module_info
   <ModuleInfo object for 'martian.tests.withtestspackages.tests'>
   >>> print module_info.getSubModuleInfos()
-  foo
+  [<ModuleInfo object for 'martian.tests.withtestspackages.tests.subpackage'>]
