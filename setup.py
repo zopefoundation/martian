@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='martian',
-    version='0.8',
+    version='0.8.1',
     author='Grok project',
     author_email='grok-dev@zope.org',
     description="""\
