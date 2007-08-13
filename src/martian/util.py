@@ -115,7 +115,7 @@ def check_implements_one_from_list(list, class_):
 def scan_for_classes(module, classes):
     """Given a module, scan for classes.
     """
-    result = []
+    result = set()
     for name in dir(module):
         if name.startswith('__grok_'):
             continue
@@ -124,8 +124,8 @@ def scan_for_classes(module, classes):
             continue
         for class_ in classes:
             if check_subclass(obj, class_):
-                result.append(obj)
-    return result
+                result.add(obj)
+    return list(result)
 
 def determine_module_context(module_info, models):
     if len(models) == 0:
