@@ -55,7 +55,7 @@ Since normally we cannot create modules in a doctest, we have emulated
 the ``filehandler`` Python module using the ``FakeModule``
 class. Whenever you see ``FakeModule`` subclasses, imagine you're
 looking at a module definition in a ``.py`` file. Now that we have
-defined a module ``filehandler, we also need to be able to import
+defined a module ``filehandler``, we also need to be able to import
 it. To do so we can use a a fake import statement that lets us do
 this::
 
