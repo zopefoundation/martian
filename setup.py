@@ -19,10 +19,10 @@ long_description = (
     )
 
 open('doc.txt', 'w').write(long_description)
-    
+
 setup(
     name='martian',
-    version='0.8.1',
+    version='0.9',
     author='Grok project',
     author_email='grok-dev@zope.org',
     description="""\
