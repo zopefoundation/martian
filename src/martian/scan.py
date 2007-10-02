@@ -31,13 +31,14 @@ def is_package(path):
 
 class ModuleInfo(object):
     implements(IModuleInfo)
-    
-    def __init__(self, path, dotted_name):
+
+    def __init__(self, path, dotted_name, exclude_filter=lambda name:False):
         # Normalize .pyc files to .py
         if path.endswith('c'):
             path = path[:-1]
         self.path = path
         self.dotted_name = dotted_name
+        self.exclude_filter = exclude_filter
 
         name_parts = dotted_name.split('.')
         self.name = name_parts[-1]
@@ -60,7 +61,7 @@ class ModuleInfo(object):
         """
         return os.path.join(os.path.dirname(self.path), name)
 
-    def getSubModuleInfos(self, exclude_filter=lambda x:False):
+    def getSubModuleInfos(self):
         if not self.isPackage():
             return []
         directory = os.path.dirname(self.path)
@@ -70,7 +71,7 @@ class ModuleInfo(object):
             entry_path = os.path.join(directory, entry)
             name, ext = os.path.splitext(entry)
             dotted_name = self.dotted_name + '.' + name
-            if exclude_filter(name):
+            if self.exclude_filter(name):
                 continue
             # Case one: modules
             if (os.path.isfile(entry_path) and ext in ['.py', '.pyc']):
@@ -100,7 +101,7 @@ class ModuleInfo(object):
                                   '%s.%s' % (self.package_dotted_name, name))
         else:
             return None
-        
+
 
     def getAnnotation(self, key, default):
         key = key.replace('.', '_')
@@ -120,12 +121,12 @@ class ModuleInfo(object):
         return "<ModuleInfo object for '%s'>" % self.dotted_name
 
 
-def module_info_from_dotted_name(dotted_name):
+def module_info_from_dotted_name(dotted_name, exclude_filter=lambda name:False):
     module = resolve(dotted_name)
-    return ModuleInfo(module.__file__, dotted_name)
+    return ModuleInfo(module.__file__, dotted_name, exclude_filter)
 
-def module_info_from_module(module):
-    return ModuleInfo(module.__file__, module.__name__)
+def module_info_from_module(module, exclude_filter=lambda name:False):
+    return ModuleInfo(module.__file__, module.__name__, exclude_filter)
 
 
 # taken from zope.dottedname.resolve
