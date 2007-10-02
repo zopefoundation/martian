@@ -7,7 +7,7 @@ abstraction over packages and modules that helps with the scanning
 process.
 
   >>> from martian.scan import module_info_from_dotted_name
-  
+
 We have provided a special test fixture package called stoneage that we are
 going to scan, in ``martian.tests.stoneage``.
 
@@ -19,12 +19,12 @@ information about a module or a package. Let's take a look at the
 ``cave`` module in the stone-age package::
 
   >>> module_info = module_info_from_dotted_name('martian.tests.stoneage.cave')
-  
+
 We get a ``ModuleInfo`` object representing the ``cave module::
 
   >>> module_info
   <ModuleInfo object for 'martian.tests.stoneage.cave'>
-  
+
 ``cave`` is a module, not a package.
 
   >>> module_info.isPackage()
@@ -188,11 +188,12 @@ For example, to get only those packages, which are *not* named 'tests'
 nor 'ftests' we could do::
 
   >>> from martian.scan import ModuleInfo, module_info_from_dotted_name
+  >>> no_tests_filter = lambda x: x in ['tests', 'ftests']
   >>> module_info = module_info_from_dotted_name(
-  ...     'martian.tests.withtestsmodules')
+  ...     'martian.tests.withtestsmodules', exclude_filter=no_tests_filter)
   >>> module_info
   <ModuleInfo object for 'martian.tests.withtestsmodules'>
   >>> no_tests_filter = lambda x: x in ['tests', 'ftests']
-  >>> print module_info.getSubModuleInfos(exclude_filter=no_tests_filter)
+  >>> print module_info.getSubModuleInfos()
   [<ModuleInfo object for 'martian.tests.withtestsmodules.subpackage'>]
 

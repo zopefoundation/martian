@@ -1,6 +1,16 @@
 CHANGES
 *******
 
+unreleased
+==========
+
+Feature changes
+---------------
+
+* Reverted the behaviour where modules called tests or ftests were skipped
+  by default and added an API to provides a filtering function for skipping
+  modules to be grokked.
+
 0.8.1 (2007-08-13)
 ==================
 
@@ -14,7 +24,7 @@ Bugs fixed
 
 * Fix a bug where if a class had multiple base classes, this could end up
   in the resultant list multiple times.
-  
+
 0.8 (2007-07-02)
 ================
 

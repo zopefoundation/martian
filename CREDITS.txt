@@ -2,7 +2,7 @@ CREDITS
 =======
 
 * Martijn Faassen
- 
+
 * Wolfgang Schnerring
 
 * Christian Theune
@@ -10,6 +10,8 @@ CREDITS
 * Philipp von Weitershausen
 
 * Jan-Wijbrand Kolman
+
+* Luciano Ramalho
 
 Thank you
 ---------
