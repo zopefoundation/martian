@@ -6,7 +6,7 @@ Strange Land, by Robert A. Heinlein
 
 Martian provides infrastructure for declarative configuration of
 Python code. Martian is especially useful for the construction of
-frameworks that need to provide a flexible plugin infrastructure. 
+frameworks that need to provide a flexible plugin infrastructure.
 
 Why is this package named ``martian``? In the novel "Stranger in a
 Strange Land", the verb *grok* is introduced:
@@ -70,8 +70,8 @@ Now let's try the ``handle`` function for a few file types::
 
 File extensions that we do not recognize cause a ``KeyError`` to be
 raisedr::
- 
-  >>> filehandler.handle('image.png')  
+
+  >>> filehandler.handle('image.png')
   Traceback (most recent call last):
   ...
   KeyError: '.png'
@@ -98,7 +98,7 @@ function. PNG handling works now::
 The action of registering something into a central registry is also
 called *configuration*. Larger frameworks often offer a lot of points
 where you can configure them: ways to combine its own components with
-components you provide yourself to build a larger application. 
+components you provide yourself to build a larger application.
 
 Above we plug into our ``extension_handler`` registry using Python
 code. Using separate code to manually hook components into registries
@@ -136,7 +136,7 @@ functions as seen in our previous example::
   >>> from zope.interface import implements
   >>> from martian import InstanceGrokker
   >>> class FileTypeGrokker(InstanceGrokker):
-  ...   component_class = types.FunctionType 
+  ...   component_class = types.FunctionType
   ...
   ...   def grok(self, name, obj, **kw):
   ...     if not name.startswith('handle_'):
@@ -170,13 +170,13 @@ Now let's use the grokker to grok a new handle function::
 
 After we grokked, we have have registered a handler for ``.jpg`` files
 (the extension to register under was deduced from the function name)::
- 
+
   >>> sorted(filehandler.extension_handlers.keys())
   ['.jpg', '.png', '.txt', '.xml']
 
 This means now our ``filehandler.handle`` function is now able to
 handle JPG files as well::
-  
+
   >>> filehandler.handle('image2.jpg')
   'JPG file'
 
@@ -260,7 +260,7 @@ original module and take out the manual registrations completely::
   ...      return extension_handlers[ext](filepath)
 
   >>> filehandler = fake_import(filehandler)
- 
+
 Let's use martian to do the registrations for us::
 
   >>> module_grokker.grok('filehandler', filehandler)
@@ -281,7 +281,7 @@ other kind of instance, a ``Color``::
   ...       self.g = g
   ...       self.b = b
   ...     def __repr__(self):
-  ...       return '<Color %s %s %s>' % (self.r, self.g, self.b) 
+  ...       return '<Color %s %s %s>' % (self.r, self.g, self.b)
   ...   all_colors = {}
   >>> color = fake_import(color)
 
@@ -317,15 +317,15 @@ multiple colors in a module::
   ...   blue = Color(0, 0, 255)
   ...   white = Color(255, 255, 255)
   >>> colors = fake_import(colors)
-  >>> colors_grokker = ModuleGrokker() 
+  >>> colors_grokker = ModuleGrokker()
   >>> colors_grokker.register(color_grokker)
   >>> colors_grokker.grok('colors', colors)
   True
   >>> sorted(color.all_colors.items())
-  [('black', <Color 0 0 0>), 
-   ('blue', <Color 0 0 255>), 
-   ('green', <Color 0 255 0>), 
-   ('red', <Color 255 0 0>), 
+  [('black', <Color 0 0 0>),
+   ('blue', <Color 0 0 255>),
+   ('green', <Color 0 255 0>),
+   ('red', <Color 255 0 0>),
    ('white', <Color 255 255 255>)]
 
 Subclasses of ``Color`` are also grokked::
@@ -347,13 +347,13 @@ In the previous section we have created a particular grokker that
 looks for instances of a component class, in this case
 ``Color``. Let's introduce another ``InstanceGrokker`` that looks for
 instances of ``Sound``::
-  
+
   >>> class sound(FakeModule):
   ...   class Sound(object):
   ...     def __init__(self, desc):
   ...       self.desc = desc
   ...     def __repr__(self):
-  ...       return '<Sound %s>' % (self.desc) 
+  ...       return '<Sound %s>' % (self.desc)
   ...   all_sounds = {}
   >>> sound = fake_import(sound)
 
@@ -363,7 +363,7 @@ instances of ``Sound``::
   ...     sound.all_sounds[name] = obj
   ...     return True
   >>> sound_grokker = SoundGrokker()
- 
+
 What if we now want to look for ``Sound`` and ``Color`` instances at
 the same time? We have to use the ``color_grokker`` and
 ``sound_grokker`` at the same time, and we can do this with a
@@ -383,7 +383,7 @@ Let's grok a new color with our ``multi_grokker``::
   True
 
 Let's grok a sound with our ``multi_grokker``::
-  
+
   >>> moo = sound.Sound('Moo!')
   >>> multi_grokker.grok('moo', moo)
   True
@@ -434,9 +434,9 @@ where we register classes representing animals::
   ...       return '<Animal %s>' % self.name
   ...   all_animals = {}
   ...   def create_animal(name):
-  ...     return all_animals[name]() 
+  ...     return all_animals[name]()
   >>> animal = fake_import(animal)
-  
+
 Let's define a grokker that can grok an ``Animal``::
 
   >>> from martian import ClassGrokker
@@ -529,7 +529,7 @@ Let's try it with some individual objects::
   True
   >>> 'whale' in animal.all_animals
   True
- 
+
 This should have no effect, but not fail::
 
   >>> my_whale = Whale()
@@ -540,11 +540,11 @@ Grokked by the ColorGrokker::
 
   >>> multi.grok('dark_grey', Color(50, 50, 50))
   True
-  >>> 'dark_grey' in color.all_colors 
+  >>> 'dark_grey' in color.all_colors
   True
 
 Grokked by the SoundGrokker::
-  
+
   >>> multi.grok('music', Sound('music'))
   True
   >>> 'music' in sound.all_sounds
@@ -588,11 +588,11 @@ Not grokked:
   False
 
 Not grokked either::
-  
+
   >>> another = object()
   >>> multi.grok('another', another)
   False
-  
+
 Let's make a module which has a mixture between classes and instances,
 some of which can be grokked::
 
@@ -642,7 +642,7 @@ Before we do the grokking, let's clean up our registration
 dictionaries::
 
   >>> filehandler.extension_handlers = {}
-  >>> color.all_colors = {} 
+  >>> color.all_colors = {}
   >>> sound.all_sounds = {}
   >>> animal.all_animals = {}
 
@@ -670,7 +670,7 @@ with some global value::
   >>> class g(FakeModule):
   ...   amount = 50
   >>> g = fake_import(g)
- 
+
 Now let's create a ``GlobalGrokker`` that reads ``amount`` and stores
 it in the ``read_amount`` dictionary::
 
@@ -691,7 +691,7 @@ Now we grok and should pick up the right value::
   >>> grokker.grok('g', g)
   True
   >>> read_amount[None]
-  50 
+  50
 
 Old-style class support
 -----------------------
@@ -767,7 +767,7 @@ Now let's grok the whole ``testpackage`` for animals::
 
   >>> from martian import grok_dotted_name
   >>> grok_dotted_name('martian.tests.testpackage', grokker=module_grokker)
-  
+
 We should now get some animals::
 
   >>> sorted(all_animals.keys())
@@ -794,7 +794,7 @@ a ``prepare`` function a the ModuleGrokker::
   ...   kw['multiplier'] = 3
   >>> module_grokker = ModuleGrokker(prepare=prepare)
   >>> module_grokker.register(NumberGrokker())
- 
+
 We have created a ``prepare`` function that does one thing: create a
 ``multiplier`` parameter that is passed along the grokking
 process. The ``NumberGrokker`` makes use of this to prepare the
@@ -839,10 +839,10 @@ programmer forgot to), the system will raise an error::
 
   >>> module_grokker = ModuleGrokker()
   >>> module_grokker.register(BrokenGrokker())
-  >>> module_grokker.grok('numbers', numbers) 
+  >>> module_grokker.grok('numbers', numbers)
   Traceback (most recent call last):
     ...
-  GrokError: <BrokenGrokker object at ...> returns None instead of 
+  GrokError: <BrokenGrokker object at ...> returns None instead of
   True or False.
 
 Let's also try this with a GlobalGrokker::
@@ -891,7 +891,7 @@ grokkers for ``ClassGrokker``, ``InstanceGrokker`` and ``GlobalGrokker``::
   >>> multi_grokker = MetaMultiGrokker()
 
 It works for ``ClassGrokker``::
-  
+
   >>> all_animals = {}
   >>> multi_grokker.grok('AnimalGrokker', AnimalGrokker)
   True
@@ -927,7 +927,7 @@ We can clear the meta multi grokker::
 It won't grok particular classes or instances anymore::
 
   >>> multi_grokker.grok('Woodpecker', Woodpecker)
-  False 
+  False
   >>> multi_grokker.grok('color', Color(255, 0, 0))
   False
 
@@ -961,7 +961,7 @@ Let's grok the module once::
   True
 
 Let's grok it twice::
-  
+
   >>> module_grokker.grok('somemodule', somemodule)
   True
 
@@ -1037,7 +1037,7 @@ Priority
 
 When grokking a module using a ``ModuleGrokker``, grokker execution
 can be determined by their priority. By default, grokkers have a
-priority of ``0``. Let's define two base classes, ``A`` and ``B``, 
+priority of ``0``. Let's define two base classes, ``A`` and ``B``,
 which can be grokked::
 
   >>> class A(object):
@@ -1090,7 +1090,7 @@ We'll grok it::
 Since the ``BGrokker`` has a higher priority, we expect the following
 order of grokking::
 
-  >>> order 
+  >>> order
   ['BSub', 'ASub']
 
 This also works for GlobalGrokkers. We will define a GlobalGrokker
@@ -1105,7 +1105,7 @@ that has a higher priority than the default, but lower than B::
   True
 
 We will grok the module again::
-  
+
   >>> order = []
   >>> module_grokker.grok('mymodule', mymodule)
   True
@@ -1114,5 +1114,3 @@ This time, the global grokker should appear after 'BSub' but before 'ASub'::
 
   >>> order
   ['BSub', 'mymodule', 'ASub']
-
-
