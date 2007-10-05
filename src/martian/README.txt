@@ -69,7 +69,7 @@ Now let's try the ``handle`` function for a few file types::
   'XML file'
 
 File extensions that we do not recognize cause a ``KeyError`` to be
-raisedr::
+raised::
 
   >>> filehandler.handle('image.png')
   Traceback (most recent call last):
