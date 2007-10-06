@@ -76,7 +76,7 @@ raised::
   ...
   KeyError: '.png'
 
-We now want to plug into this filehandler framework and provide the a
+We now want to plug into this filehandler framework and provide a
 handler for ``.png`` files. Since we are writing a plugin, we cannot
 change the ``filehandler`` module directly. Let's write an extension
 module instead::
@@ -112,7 +112,7 @@ during import and ordering problems. It can also make code harder to
 test.
 
 Martian provides a framework that allows configuration to be expressed
-in declarative Python code. These declarations can often be decuded
+in declarative Python code. These declarations can often be deduced
 from the structure of the code itself. The idea is to make these
 declarations so minimal and easy to read that even extensive
 configuration does not overly burden the programmers working with the
@@ -168,7 +168,7 @@ Now let's use the grokker to grok a new handle function::
   >>> filetype_grokker.grok('handle_jpg', handle_jpg)
   True
 
-After we grokked, we have have registered a handler for ``.jpg`` files
+After we grokked, we have registered a handler for ``.jpg`` files
 (the extension to register under was deduced from the function name)::
 
   >>> sorted(filehandler.extension_handlers.keys())
