@@ -198,7 +198,8 @@ def grok_package(module_info, grokker, **kw):
         grok_package(sub_module_info, grokker, **kw)
 
 def grok_module(module_info, grokker, **kw):
-    grokker.grok(module_info.dotted_name, module_info.getModule(), **kw)
+    grokker.grok(module_info.dotted_name, module_info.getModule(),
+                 module_info=module_info, **kw)
 
 # deep meta mode here - we define grokkers that can pick up the
 # three kinds of grokker: ClassGrokker, InstanceGrokker and ModuleGrokker

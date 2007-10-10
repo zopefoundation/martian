@@ -1114,3 +1114,48 @@ This time, the global grokker should appear after 'BSub' but before 'ASub'::
 
   >>> order
   ['BSub', 'mymodule', 'ASub']
+
+
+Module info
+-----------
+
+In addition to the ``name`` and ``object`` positional arguments,
+grokkers will get also get a ``module_info`` keyword argument.  It is
+an ``IModuleInfo`` object which can be used, for example, to query
+module annotations.  Consider the following grokker:
+
+  >>> from martian.error import GrokError
+  >>> class AnnotationsGrokker(GlobalGrokker):
+  ...   def grok(self, name, module, module_info, **kw):
+  ...       ann = module_info.getAnnotation('some.annotation', None)
+  ...       if ann is None:
+  ...           raise GrokError('Did not find annotation!', module)
+  ...       if ann != 'ME GROK SAY HI':
+  ...           raise GrokError('Wrong annotation!', module)
+  ...       return True
+
+Now let's provide a fake module:
+
+  >>> import new, sys
+  >>> annotations = new.module('annotations')
+  >>> annotations.__file__ = '/fake/module/annotations.py'
+  >>> sys.modules['annotations'] = annotations
+
+Clearly, it can't find the module-level variable yet:
+
+  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker.register(AnnotationsGrokker())
+  >>> import martian
+  >>> martian.grok_dotted_name('annotations', module_grokker)
+  Traceback (most recent call last):
+  ...
+  GrokError: Did not find annotation!
+
+Let's provide the annotation so that the grokker works as expected:
+
+  >>> annotations.__some_annotation__ = 'ME GROK SAY HI'
+  >>> martian.grok_dotted_name('annotations', module_grokker)
+
+Finally clean up:
+
+  >>> del sys.modules['annotations']
