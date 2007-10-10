@@ -61,12 +61,15 @@ globs = dict(FakeModule=FakeModule, fake_import=fake_import)
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTests([
-        doctest.DocFileSuite('../README.txt',
+        doctest.DocFileSuite('README.txt',
+                             package='martian',
                              globs=globs,
                              optionflags=optionflags),
-        doctest.DocFileSuite('../scan.txt',
+        doctest.DocFileSuite('scan.txt',
+                             package='martian',
                              optionflags=optionflags),
-        doctest.DocFileSuite('../directive.txt',
+        doctest.DocFileSuite('directive.txt',
+                             package='martian',
                              optionflags=optionflags),
         ])
     return suite
