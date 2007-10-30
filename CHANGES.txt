@@ -1,6 +1,17 @@
 CHANGES
 *******
 
+0.9.1 (unreleased)
+==================
+
+Feature changes
+---------------
+
+* Grokkers now receive a ``module_info`` keyword argument.  This
+  change is completely backwards-compatible since grokkers which don't
+  take ``module_info`` explicitly will absorb the extra argument in
+  ``**kw``.
+
 0.9 (2007-10-02)
 =================
 

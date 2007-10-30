@@ -291,7 +291,7 @@ object as the values. We can use ``InstanceGrokker`` to construct it::
 
   >>> class ColorGrokker(InstanceGrokker):
   ...   component_class = color.Color
-  ...   def grok(self, name, obj):
+  ...   def grok(self, name, obj, **kw):
   ...     color.all_colors[name] = obj
   ...     return True
 
@@ -359,7 +359,7 @@ instances of ``Sound``::
 
   >>> class SoundGrokker(InstanceGrokker):
   ...   component_class = sound.Sound
-  ...   def grok(self, name, obj):
+  ...   def grok(self, name, obj, **kw):
   ...     sound.all_sounds[name] = obj
   ...     return True
   >>> sound_grokker = SoundGrokker()
@@ -677,7 +677,7 @@ it in the ``read_amount`` dictionary::
   >>> read_amount = {}
   >>> from martian import GlobalGrokker
   >>> class AmountGrokker(GlobalGrokker):
-  ...   def grok(self, name, module):
+  ...   def grok(self, name, module, **kw):
   ...     read_amount[None] = module.amount
   ...     return True
 
@@ -711,7 +711,7 @@ Let's make a grokker for the old style class::
 
   >>> class MachineGrokker(ClassGrokker):
   ...   component_class = oldstyle.Machine
-  ...   def grok(self, name, obj):
+  ...   def grok(self, name, obj, **kw):
   ...     oldstyle.all_machines[name] = obj
   ...     return True
 
@@ -719,7 +719,7 @@ And another grokker for old style instances::
 
   >>> class MachineInstanceGrokker(InstanceGrokker):
   ...   component_class = oldstyle.Machine
-  ...   def grok(self, name, obj):
+  ...   def grok(self, name, obj, **kw):
   ...     oldstyle.all_machine_instances[name] = obj
   ...     return True
 
@@ -787,7 +787,7 @@ a ``prepare`` function a the ModuleGrokker::
   >>> all_numbers = {}
   >>> class NumberGrokker(InstanceGrokker):
   ...  component_class = Number
-  ...  def grok(self, name, obj, multiplier):
+  ...  def grok(self, name, obj, multiplier, **kw):
   ...    all_numbers[obj.nr] = obj.nr * multiplier
   ...    return True
   >>> def prepare(name, module, kw):
@@ -834,7 +834,7 @@ programmer forgot to), the system will raise an error::
 
   >>> class BrokenGrokker(InstanceGrokker):
   ...  component_class = Number
-  ...  def grok(self, name, obj):
+  ...  def grok(self, name, obj, **kw):
   ...    pass
 
   >>> module_grokker = ModuleGrokker()
@@ -848,7 +848,7 @@ programmer forgot to), the system will raise an error::
 Let's also try this with a GlobalGrokker::
 
   >>> class MyGrokker(GlobalGrokker):
-  ...   def grok(self, name, module):
+  ...   def grok(self, name, module, **kw):
   ...     return "Foo"
   >>> module_grokker = ModuleGrokker()
   >>> module_grokker.register(MyGrokker())
@@ -949,7 +949,7 @@ the same module (or package) is grokked twice::
   >>> class somemodule(FakeModule):
   ...   class TestGrokker(ClassGrokker):
   ...     component_class = TestOnce
-  ...     def grok(self, name, obj):
+  ...     def grok(self, name, obj, **kw):
   ...        executed.append(name)
   ...        return True
   >>> somemodule = fake_import(somemodule)
@@ -985,7 +985,7 @@ This also works for instance grokkers::
   >>> class somemodule(FakeModule):
   ...   class TestGrokker(InstanceGrokker):
   ...     component_class = TestInstanceOnce
-  ...     def grok(self, name, obj):
+  ...     def grok(self, name, obj, **kw):
   ...        executed.append(name)
   ...        return True
   >>> somemodule = fake_import(somemodule)
@@ -1007,7 +1007,7 @@ It also works for global grokkers::
   >>> executed = []
   >>> class somemodule(FakeModule):
   ...   class TestGrokker(GlobalGrokker):
-  ...     def grok(self, name, obj):
+  ...     def grok(self, name, obj, **kw):
   ...       executed.append(name)
   ...       return True
   >>> somemodule = fake_import(somemodule)
@@ -1051,7 +1051,7 @@ which names get grokked::
 
   >>> order = []
   >>> class OrderGrokker(ClassGrokker):
-  ...   def grok(self, name, obj):
+  ...   def grok(self, name, obj, **kw):
   ...     order.append(name)
   ...     return True
 
@@ -1098,7 +1098,7 @@ that has a higher priority than the default, but lower than B::
 
   >>> class MyGlobalGrokker(GlobalGrokker):
   ...   priority = 5
-  ...   def grok(self, name, obj):
+  ...   def grok(self, name, obj, **kw):
   ...     order.append(name)
   ...     return True
   >>> multi_grokker.grok('MyGlobalGrokker', MyGlobalGrokker)
@@ -1114,3 +1114,48 @@ This time, the global grokker should appear after 'BSub' but before 'ASub'::
 
   >>> order
   ['BSub', 'mymodule', 'ASub']
+
+
+Module info
+-----------
+
+In addition to the ``name`` and ``object`` positional arguments,
+grokkers will get also get a ``module_info`` keyword argument.  It is
+an ``IModuleInfo`` object which can be used, for example, to query
+module annotations.  Consider the following grokker:
+
+  >>> from martian.error import GrokError
+  >>> class AnnotationsGrokker(GlobalGrokker):
+  ...   def grok(self, name, module, module_info, **kw):
+  ...       ann = module_info.getAnnotation('some.annotation', None)
+  ...       if ann is None:
+  ...           raise GrokError('Did not find annotation!', module)
+  ...       if ann != 'ME GROK SAY HI':
+  ...           raise GrokError('Wrong annotation!', module)
+  ...       return True
+
+Now let's provide a fake module:
+
+  >>> import new, sys
+  >>> annotations = new.module('annotations')
+  >>> annotations.__file__ = '/fake/module/annotations.py'
+  >>> sys.modules['annotations'] = annotations
+
+Clearly, it can't find the module-level variable yet:
+
+  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker.register(AnnotationsGrokker())
+  >>> import martian
+  >>> martian.grok_dotted_name('annotations', module_grokker)
+  Traceback (most recent call last):
+  ...
+  GrokError: Did not find annotation!
+
+Let's provide the annotation so that the grokker works as expected:
+
+  >>> annotations.__some_annotation__ = 'ME GROK SAY HI'
+  >>> martian.grok_dotted_name('annotations', module_grokker)
+
+Finally clean up:
+
+  >>> del sys.modules['annotations']
