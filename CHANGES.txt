@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.9.1 (unreleased)
+0.9.1 (2007-10-30)
 ==================
 
 Feature changes
