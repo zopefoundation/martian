@@ -124,8 +124,40 @@ class ModuleInfo(object):
     def __repr__(self):
         return "<ModuleInfo object for '%s'>" % self.dotted_name
 
+class BuiltinDummyModule(object):
+    """Needed for BuiltinModuleInfo"""
+    pass
 
+class BuiltinModuleInfo(object):
+    implements(IModuleInfo)
+
+    def getModule(self):
+        return BuiltinDummyModule()
+    
+    def isPackage(self):
+        return False
+
+    def getSubModuleInfos(self):
+        return []
+
+    def getSubModuleInfo(self, name):
+        return None
+
+    def getResourcePath(self, name):
+        # XXX we break the contract here. We could return
+        # a link to some temp directory for testing purposes?
+        return None
+    
+    def getAnnotation(self, key, default):
+        return default
+        
 def module_info_from_dotted_name(dotted_name, exclude_filter=None):
+    if dotted_name == '__builtin__':
+        # in case of the use of individually grokking something during a
+        # test the dotted_name being passed in could be __builtin__
+        # in this case we return a special ModuleInfo that just
+        # implements enough interface to work
+        return BuiltinModuleInfo()
     module = resolve(dotted_name)
     return ModuleInfo(module.__file__, dotted_name, exclude_filter)
 

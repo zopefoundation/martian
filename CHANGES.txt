@@ -4,7 +4,15 @@ CHANGES
 0.9.2 (unreleased)
 ==================
 
-* ...
+Bug fixes
+---------
+
+* scan.module_info_from_dotted_name() now has special behavior when it
+  runs into __builtin__. Previously, it would crash with an error. Now
+  it will return an instance of BuiltinModuleInfo. This is a very
+  simple implementation which provides just enough information to make
+  client code work. Typically this client code is test-related so that
+  the module context will be __builtin__.
 
 0.9.1 (2007-10-30)
 ==================
