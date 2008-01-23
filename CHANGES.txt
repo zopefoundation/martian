@@ -2,12 +2,16 @@ CHANGES
 *******
 
 0.9.3 (unreleased)
-==================
+======-===========
 
-Bug fixes
----------
+Feature changes
+---------------
 
-* ...
+* Added an OptionalValueDirective which allows the construction of
+  directives that take either zero or one argument. If no arguments
+  are given, the ``default_value`` method on the directive is
+  called. Subclasses need to override this to return the default value
+  to use.
 
 0.9.2 (2007-11-20)
 ==================

@@ -198,3 +198,29 @@ But not classes::
   Traceback (most recent call last):
     ...
   GrokImportError: You can only pass interfaces to hello2.
+
+An ``OptionalValueDirective`` accepts a single value, but the value
+can be left out. If so, the value will be calculated by a function we
+pass it::
+
+  >>> from martian.directive import OptionalValueDirective
+  >>> class MyDirective(OptionalValueDirective, OnceDirective):
+  ...    def default_value(self):
+  ...       return 4 # the default if no value is given 
+  >>> hello3 = MyDirective('hello3', ClassDirectiveContext())
+
+Let's try the directive with a single value::
+
+  >>> class Test(object):
+  ...   hello3(1)
+  >>> Test.__hello3__
+  1
+
+We can also try the directive without a value::
+
+  >>> class Test(object):
+  ...   hello3()
+  >>> Test.__hello3__
+  4
+
+

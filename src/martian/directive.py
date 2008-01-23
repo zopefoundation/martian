@@ -144,6 +144,17 @@ class SingleValue(object):
     def value_factory(self, value):
         return value
 
+class OptionalValueDirective(object):
+    def check_arguments(self, value=None):
+        pass
+
+    def value_factory(self, value=None):
+        if value is None:
+            return self.default_value()
+        return value
+
+    def default_value(self):
+        raise NotImplementedError
 
 class BaseTextDirective(object):
     """
