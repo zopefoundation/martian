@@ -87,16 +87,6 @@ def defined_locally(obj, dotted_name):
     return obj_module == dotted_name
 
 
-AMBIGUOUS_CONTEXT = object()
-def check_context(component, context):
-    if context is None:
-        raise GrokError("No module-level context for %r, please use "
-                        "grok.context." % component, component)
-    elif context is AMBIGUOUS_CONTEXT:
-        raise GrokError("Multiple possible contexts for %r, please use "
-                        "grok.context." % component, component)
-
-
 def check_implements_one(class_):
     check_implements_one_from_list(list(interface.implementedBy(class_)),
                                    class_)
@@ -126,27 +116,6 @@ def scan_for_classes(module, classes):
             if check_subclass(obj, class_):
                 result.add(obj)
     return list(result)
-
-def determine_module_context(module_info, models):
-    if len(models) == 0:
-        context = None
-    elif len(models) == 1:
-        context = models[0]
-    else:
-        context = AMBIGUOUS_CONTEXT
-
-    module_context = module_info.getAnnotation('grok.context', None)
-    if module_context:
-        context = module_context
-
-    return context
-
-
-def determine_class_context(class_, module_context):
-    context = class_annotation(class_, 'grok.context', module_context)
-    check_context(class_, context)
-    return context
-
 
 def methods_from_class(class_):
     # XXX Problem with zope.interface here that makes us special-case
