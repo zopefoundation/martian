@@ -71,5 +71,9 @@ def test_suite():
         doctest.DocFileSuite('directive.txt',
                              package='martian',
                              optionflags=optionflags),
+        doctest.DocFileSuite('ndir.txt',
+                             package='martian',
+                             globs=globs,
+                             optionflags=optionflags),
         ])
     return suite

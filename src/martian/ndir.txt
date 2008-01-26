@@ -1,0 +1,131 @@
+Directives New Style
+====================
+
+When grokking a class, the grokking procedure can be informed by
+directives, on a class, or a module. If a directive is absent, the
+system falls back to a default. Here we introduce a general way to
+define these directives, and how to use them to retrieve information
+for a class for use during the grokking procedure.
+
+Let's define a simple directive that sets a description::
+
+  >>> from martian.ndir import Directive, CLASS, ONCE
+  >>> description = Directive('martian', 'description', 
+  ...   CLASS, ONCE, u'')
+
+This directive is placed in a namespace (in this case, ``martian``);
+this is just a string and should be used to avoid conflicts between
+directives with the same name that could be defined by different
+packages.
+
+The name of the directive is ``description``. We specify that the
+directive can only be used in the scope of a class. We also specify it
+can only be used a single time. Finally we define the default in case
+the directive is absent (the empty string).
+
+Let's look at the directive in action::
+
+  >>> class Foo(object):
+  ...    description(u"This is a description")
+
+After setting it, we can use the ``get`` method on the directive to
+retrieve it from the class again::
+
+  >>> description.get(Foo)
+  u'This is a description'
+
+Let's see that directives in different namespaces indeed get stored
+differently. We'll define a similar directive in another namespace::
+
+  >>> description2 = Directive('different', 'description', 
+  ...   CLASS, ONCE, u'')
+
+  >>> class Foo(object):
+  ...    description(u"Description1")
+  ...    description2(u"Description2")
+  >>> description.get(Foo)
+  u'Description1'
+  >>> description2.get(Foo)
+  u'Description2'
+
+Let's check the defaulting behavior. If we check the value of a class
+without the directive, we expect to see the default for that directive::
+
+  >>> class Foo(object):
+  ...   pass
+  >>> description.get(Foo)
+  u''
+
+When we use the directive outside of class scope, we expect an error message::
+
+  >>> description('Description')
+  Traceback (most recent call last):
+    ...
+  GrokImportError: martian.description can only be used on class level.
+
+In particular, we cannot use it in a module::
+
+  >>> class testmodule(FakeModule):
+  ...   fake_module = True
+  ...   description("Description")
+  Traceback (most recent call last):
+    ...
+  GrokImportError: martian.description can only be used on class level.
+
+We cannot use the directive twice in the class scope. If we do so, we
+expect an error message as well::
+
+  >>> class Foo(object):
+  ...   description(u"Description1")
+  ...   description(u"Description2")
+  Traceback (most recent call last):
+    ...
+  GrokImportError: martian.description can only be called once per class.
+
+Let's now define a ``layer`` directive that can be used in class and
+module scope both::
+
+  >>> from martian.ndir import CLASS_OR_MODULE
+  >>> layer = Directive('martian', 'layer', CLASS_OR_MODULE, ONCE, None)
+
+We can use it on a class::
+
+  >>> class Foo(object):
+  ...   layer('Test')
+  >>> layer.get(Foo)
+  'Test'
+
+The defaulting to ``None`` works::
+
+  >>> class Foo(object):
+  ...   pass
+  >>> layer.get(Foo) is None
+  True
+
+We can also use it in a module::
+
+  >>> class testmodule(FakeModule):
+  ...    layer('Test2')
+  ...    class Foo(object):
+  ...       pass
+  >>> test_module = fake_import(testmodule)
+
+When we now try to access ``layer`` on ``Foo``, we expect to find the
+module-level default which we just set. We pass the module as the second
+argument to the ``get`` method to have it fall back on this::
+
+  >>> layer.get(testmodule.Foo, testmodule)
+  'Test2'
+
+Let's try again in a module where the directive is not used::
+
+  >>> class testmodule(FakeModule):
+  ...   class Foo(object):
+  ...      pass
+  >>> testmodule = fake_import(testmodule)
+
+We expect the value to be the default, ``None``::
+
+  >>> layer.get(testmodule.Foo, testmodule) is None
+  True
+
