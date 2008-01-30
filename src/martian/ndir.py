@@ -5,7 +5,9 @@ from martian.error import GrokImportError
 
 NOT_FOUND = object()
 
+# ONCE or MULTIPLE
 ONCE = object()
+MULTIPLE = object()
 
 class ClassScope(object):
     description = 'class'
@@ -39,11 +41,18 @@ class Directive(object):
         if not self.scope.check(frame):
             raise GrokImportError("%s can only be used on %s level." %
                                   (name, self.scope.description))
-        if name in frame.f_locals:
-            raise GrokImportError("%s can only be called once per %s." %
-                                  (name, self.scope.description))
-        frame.f_locals[name] = value
-        
+        if self.times is ONCE:
+            if name in frame.f_locals:
+                raise GrokImportError("%s can only be called once per %s." %
+                                      (name, self.scope.description))
+            frame.f_locals[name] = value
+        elif self.times is MULTIPLE:
+            values = frame.f_locals.get(name, [])
+            values.append(value)
+            frame.f_locals[name] = values
+        else:
+            assert False, "Unknown value for times: %" % self.times
+            
     def get(self, component, module=None):
         name = self.namespaced_name()
         value = getattr(component, name, NOT_FOUND)

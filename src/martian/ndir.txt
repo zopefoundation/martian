@@ -7,6 +7,9 @@ system falls back to a default. Here we introduce a general way to
 define these directives, and how to use them to retrieve information
 for a class for use during the grokking procedure.
 
+A simple directive
+------------------
+
 Let's define a simple directive that sets a description::
 
   >>> from martian.ndir import Directive, CLASS, ONCE
@@ -82,6 +85,9 @@ expect an error message as well::
     ...
   GrokImportError: martian.description can only be called once per class.
 
+Class and module scope
+----------------------
+
 Let's now define a ``layer`` directive that can be used in class and
 module scope both::
 
@@ -129,3 +135,22 @@ We expect the value to be the default, ``None``::
   >>> layer.get(testmodule.Foo, testmodule) is None
   True
 
+Using a directive multiple times
+--------------------------------
+
+A directive can be configured to allow it to be called multiple times
+in the same scope::
+
+  >>> from martian.ndir import MULTIPLE
+  >>> multi = Directive('martian', 'multi', CLASS, MULTIPLE, None)
+
+Let's try it::
+
+  >>> class Foo(object):
+  ...   multi(u"Once")
+  ...   multi(u"Twice")
+
+We can now retrieve the value and we'll get a list::
+
+  >>> multi.get(Foo)
+  [u'Once', u'Twice']
