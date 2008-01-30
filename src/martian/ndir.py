@@ -1,5 +1,7 @@
 import sys
 
+from zope.interface.interfaces import IInterface
+
 from martian import util
 from martian.error import GrokImportError
 
@@ -8,6 +10,13 @@ NOT_FOUND = object()
 # ONCE or MULTIPLE
 ONCE = object()
 MULTIPLE = object()
+
+# arguments
+SINGLE_ARG = object()
+NO_ARG = object()
+OPTIONAL_ARG = object()
+
+_SENTINEL = object()
 
 class ClassScope(object):
     description = 'class'
@@ -28,16 +37,35 @@ class ClassOrModuleScope(object):
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class Directive(object):
-    def __init__(self, namespace, name, scope, times, default):
+    def __init__(self, namespace, name, scope, times, default,
+                 validate=None, arg=SINGLE_ARG):
         self.namespace = namespace
         self.name = name
         self.scope = scope
         self.times = times
         self.default = default
-
-    def __call__(self, value):
-        frame = sys._getframe(1)
+        self.validate = validate
+        self.arg = arg
+        
+    def __call__(self, value=_SENTINEL):            
         name = self.namespaced_name()
+
+        if self.arg is NO_ARG:
+            if value is _SENTINEL:
+                value = True
+            else:
+                raise GrokImportError("%s accepts no arguments." % name)
+        elif self.arg is SINGLE_ARG:
+            if value is _SENTINEL:
+                raise GrokImportError("%s requires a single argument." % name)
+        elif self.arg is OPTIONAL_ARG:
+            if value is _SENTINEL:
+                value = self.default
+
+        if self.validate is not None:
+            self.validate(name, value)
+
+        frame = sys._getframe(1)
         if not self.scope.check(frame):
             raise GrokImportError("%s can only be used on %s level." %
                                   (name, self.scope.description))
@@ -67,7 +95,24 @@ class Directive(object):
     def namespaced_name(self):
         return self.namespace + '.' + self.name
 
+def validateText(name, value):
+    if util.not_unicode_or_ascii(value):
+        raise GrokImportError("%s can only be called with unicode or ASCII." %
+                              name)
 
+def validateInterfaceOrClass(name, value):
+    if not (IInterface.providedBy(value) or util.isclass(value)):
+        raise GrokImportError("%s can only be called with a class or "
+                              "interface." %
+                              name)
+
+
+def validateInterface(name, value):
+    if not (IInterface.providedBy(value)):
+        raise GrokImportError("%s can only be called with an interface." %
+                              name)
+
+    
 # this here only for testing purposes, which is a bit unfortunate
 # but makes the tests a lot clearer for module-level directives
 # also unfortunate that fake_module needs to be defined directly
