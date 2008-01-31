@@ -5,8 +5,6 @@ from zope.interface.interfaces import IInterface
 from martian import util
 from martian.error import GrokImportError
 
-NOT_FOUND = object()
-
 # ONCE or MULTIPLE
 ONCE = object()
 MULTIPLE = object()
@@ -17,6 +15,7 @@ NO_ARG = object()
 OPTIONAL_ARG = object()
 
 _SENTINEL = object()
+_USE_DEFAULT = object()
 
 class ClassScope(object):
     description = 'class'
@@ -46,7 +45,7 @@ class Directive(object):
         self.default = default
         self.validate = validate
         self.arg = arg
-        
+
     def __call__(self, value=_SENTINEL):            
         name = self.namespaced_name()
 
@@ -60,7 +59,7 @@ class Directive(object):
                 raise GrokImportError("%s requires a single argument." % name)
         elif self.arg is OPTIONAL_ARG:
             if value is _SENTINEL:
-                value = self.default
+                value = _USE_DEFAULT
 
         if self.validate is not None:
             self.validate(name, value)
@@ -80,17 +79,20 @@ class Directive(object):
             frame.f_locals[name] = values
         else:
             assert False, "Unknown value for times: %" % self.times
-            
+
     def get(self, component, module=None):
         name = self.namespaced_name()
-        value = getattr(component, name, NOT_FOUND)
-        if value is not NOT_FOUND:
-            return value
-        if module is not None:
-            return getattr(module, name, self.default)
+        value = getattr(component, name, _USE_DEFAULT)
+        if value is _USE_DEFAULT and module is not None:
+            value = getattr(module, name, _USE_DEFAULT)
+        if value is _USE_DEFAULT:
+            return self.get_default(component)
+        return value
+
+    def get_default(self, component):
+        if callable(self.default):
+            return self.default(component)
         return self.default
-    
-        return getattr(component, self.namespaced_name(), self.default)
 
     def namespaced_name(self):
         return self.namespace + '.' + self.name
