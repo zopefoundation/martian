@@ -131,6 +131,9 @@ class BuiltinDummyModule(object):
 class BuiltinModuleInfo(object):
     implements(IModuleInfo)
 
+    # to let view grokking succeed in tests
+    package_dotted_name = 'dummy.dotted.name'
+    
     def getModule(self):
         return BuiltinDummyModule()
     
@@ -150,7 +153,7 @@ class BuiltinModuleInfo(object):
     
     def getAnnotation(self, key, default):
         return default
-        
+
 def module_info_from_dotted_name(dotted_name, exclude_filter=None):
     if dotted_name == '__builtin__':
         # in case of the use of individually grokking something during a
