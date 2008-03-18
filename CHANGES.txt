@@ -11,6 +11,8 @@ Bug fixes
   allows the grokking of views in test code using Grok's
   ``grok.testing.grok_component`` without a failure when it sets up the
   ``static`` attribute.
+* no longer use the convention that classes ending in -Base will be considered
+  base classes. You must now explicitly use the grok.baseclass() directive.
 
 0.9.3 (2008-01-26)
 ==================
