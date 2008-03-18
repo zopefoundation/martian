@@ -49,8 +49,7 @@ def caller_module():
 
 def is_baseclass(name, component):
     return (type(component) is type and
-            (name.endswith('Base') or
-             class_annotation_nobase(component, 'grok.baseclass', False)))
+            class_annotation_nobase(component, 'grok.baseclass', False))
 
 def class_annotation(obj, name, default):
     return getattr(obj, '__%s__' % name.replace('.', '_'), default)
