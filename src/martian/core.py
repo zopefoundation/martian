@@ -8,12 +8,7 @@ from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
                                 GlobalGrokker)
 from martian.error import GrokError
 
-try:
-    from ExtensionClass import ExtensionClass
-    CLASS_TYPES = (type, types.ClassType, ExtensionClass)
-except ImportError:
-    CLASS_TYPES = (type, types.ClassType)
-    
+
 class MultiGrokkerBase(GrokkerBase):
     implements(IMultiGrokker)
 
@@ -176,10 +171,9 @@ class MultiGrokker(MultiGrokkerBase):
         self._multi_global_grokker = MultiGlobalGrokker()
 
     def grokkers(self, name, obj):
-        obj_type = type(obj)
-        if obj_type in CLASS_TYPES:
+        if isinstance(obj, (type, types.ClassType)):
             return self._multi_class_grokker.grokkers(name, obj)
-        elif obj_type is types.ModuleType:
+        elif isinstance(obj, types.ModuleType):
             return self._multi_global_grokker.grokkers(name, obj)
         else:
             return self._multi_instance_grokker.grokkers(name, obj)
