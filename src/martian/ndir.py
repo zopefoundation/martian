@@ -63,6 +63,14 @@ class ClassOrModuleScope(object):
 
 CLASS_OR_MODULE = ClassOrModuleScope()
 
+class ModuleScope(object):
+    description = 'module'
+
+    def check(self, frame):
+        return util.frame_is_module(frame)
+
+MODULE = ModuleScope()
+
 class Directive(object):
 
     default = None
@@ -115,6 +123,11 @@ class Directive(object):
         if value is _USE_DEFAULT:
             value = self.get_default(component)
         return value
+
+
+class MultipleTimesDirective(Directive):
+    store = MULTIPLE
+    default = []
 
 
 class MarkerDirective(Directive):
