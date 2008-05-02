@@ -1,25 +1,53 @@
 import sys
+import inspect
 
 from zope.interface.interfaces import IInterface
 
 from martian import util
 from martian.error import GrokImportError
 
-# ONCE or MULTIPLE
-ONCE = object()
-MULTIPLE = object()
+class StoreOnce(object):
 
-# arguments
-SINGLE_ARG = object()
-NO_ARG = object()
-OPTIONAL_ARG = object()
+    def set(self, frame, directive, value):
+        dotted_name = (directive.__class__.__module__ + '.' +
+                       directive.__class__.__name__)
+        if dotted_name in frame.f_locals:
+            raise GrokImportError("The '%s' directive can only be called once per %s." %
+                                  (directive.name, directive.scope.description))
+        frame.f_locals[dotted_name] = value
+
+    def get(self, directive, component, default):
+        dotted_name = (directive.__class__.__module__ + '.' +
+                       directive.__class__.__name__)
+        return getattr(component, dotted_name, default)
+
+ONCE = StoreOnce()
+
+class StoreOnceGetFromThisClassOnly(StoreOnce):
+
+    def get(self, directive, component, default):
+        dotted_name = (directive.__class__.__module__ + '.' +
+                       directive.__class__.__name__)
+        return component.__dict__.get(dotted_name, default)
+
+class StoreMultipleTimes(StoreOnce):
+
+    def set(self, frame, directive, value):
+        dotted_name = (directive.__class__.__module__ + '.' +
+                       directive.__class__.__name__)
+        values = frame.f_locals.get(dotted_name, [])
+        values.append(value)
+        frame.f_locals[dotted_name] = values
+
+MULTIPLE = StoreMultipleTimes()
+
 
 _SENTINEL = object()
 _USE_DEFAULT = object()
 
 class ClassScope(object):
     description = 'class'
-    
+
     def check(self, frame):
         return (util.frame_is_class(frame) and
                 not is_fake_module(frame))
@@ -36,85 +64,89 @@ class ClassOrModuleScope(object):
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class Directive(object):
-    def __init__(self, namespace, name, scope, times, default,
-                 validate=None, arg=SINGLE_ARG):
-        self.namespace = namespace
-        self.name = name
-        self.scope = scope
-        self.times = times
-        self.default = default
-        self.validate = validate
-        self.arg = arg
 
-    def __call__(self, value=_SENTINEL):            
-        name = self.namespaced_name()
+    default = None
 
-        if self.arg is NO_ARG:
-            if value is _SENTINEL:
-                value = True
-            else:
-                raise GrokImportError("%s accepts no arguments." % name)
-        elif self.arg is SINGLE_ARG:
-            if value is _SENTINEL:
-                raise GrokImportError("%s requires a single argument." % name)
-        elif self.arg is OPTIONAL_ARG:
-            if value is _SENTINEL:
-                value = _USE_DEFAULT
-
-        if self.validate is not None:
-            self.validate(name, value)
+    def __init__(self, *args, **kw):
+        self.name = self.__class__.__name__
 
         frame = sys._getframe(1)
         if not self.scope.check(frame):
-            raise GrokImportError("%s can only be used on %s level." %
-                                  (name, self.scope.description))
-        if self.times is ONCE:
-            if name in frame.f_locals:
-                raise GrokImportError("%s can only be called once per %s." %
-                                      (name, self.scope.description))
-            frame.f_locals[name] = value
-        elif self.times is MULTIPLE:
-            values = frame.f_locals.get(name, [])
-            values.append(value)
-            frame.f_locals[name] = values
-        else:
-            assert False, "Unknown value for times: %" % self.times
+            raise GrokImportError("The '%s' directive can only be used on "
+                                  "%s level." %
+                                  (self.name, self.scope.description))
 
-    def get(self, component, module=None):
-        name = self.namespaced_name()
-        value = getattr(component, name, _USE_DEFAULT)
-        if value is _USE_DEFAULT and module is not None:
-            value = getattr(module, name, _USE_DEFAULT)
-        if value is _USE_DEFAULT:
-            return self.get_default(component)
+        self.check_factory_signature(*args, **kw)
+        validate = getattr(self, 'validate', None)
+        if validate is not None:
+            validate(*args, **kw)
+        value = self.factory(*args, **kw)
+
+        self.store.set(frame, self, value)
+
+    # To get a correct error message, we construct a function that has
+    # the same signature as check_arguments(), but without "self".
+    def check_factory_signature(self, *arguments, **kw):
+        args, varargs, varkw, defaults = inspect.getargspec(
+            self.factory)
+        argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
+        exec("def signature_checker" + argspec + ": pass")
+        try:
+            signature_checker(*arguments, **kw)
+        except TypeError, e:
+            message = e.args[0]
+            message = message.replace("signature_checker()", self.name)
+            raise TypeError(message)
+
+    def factory(self, value):
         return value
 
     def get_default(self, component):
-        if callable(self.default):
-            return self.default(component)
         return self.default
 
-    def namespaced_name(self):
-        return self.namespace + '.' + self.name
+    @classmethod
+    def get(cls, component, module=None):
+        # Create an instance of the directive without calling __init__
+        self = cls.__new__(cls)
 
-def validateText(name, value):
+        value = self.store.get(self, component, _USE_DEFAULT)
+        if value is _USE_DEFAULT and module is not None:
+            value = self.store.get(self, module, _USE_DEFAULT)
+        if value is _USE_DEFAULT:
+            value = self.get_default(component)
+        return value
+
+
+class MarkerDirective(Directive):
+    store = ONCE
+    default = False
+
+    def factory(self):
+        return True
+
+
+class baseclass(MarkerDirective):
+    scope = CLASS
+    store = StoreOnceGetFromThisClassOnly()
+
+
+def validateText(directive, value):
     if util.not_unicode_or_ascii(value):
-        raise GrokImportError("%s can only be called with unicode or ASCII." %
-                              name)
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "unicode or ASCII." % directive.name)
 
-def validateInterfaceOrClass(name, value):
+def validateInterfaceOrClass(directive, value):
     if not (IInterface.providedBy(value) or util.isclass(value)):
-        raise GrokImportError("%s can only be called with a class or "
-                              "interface." %
-                              name)
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "a class or an interface." % directive.name)
 
 
-def validateInterface(name, value):
+def validateInterface(directive, value):
     if not (IInterface.providedBy(value)):
-        raise GrokImportError("%s can only be called with an interface." %
-                              name)
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "an interface." % directive.name)
 
-    
+
 # this here only for testing purposes, which is a bit unfortunate
 # but makes the tests a lot clearer for module-level directives
 # also unfortunate that fake_module needs to be defined directly
