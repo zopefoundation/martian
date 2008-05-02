@@ -21,6 +21,7 @@ import inspect
 
 from zope import interface
 
+import martian
 from martian.error import GrokError, GrokImportError
 
 def not_unicode_or_ascii(value):
@@ -48,19 +49,11 @@ def caller_module():
     return sys._getframe(2).f_globals['__name__']
 
 def is_baseclass(name, component):
-    return (type(component) is type and
-            class_annotation_nobase(component, 'grok.baseclass', False))
+    return (isclass(component) and martian.baseclass.get(component))
 
 def class_annotation(obj, name, default):
     return getattr(obj, '__%s__' % name.replace('.', '_'), default)
 
-def class_annotation_nobase(obj, name, default):
-    """This will only look in the given class obj for the annotation.
-
-    It will not look in the inheritance chain.
-    """
-    return obj.__dict__.get('__%s__' % name.replace('.', '_'), default)
-    
 def class_annotation_list(obj, name, default):
     """This will process annotations that are lists correctly in the face of
     inheritance.
@@ -128,4 +121,4 @@ def frame_is_module(frame):
     return frame.f_locals is frame.f_globals
 
 def frame_is_class(frame):
-    return '__module__' in frame.f_locals    
+    return '__module__' in frame.f_locals
