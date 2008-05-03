@@ -34,6 +34,9 @@ class StoreMultipleTimes(StoreOnce):
         if getattr(component, directive.dotted_name(), default) is default:
             return default
 
+        if getattr(component, 'mro', None) is None:
+            return getattr(component, directive.dotted_name())
+
         result = []
         for base in reversed(component.mro()):
             list = getattr(base, directive.dotted_name(), default)
@@ -56,6 +59,9 @@ class StoreDict(StoreOnce):
     def get(self, directive, component, default):
         if getattr(component, directive.dotted_name(), default) is default:
             return default
+
+        if getattr(component, 'mro', None) is None:
+            return getattr(component, directive.dotted_name())
 
         result = {}
         for base in reversed(component.mro()):

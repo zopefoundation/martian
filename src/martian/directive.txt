@@ -195,7 +195,7 @@ The default value for a MultipleTimesDirective is an empty list::
   []
 
 Whenever the directive is used on a sub class of a component, the values set by
-directives on the base classes are concatenated::
+directives on the base classes are combined::
 
   >>> class Qux(Foo):
   ...     multi(u'Triple')
@@ -258,6 +258,9 @@ When the factory method does not return a key-value pair, an error is raised::
   GrokImportError: The factory method for the 'wrongmulti2' directive should
   return a key-value pair.
 
+Like with MULTIPLE store, values set by directives using the DICT store are
+combined::
+
   >>> class multi(Directive):
   ...     scope = CLASS
   ...     store = DICT
@@ -276,6 +279,43 @@ When the factory method does not return a key-value pair, an error is raised::
   >>> d = multi.get(Fropple)
   >>> print sorted(d.items())
   [(1, 'CCC'), (2, 'BBB'), (3, 'DDD'), (4, 'EEE')]
+
+Using MULTIPLE and DICT can also work on a module level, even though
+inheritance has no meaning there::
+
+  >>> from martian import MODULE
+  >>> class multi(MultipleTimesDirective):
+  ...     scope = MODULE
+  ...
+  >>> multi.__module__ = 'somethingelse'
+  >>> class module_with_directive(FakeModule):
+  ...     fake_module = True
+  ...
+  ...     multi('One')
+  ...     multi('Two')
+  ...
+  >>> module_with_directive = fake_import(module_with_directive)
+  >>> print multi.get(module_with_directive)
+  ['One', 'Two']
+
+  >>> from martian import MODULE
+  >>> class multi(Directive):
+  ...     scope = MODULE
+  ...     store = DICT
+  ...     def factory(self, value, andanother):
+  ...         return value, andanother
+  ...
+  >>> multi.__module__ = 'somethingelse'
+  >>> class module_with_directive(FakeModule):
+  ...     fake_module = True
+  ...
+  ...     multi(1, 'One')
+  ...     multi(2, 'Two')
+  ...
+  >>> module_with_directive = fake_import(module_with_directive)
+  >>> d = multi.get(module_with_directive)
+  >>> print sorted(d.items())
+  [(1, 'One'), (2, 'Two')]
 
 Calculated defaults
 -------------------
