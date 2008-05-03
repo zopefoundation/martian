@@ -85,7 +85,10 @@ class ModuleGrokker(MultiGrokkerBase):
 
         # try to grok everything in module
         for name in dir(module):
-            if name.startswith('__grok_'):
+            if '.' in name:
+                # This must be a module-level variable that couldn't
+                # have been set by the developer.  It must have been a
+                # module-level directive.
                 continue
             obj = getattr(module, name)
             if not util.defined_locally(obj, module.__name__):

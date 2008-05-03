@@ -72,5 +72,9 @@ def test_suite():
                              package='martian',
                              globs=globs,
                              optionflags=optionflags),
+        doctest.DocFileSuite('core.txt',
+                             package='martian',
+                             globs=globs,
+                             optionflags=optionflags),
         ])
     return suite
