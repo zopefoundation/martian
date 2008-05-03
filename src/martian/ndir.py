@@ -35,9 +35,8 @@ class StoreMultipleTimes(StoreOnce):
     def set(self, frame, directive, value):
         dotted_name = (directive.__class__.__module__ + '.' +
                        directive.__class__.__name__)
-        values = frame.f_locals.get(dotted_name, [])
+        values = frame.f_locals.setdefault(dotted_name, [])
         values.append(value)
-        frame.f_locals[dotted_name] = values
 
 MULTIPLE = StoreMultipleTimes()
 
@@ -85,9 +84,11 @@ class Directive(object):
                                   (self.name, self.scope.description))
 
         self.check_factory_signature(*args, **kw)
+
         validate = getattr(self, 'validate', None)
         if validate is not None:
             validate(*args, **kw)
+
         value = self.factory(*args, **kw)
 
         self.store.set(frame, self, value)
@@ -122,6 +123,7 @@ class Directive(object):
             value = self.store.get(self, module, _USE_DEFAULT)
         if value is _USE_DEFAULT:
             value = self.get_default(component)
+
         return value
 
 
