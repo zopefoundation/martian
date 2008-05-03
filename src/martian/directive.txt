@@ -172,10 +172,9 @@ Using a directive multiple times
 A directive can be configured to allow it to be called multiple times
 in the same scope::
 
-  >>> from martian import MULTIPLE
-  >>> class multi(Directive):
+  >>> from martian import MultipleTimesDirective
+  >>> class multi(MultipleTimesDirective):
   ...     scope = CLASS
-  ...     store = MULTIPLE
 
 We can now use the directive multiple times without any errors::
 
@@ -187,6 +186,13 @@ We can now retrieve the value and we'll get a list::
 
   >>> multi.get(Foo)
   [u'Once', u'Twice']
+
+The default value for a MultipleTimesDirective is an empty list::
+
+  >>> class Bar(object):
+  ...   pass
+  >>> multi.get(Bar)
+  []
 
 Using a directive multiple times, as a dictionary
 -------------------------------------------------
