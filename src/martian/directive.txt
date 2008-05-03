@@ -1,226 +1,486 @@
-Directives
-==========
+Directives New Style
+====================
 
-A martian directive is a special function call that causes information
-to be set on module or class level. This information is set as a
-Python module is imported, so should do the minimum amount of work (as
-import side-effects are bad). The idea is that this information can
-then be picked up by a martian-based framework during grok time.
+When grokking a class, the grokking procedure can be informed by
+directives, on a class, or a module. If a directive is absent, the
+system falls back to a default. Here we introduce a general way to
+define these directives, and how to use them to retrieve information
+for a class for use during the grokking procedure.
 
-Martian has an infrastructure to make it easy to define new
-directives.
-
-Directive contexts
+A simple directive
 ------------------
 
-If a directive is given ``ModuleDirectiveContext`` it can only work in
-real modules::
+We define a simple directive that sets a description::
 
-  >>> from martian.directive import SingleTextDirective, ModuleDirectiveContext
-  >>> foo = SingleTextDirective('grok.foo', ModuleDirectiveContext())
+  >>> from martian import Directive, CLASS, ONCE
+  >>> class description(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...     default = u''
 
-We cannot show a working example of the ``foo`` directive in this
-doctest as it is not a real module. It would look like this::
-  
-   foo('hello world')
+The name of the directive is ``description``. We specify that the
+directive can only be used in the scope of a class. We also specify it
+can only be used a single time. Finally we define the default in case
+the directive is absent (the empty string).
 
-We have placed this code in a real module and will import it::
+Now we look at the directive in action::
 
-  >>> from martian.tests.directive import modulecontext
+  >>> class Foo(object):
+  ...    description(u"This is a description")
 
-We expect modulecontext to contain a special attribute ``__grok_foo__``
-with the string ``'hello world'``::
+After setting it, we can use the ``get`` method on the directive to
+retrieve it from the class again::
 
-  >>> modulecontext.__grok_foo__
-  'hello world'
+  >>> description.get(Foo)
+  u'This is a description'
 
-This directive cannot be used in a class as it's not allowed by its context::
- 
-  >>> class Test(object):
-  ...   foo('hello world')
-  Traceback (most recent call last):
-   ...
-  GrokImportError: grok.foo can only be used on module level.
+Directives in different namespaces get stored differently. We'll
+define a similar directive in another namespace::
 
-Now let's define a directive that can only work in classes::
+  >>> class description2(description):
+  ...     pass
 
-  >>> from martian.directive import ClassDirectiveContext
-  >>> bar = SingleTextDirective('grok.bar', ClassDirectiveContext())
+  >>> class Foo(object):
+  ...     description(u"Description1")
+  ...     description2(u"Description2")
+  >>> description.get(Foo)
+  u'Description1'
+  >>> description2.get(Foo)
+  u'Description2'
 
-It won't work in a module::
+If we check the value of a class without the directive, we see the
+default value for that directive, this case the empty unicode string::
 
-  >>> from martian.tests.directive import classcontextbroken
-  Traceback (most recent call last):
-    ...
-  GrokImportError: grok.bar can only be used on class level.
+  >>> class Foo(object):
+  ...     pass
+  >>> description.get(Foo)
+  u''
 
-It will work in a class context::
+In certain cases we need to set a value on a component as if the directive was
+actually used::
 
-  >>> class Test(object):
-  ...   bar('hello world')
-  >>> Test.__grok_bar__
-  'hello world'
+  >>> description.set(Foo, u'value as set')
+  >>> description.get(Foo)
+  u'value as set'
 
-Now let's define a directive that can be used both on module-level as
-well as on class-level::
+Subclasses of the original class will inherit the properties set by the
+directive:
 
-  >>> from martian.directive import ClassOrModuleDirectiveContext
-  >>> qux = SingleTextDirective('grok.qux', ClassOrModuleDirectiveContext())
+  >>> class Foo(object):
+  ...     description('This is a foo.')
+  ...
+  >>> class Bar(Foo):
+  ...     pass
+  ...
+  >>> description.get(Bar)
+  'This is a foo.'
 
-It can be used in a class::
+When we use the directive outside of class scope, we get an error
+message::
 
-  >>> class Test(object):
-  ...   qux('hello world')
-  >>> Test.__grok_qux__
-  'hello world'
-
-It can also be used in a module::
-
-  >>> from martian.tests.directive import classormodulecontext
-  >>> classormodulecontext.__grok_qux__
-  'hello world'
-
-Calling a directive once or multiple times
-------------------------------------------
-
-Directives can either be called once in a particular context, or
-multiple times. Let's define a type of directive that can only be
-called once::
-  
-  >>> from martian.directive import OnceDirective, SingleValue, BaseTextDirective
-  >>> class MyDirective(BaseTextDirective, SingleValue, OnceDirective):
-  ...   pass
-  >>> hoi = MyDirective('hoi', ClassDirectiveContext())
-
-When we try to use it twice, we get an error::
-
-  >>> class Test(object):
-  ...   hoi('once')
-  ...   hoi('twice')
+  >>> description('Description')
   Traceback (most recent call last):
     ...
-  GrokImportError: hoi can only be called once per class.
+  GrokImportError: The 'description' directive can only be used on class level.
 
-This also works for module-level directives::
+In particular, we cannot use it in a module::
 
-  >>> from martian.tests.directive import onlyoncemodulecontext
+  >>> class testmodule(FakeModule):
+  ...   fake_module = True
+  ...   description("Description")
   Traceback (most recent call last):
     ...
-  GrokImportError: hoi can only be called once per module.
+  GrokImportError: The 'description' directive can only be used on class level.
 
-Now let's define a directive that can be called multiple times::
+We cannot use the directive twice in the class scope. If we do so, we
+get an error message as well::
 
-  >>> from martian.directive import MultipleTimesDirective
-  >>> class MyDirective(BaseTextDirective, SingleValue, MultipleTimesDirective):
+  >>> class Foo(object):
+  ...   description(u"Description1")
+  ...   description(u"Description2")
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'description' directive can only be called once per class.
+
+We cannot call the directive with no argument either::
+
+  >>> class Foo(object):
+  ...   description()
+  Traceback (most recent call last):
+    ...
+  TypeError: description takes exactly 1 argument (0 given)
+
+Class and module scope
+----------------------
+
+We define a ``layer`` directive that can be used in class and module
+scope both::
+
+  >>> from martian import CLASS_OR_MODULE
+  >>> class layer(Directive):
+  ...     scope = CLASS_OR_MODULE
+  ...     store = ONCE
+
+By default, the ``default`` property is None which is why we can omit
+specifying it here.
+
+We can use this directive now on a class::
+
+  >>> class Foo(object):
+  ...   layer('Test')
+  >>> layer.get(Foo)
+  'Test'
+
+The defaulting to ``None`` works::
+
+  >>> class Foo(object):
   ...   pass
-  >>> dag = MyDirective('dag', ClassDirectiveContext())
+  >>> layer.get(Foo) is None
+  True
 
-It will allow you to use it multiple times::
- 
-  >>> class Test(object):
-  ...   dag('once')
-  ...   dag('twice')
+We can also use it in a module::
 
-The underlying annotation will have stored the multiple values::
+  >>> class testmodule(FakeModule):
+  ...    layer('Test2')
+  ...    class Foo(object):
+  ...       pass
+  >>> test_module = fake_import(testmodule)
 
-  >>> Test.__dag__
-  ['once', 'twice']
+When we now try to access ``layer`` on ``Foo``, we find the
+module-level default which we just set. We pass the module as the
+second argument to the ``get`` method to have it fall back on this::
 
-Directive values
-----------------
+  >>> layer.get(testmodule.Foo, testmodule)
+  'Test2'
 
-A ``BaseTextDirective`` directive accepts unicode or plain ascii values::
+Let's look at a module where the directive is not used::
 
- >>> class Test(object):
- ...   hoi('hello')
- >>> class Test(object):
- ...   hoi(u'è')
+  >>> class testmodule(FakeModule):
+  ...   class Foo(object):
+  ...      pass
+  >>> testmodule = fake_import(testmodule)
 
-It won't accept values in another encoding::
+In this case, the value cannot be found so the system falls back on
+the default, ``None``::
 
- >>> class Test(object):
- ...   hoi(u'è'.encode('latin-1'))
- Traceback (most recent call last):
-   ...
- GrokImportError: You can only pass unicode or ASCII to hoi.
- >>> class Test(object):
- ...   hoi(u'è'.encode('UTF-8'))
- Traceback (most recent call last):
-   ...
- GrokImportError: You can only pass unicode or ASCII to hoi.
+  >>> layer.get(testmodule.Foo, testmodule) is None
+  True
 
-A ``InterfaceOrClassDirective`` only accepts class or interface objects::
+Using a directive multiple times
+--------------------------------
 
-  >>> from martian.directive import InterfaceOrClassDirective
-  >>> class MyDirective(InterfaceOrClassDirective, SingleValue, OnceDirective):
+A directive can be configured to allow it to be called multiple times
+in the same scope::
+
+  >>> from martian import MULTIPLE
+  >>> class multi(Directive):
+  ...     scope = CLASS
+  ...     store = MULTIPLE
+
+We can now use the directive multiple times without any errors::
+
+  >>> class Foo(object):
+  ...   multi(u"Once")
+  ...   multi(u"Twice")
+
+We can now retrieve the value and we'll get a list::
+
+  >>> multi.get(Foo)
+  [u'Once', u'Twice']
+
+Using a directive multiple times, as a dictionary
+-------------------------------------------------
+
+A directive can be configured to allow it to be called multiple times in the
+same scope. In this case the factory method should be overridden to return a
+key-value pair::
+
+  >>> from martian import DICT
+  >>> class multi(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value):
+  ...         return value.lower(), value
+
+We can now use the directive multiple times without any errors::
+
+  >>> class Bar(object):
+  ...   multi(u"Once")
+  ...   multi(u"Twice")
+
+We can now retrieve the value and we'll get a to the items::
+
+  >>> d = multi.get(Bar)
+  >>> print sorted(d.items())
+  [(u'once', u'Once'), (u'twice', u'Twice')]
+
+When the factory method does not return a key-value pair, an error is raised::
+
+  >>> class wrongmulti(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value):
+  ...         return None
+
+  >>> class Baz(object):
+  ...   wrongmulti(u"Once")
+  Traceback (most recent call last):
+  ...
+  GrokImportError: The factory method for the 'wrongmulti' directive should
+  return a key-value pair.
+
+  >>> class wrongmulti2(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value):
+  ...         return value, value, value
+
+  >>> class Baz(object):
+  ...   wrongmulti2(u"Once")
+  Traceback (most recent call last):
+  ...
+  GrokImportError: The factory method for the 'wrongmulti2' directive should
+  return a key-value pair.
+
+Calculated defaults
+-------------------
+
+Often instead of just supplying the system with a default, we want to
+calculate the default in some way. We define the ``name`` directive,
+which if not present, will calculate its value from the name of class,
+lower-cased. Instead of passing a default value, we pass a function as the
+default argument::
+
+  >>> class name(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...     def get_default(self, component):
+  ...         return component.__name__.lower()
+
+  >>> class Foo(object):
+  ...   name('bar')
+  >>> name.get(Foo)
+  'bar'
+
+  >>> class Foo(object):
   ...   pass
-  >>> hello = MyDirective('hello', ClassDirectiveContext())
-  >>> class SomeClass(object):
+  >>> name.get(Foo)
+  'foo'
+
+A marker directive
+------------------
+
+Another type of directive is a marker directive. This directive takes
+no arguments at all, but when used it marks the context::
+
+  >>> from martian import MarkerDirective
+  >>> class mark(MarkerDirective):
+  ...     scope = CLASS
+
+  >>> class Foo(object):
+  ...     mark()
+
+Class ``Foo`` is now marked::
+
+  >>> mark.get(Foo)
+  True
+
+When we have a class that isn't marked, we get the default value, ``False``::
+
+  >>> class Bar(object):
   ...    pass
-  >>> class Test(object):
-  ...   hello(SomeClass)
-  >>> class SomeOldStyleClass:
-  ...   pass
-  >>> class Test(object):
-  ...   hello(SomeOldStyleClass)
-  >>> from zope.interface import Interface
-  >>> class ISomeInterface(Interface):
-  ...   pass
-  >>> class Test(object):
-  ...   hello(ISomeInterface)
+  >>> mark.get(Bar)
+  False
 
-But not anything else::
-  
-  >>> class Test(object):
-  ...   hello(None)
-  Traceback (most recent call last):
-   ...
-  GrokImportError: You can only pass classes or interfaces to hello.
-  >>> class Test(object):
-  ...   hello('foo')
-  Traceback (most recent call last):
-   ...
-  GrokImportError: You can only pass classes or interfaces to hello.
+If we pass in an argument, we get an error::
 
-An ``InterfaceDirective`` accepts only interfaces::
-
-  >>> from martian.directive import InterfaceDirective
-  >>> class MyDirective(InterfaceDirective, SingleValue, OnceDirective):
-  ...   pass
-  >>> hello2 = MyDirective('hello2', ClassDirectiveContext())
-  >>> class Test(object):
-  ...   hello2(ISomeInterface)
-
-But not classes::
-
-  >>> class Test(object):
-  ...   hello2(SomeClass)
+  >>> class Bar(object):
+  ...   mark("An argument")
   Traceback (most recent call last):
     ...
-  GrokImportError: You can only pass interfaces to hello2.
-
-An ``OptionalValueDirective`` accepts a single value, but the value
-can be left out. If so, the value will be calculated by a function we
-pass it::
-
-  >>> from martian.directive import OptionalValueDirective
-  >>> class MyDirective(OptionalValueDirective, OnceDirective):
-  ...    def default_value(self):
-  ...       return 4 # the default if no value is given 
-  >>> hello3 = MyDirective('hello3', ClassDirectiveContext())
-
-Let's try the directive with a single value::
-
-  >>> class Test(object):
-  ...   hello3(1)
-  >>> Test.__hello3__
-  1
-
-We can also try the directive without a value::
-
-  >>> class Test(object):
-  ...   hello3()
-  >>> Test.__hello3__
-  4
+  TypeError: mark takes no arguments (1 given)
 
 
+Validation
+----------
+
+A directive can be supplied with a validation method. The validation method
+checks whether the value passed in is allowed. It should raise
+``GrokImportError`` if the value cannot be validated, together with a
+description of why not.
+
+First we define our own validation function. A validation function
+takes two arguments:
+
+* the name of the directive we're validating for
+
+* the value we need to validate
+
+The name can be used to format the exception properly.
+
+We'll define a validation method that only expects integer numbers::
+
+  >>> from martian.error import GrokImportError
+  >>> class number(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...     def validate(self, value):
+  ...         if type(value) is not int:
+  ...             raise GrokImportError("The '%s' directive can only be called with an integer." %
+  ...                                   self.name)
+
+  >>> class Foo(object):
+  ...    number(3)
+
+  >>> class Foo(object):
+  ...    number("This shouldn't work")
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'number' directive can only be called with an integer.
+
+Some built-in validation functions
+----------------------------------
+
+Let's look at some built-in validation functions.
+
+The ``validateText`` function determines whether a string
+is unicode or plain ascii::
+
+  >>> from martian import validateText
+  >>> class title(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...     default = u''
+  ...     validate = validateText
+
+When we pass ascii text into the directive, there is no error::
+
+  >>> class Foo(object):
+  ...    title('Some ascii text')
+
+We can also pass in a unicode string without error::
+
+  >>> class Foo(object):
+  ...    title(u'Some unicode text')
+
+Let's now try it with something that's not text at all, such as a number.
+This fails::
+
+  >>> class Foo(object):
+  ...    title(123)
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'title' directive can only be called with unicode or ASCII.
+
+It's not allowed to call the direct with a non-ascii encoded string::
+
+  >>> class Foo(object):
+  ...   title(u'è'.encode('latin-1'))
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'title' directive can only be called with unicode or ASCII.
+
+ >>> class Foo(object):
+ ...   title(u'è'.encode('UTF-8'))
+ Traceback (most recent call last):
+   ...
+ GrokImportError: The 'title' directive can only be called with unicode or ASCII.
+
+The ``validateInterfaceOrClass`` function only accepts class or
+interface objects::
+
+  >>> from martian import validateInterfaceOrClass
+  >>> class klass(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...     validate = validateInterfaceOrClass
+
+It works with interfaces and classes::
+
+  >>> class Bar(object):
+  ...    pass
+  >>> class Foo(object):
+  ...    klass(Bar)
+
+  >>> from zope.interface import Interface
+  >>> class IBar(Interface):
+  ...    pass
+  >>> class Foo(object):
+  ...    klass(IBar)
+
+It won't work with other things::
+
+  >>> class Foo(object):
+  ...   klass(Bar())
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'klass' directive can only be called with a class or an interface.
+
+  >>> class Foo(object):
+  ...   klass(1)
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'klass' directive can only be called with a class or an interface.
+
+The ``validateInterface`` validator only accepts an interface::
+
+  >>> from martian import validateInterface
+  >>> class iface(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...     validate = validateInterface
+
+Let's try it::
+
+  >>> class Foo(object):
+  ...    iface(IBar)
+
+It won't work with classes or other things::
+
+  >>> class Foo(object):
+  ...   iface(Bar)
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'iface' directive can only be called with an interface.
+
+  >>> class Foo(object):
+  ...   iface(1)
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'iface' directive can only be called with an interface.
+
+Declaring base classes
+----------------------
+
+There's a special directive called 'baseclass' which lets you declare that a
+certain class is the base class for a series of other components.  This
+property should not be inherited by those components.  Consider the following
+base class:
+
+  >>> from martian import baseclass
+  >>> class MyBase(object):
+  ...     baseclass()
+
+As you would expect, the directive will correctly identify this class as a
+baseclass:
+
+  >>> baseclass.get(MyBase)
+  True
+
+But, if we create a subclass of this base class, the subclass won't inherit
+that property, unlike with a regular directive:
+
+  >>> class SubClass(MyBase):
+  ...     pass
+  ...
+  >>> baseclass.get(SubClass)
+  False
+
+Naturally, the directive will also report a false answer if the class doesn't
+inherit from a base class at all and hasn't been marked with the directive:
+
+  >>> class NoBase(object):
+  ...     pass
+  ...
+  >>> baseclass.get(NoBase)
+  False

@@ -70,9 +70,6 @@ def test_suite():
                              optionflags=optionflags),
         doctest.DocFileSuite('directive.txt',
                              package='martian',
-                             optionflags=optionflags),
-        doctest.DocFileSuite('ndir.txt',
-                             package='martian',
                              globs=globs,
                              optionflags=optionflags),
         ])
