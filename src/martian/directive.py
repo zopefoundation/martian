@@ -116,7 +116,7 @@ class Directive(object):
     def __init__(self, *args, **kw):
         self.name = self.__class__.__name__
 
-        frame = sys._getframe(1)
+        self.frame = frame = sys._getframe(1)
         if not self.scope.check(frame):
             raise GrokImportError("The '%s' directive can only be used on "
                                   "%s level." %
