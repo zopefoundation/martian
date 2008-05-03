@@ -145,6 +145,7 @@ class Directive(object):
         self = cls.__new__(cls)
         cls.store.setattr(component, self, value)
 
+
 class MultipleTimesDirective(Directive):
     store = MULTIPLE
     default = []
