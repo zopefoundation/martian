@@ -8,14 +8,14 @@ from martian.error import GrokImportError
 
 class StoreOnce(object):
 
-    def set(self, frame, directive, value):
+    def set(self, locals_, directive, value):
         dotted_name = (directive.__class__.__module__ + '.' +
                        directive.__class__.__name__)
-        if dotted_name in frame.f_locals:
+        if dotted_name in locals_:
             raise GrokImportError(
                 "The '%s' directive can only be called once per %s." %
                 (directive.name, directive.scope.description))
-        frame.f_locals[dotted_name] = value
+        locals_[dotted_name] = value
 
     def get(self, directive, component, default):
         dotted_name = (directive.__class__.__module__ + '.' +
@@ -33,20 +33,20 @@ class StoreOnceGetFromThisClassOnly(StoreOnce):
 
 class StoreMultipleTimes(StoreOnce):
 
-    def set(self, frame, directive, value):
+    def set(self, locals_, directive, value):
         dotted_name = (directive.__class__.__module__ + '.' +
                        directive.__class__.__name__)
-        values = frame.f_locals.setdefault(dotted_name, [])
+        values = locals_.setdefault(dotted_name, [])
         values.append(value)
 
 MULTIPLE = StoreMultipleTimes()
 
 class StoreDict(StoreOnce):
 
-    def set(self, frame, directive, value):
+    def set(self, locals_, directive, value):
         dotted_name = (directive.__class__.__module__ + '.' +
                        directive.__class__.__name__)
-        values_dict = frame.f_locals.setdefault(dotted_name, {})
+        values_dict = locals_.setdefault(dotted_name, {})
         try:
             key, value = value
         except (TypeError, ValueError):
@@ -107,7 +107,7 @@ class Directive(object):
 
         value = self.factory(*args, **kw)
 
-        self.store.set(frame, self, value)
+        self.store.set(frame.f_locals, self, value)
 
     # To get a correct error message, we construct a function that has
     # the same signature as check_arguments(), but without "self".
