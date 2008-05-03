@@ -41,6 +41,21 @@ class StoreMultipleTimes(StoreOnce):
 
 MULTIPLE = StoreMultipleTimes()
 
+class StoreDict(StoreOnce):
+
+    def set(self, frame, directive, value):
+        dotted_name = (directive.__class__.__module__ + '.' +
+                       directive.__class__.__name__)
+        values_dict = frame.f_locals.setdefault(dotted_name, {})
+        try:
+            key, value = value
+        except (TypeError, ValueError):
+            raise GrokImportError(
+                "The factory method for the '%s' directive should return a "
+                "key-value pair." % directive.name)
+        values_dict[key] = value
+
+DICT = StoreDict()
 
 _SENTINEL = object()
 _USE_DEFAULT = object()

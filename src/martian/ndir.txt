@@ -181,6 +181,60 @@ We can now retrieve the value and we'll get a list::
   >>> multi.get(Foo)
   [u'Once', u'Twice']
 
+Using a directive multiple times, as a dictionary
+-------------------------------------------------
+
+A directive can be configured to allow it to be called multiple times in the
+same scope. In this case the factory method should be overridden to return a
+key-value pair::
+
+  >>> from martian.ndir import DICT
+  >>> class multi(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value):
+  ...         return value.lower(), value
+
+We can now use the directive multiple times without any errors::
+
+  >>> class Bar(object):
+  ...   multi(u"Once")
+  ...   multi(u"Twice")
+
+We can now retrieve the value and we'll get a to the items::
+
+  >>> d = multi.get(Bar)
+  >>> print sorted(d.items())
+  [(u'once', u'Once'), (u'twice', u'Twice')]
+
+When the factory method does not return a key-value pair, an error is raised::
+
+  >>> class wrongmulti(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value):
+  ...         return None
+
+  >>> class Baz(object):
+  ...   wrongmulti(u"Once")
+  Traceback (most recent call last):
+  ...
+  GrokImportError: The factory method for the 'wrongmulti' directive should
+  return a key-value pair.
+
+  >>> class wrongmulti2(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value):
+  ...         return value, value, value
+
+  >>> class Baz(object):
+  ...   wrongmulti2(u"Once")
+  Traceback (most recent call last):
+  ...
+  GrokImportError: The factory method for the 'wrongmulti2' directive should
+  return a key-value pair.
+
 Calculated defaults
 -------------------
 
