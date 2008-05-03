@@ -30,6 +30,21 @@ class StoreOnceGetFromThisClassOnly(StoreOnce):
 
 class StoreMultipleTimes(StoreOnce):
 
+    def get(self, directive, component, default):
+        if getattr(component, directive.dotted_name(), default) is default:
+            return default
+
+        result = []
+        for base in reversed(component.mro()):
+            list = getattr(base, directive.dotted_name(), default)
+            if list is not default and list not in result:
+                result.append(list)
+
+        result_flattened = []
+        for entry in result:
+            result_flattened.extend(entry)
+        return result_flattened
+
     def set(self, locals_, directive, value):
         values = locals_.setdefault(directive.dotted_name(), [])
         values.append(value)
@@ -37,6 +52,17 @@ class StoreMultipleTimes(StoreOnce):
 MULTIPLE = StoreMultipleTimes()
 
 class StoreDict(StoreOnce):
+
+    def get(self, directive, component, default):
+        if getattr(component, directive.dotted_name(), default) is default:
+            return default
+
+        result = {}
+        for base in reversed(component.mro()):
+            mapping = getattr(base, directive.dotted_name(), default)
+            if mapping is not default:
+                result.update(mapping)
+        return result
 
     def set(self, locals_, directive, value):
         values_dict = locals_.setdefault(directive.dotted_name(), {})

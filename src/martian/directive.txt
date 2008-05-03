@@ -194,6 +194,16 @@ The default value for a MultipleTimesDirective is an empty list::
   >>> multi.get(Bar)
   []
 
+Whenever the directive is used on a sub class of a component, the values set by
+directives on the base classes are concatenated::
+
+  >>> class Qux(Foo):
+  ...     multi(u'Triple')
+  ...
+  >>> multi.get(Qux)
+  [u'Once', u'Twice', u'Triple']
+
+
 Using a directive multiple times, as a dictionary
 -------------------------------------------------
 
@@ -247,6 +257,25 @@ When the factory method does not return a key-value pair, an error is raised::
   ...
   GrokImportError: The factory method for the 'wrongmulti2' directive should
   return a key-value pair.
+
+  >>> class multi(Directive):
+  ...     scope = CLASS
+  ...     store = DICT
+  ...     def factory(self, value, andanother):
+  ...         return value, andanother
+  ...
+  >>> class Frepple(object):
+  ...   multi(1, 'AAA')
+  ...   multi(2, 'BBB')
+  ...
+  >>> class Fropple(Frepple):
+  ...   multi(1, 'CCC')
+  ...   multi(3, 'DDD')
+  ...   multi(4, 'EEE')
+
+  >>> d = multi.get(Fropple)
+  >>> print sorted(d.items())
+  [(1, 'CCC'), (2, 'BBB'), (3, 'DDD'), (4, 'EEE')]
 
 Calculated defaults
 -------------------
