@@ -9,34 +9,29 @@ from martian.error import GrokImportError
 class StoreOnce(object):
 
     def set(self, locals_, directive, value):
-        dotted_name = (directive.__class__.__module__ + '.' +
-                       directive.__class__.__name__)
-        if dotted_name in locals_:
+        if directive.dotted_name() in locals_:
             raise GrokImportError(
                 "The '%s' directive can only be called once per %s." %
                 (directive.name, directive.scope.description))
-        locals_[dotted_name] = value
+        locals_[directive.dotted_name()] = value
 
     def get(self, directive, component, default):
-        dotted_name = (directive.__class__.__module__ + '.' +
-                       directive.__class__.__name__)
-        return getattr(component, dotted_name, default)
+        return getattr(component, directive.dotted_name(), default)
+
+    def setattr(self, context, directive, value):
+        setattr(context, directive.dotted_name(), value)
 
 ONCE = StoreOnce()
 
 class StoreOnceGetFromThisClassOnly(StoreOnce):
 
     def get(self, directive, component, default):
-        dotted_name = (directive.__class__.__module__ + '.' +
-                       directive.__class__.__name__)
-        return component.__dict__.get(dotted_name, default)
+        return component.__dict__.get(directive.dotted_name(), default)
 
 class StoreMultipleTimes(StoreOnce):
 
     def set(self, locals_, directive, value):
-        dotted_name = (directive.__class__.__module__ + '.' +
-                       directive.__class__.__name__)
-        values = locals_.setdefault(dotted_name, [])
+        values = locals_.setdefault(directive.dotted_name(), [])
         values.append(value)
 
 MULTIPLE = StoreMultipleTimes()
@@ -44,9 +39,7 @@ MULTIPLE = StoreMultipleTimes()
 class StoreDict(StoreOnce):
 
     def set(self, locals_, directive, value):
-        dotted_name = (directive.__class__.__module__ + '.' +
-                       directive.__class__.__name__)
-        values_dict = locals_.setdefault(dotted_name, {})
+        values_dict = locals_.setdefault(directive.dotted_name(), {})
         try:
             key, value = value
         except (TypeError, ValueError):
@@ -130,6 +123,10 @@ class Directive(object):
         return self.default
 
     @classmethod
+    def dotted_name(cls):
+        return cls.__module__ + '.' + cls.__name__
+
+    @classmethod
     def get(cls, component, module=None):
         # Create an instance of the directive without calling __init__
         self = cls.__new__(cls)
@@ -142,6 +139,11 @@ class Directive(object):
 
         return value
 
+    @classmethod
+    def set(cls, component, value):
+        # Create an instance of the directive without calling __init__
+        self = cls.__new__(cls)
+        cls.store.setattr(component, self, value)
 
 class MultipleTimesDirective(Directive):
     store = MULTIPLE

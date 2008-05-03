@@ -56,6 +56,13 @@ default value for that directive, this case the empty unicode string::
   >>> description.get(Foo)
   u''
 
+In certain cases we need to set a value on a component as if the directive was
+actually used::
+
+  >>> description.set(Foo, u'value as set')
+  >>> description.get(Foo)
+  u'value as set'
+
 Subclasses of the original class will inherit the properties set by the
 directive:
 
