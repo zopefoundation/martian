@@ -12,8 +12,9 @@ class StoreOnce(object):
         dotted_name = (directive.__class__.__module__ + '.' +
                        directive.__class__.__name__)
         if dotted_name in frame.f_locals:
-            raise GrokImportError("The '%s' directive can only be called once per %s." %
-                                  (directive.name, directive.scope.description))
+            raise GrokImportError(
+                "The '%s' directive can only be called once per %s." %
+                (directive.name, directive.scope.description))
         frame.f_locals[dotted_name] = value
 
     def get(self, directive, component, default):
