@@ -57,8 +57,7 @@ class ClassScope(object):
     description = 'class'
 
     def check(self, frame):
-        return (util.frame_is_class(frame) and
-                not is_fake_module(frame))
+        return util.frame_is_class(frame) and not is_fake_module(frame)
 
 CLASS = ClassScope()
 
@@ -66,8 +65,7 @@ class ClassOrModuleScope(object):
     description = 'class or module'
 
     def check(self, frame):
-        return (util.frame_is_class(frame) or
-                util.frame_is_module(frame))
+        return util.frame_is_class(frame) or util.frame_is_module(frame)
 
 CLASS_OR_MODULE = ClassOrModuleScope()
 
@@ -75,7 +73,7 @@ class ModuleScope(object):
     description = 'module'
 
     def check(self, frame):
-        return util.frame_is_module(frame)
+        return util.frame_is_module(frame) or is_fake_module(frame)
 
 MODULE = ModuleScope()
 
