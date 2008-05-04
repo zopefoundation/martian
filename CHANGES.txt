@@ -10,6 +10,10 @@ Features changes
 * Added a ``martian.util.check_provides_one`` helper, in analogy to
   ``check_implements_one``.
 
+* The ``scan_for_classes`` helper now also accepts an ``interface``
+  argument which allows you to scan for classes based on interface
+  rather than base classes.
+
 Bug fixes
 ---------
 
