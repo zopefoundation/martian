@@ -83,7 +83,7 @@ def check_provides_one(obj):
                         "(use grok.provides to specify which one to use)."
                         % obj, obj)
 
-def scan_for_classes(module, classes=None, interface=None):
+def scan_for_classes(module, iface):
     """Given a module, scan for classes.
     """
     for name in dir(module):
@@ -96,12 +96,7 @@ def scan_for_classes(module, classes=None, interface=None):
         if not defined_locally(obj, module.__name__) or not isclass(obj):
             continue
 
-        if classes is not None:
-            for class_ in classes:
-                if check_subclass(obj, class_):
-                    yield obj
-
-        if interface is not None and interface.implementedBy(obj):
+        if iface.implementedBy(obj):
             yield obj
 
 def methods_from_class(class_):
