@@ -1,93 +1,142 @@
-##############################################################################
-#
-# Copyright (c) 2006-2007 Zope Corporation and Contributors.
-# All Rights Reserved.
-#
-# This software is subject to the provisions of the Zope Public License,
-# Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
-# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
-# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-# FOR A PARTICULAR PURPOSE.
-#
-##############################################################################
-"""Grok directives.
-"""
-
 import sys
 import inspect
 
-from zope import interface
 from zope.interface.interfaces import IInterface
 
 from martian import util
 from martian.error import GrokImportError
 
-class IDirectiveContext(interface.Interface):
-    description = interface.Attribute("The correct place in which the "
-                                      "directive can be used.")
+class StoreOnce(object):
 
-    def matches(frame):
-        """returns whether the given frame is the correct place in
-        which the directive can be used.
-        """
+    def set(self, locals_, directive, value):
+        if directive.dotted_name() in locals_:
+            raise GrokImportError(
+                "The '%s' directive can only be called once per %s." %
+                (directive.name, directive.scope.description))
+        locals_[directive.dotted_name()] = value
 
-class ClassDirectiveContext(object):
-    interface.implements(IDirectiveContext)
-    
-    description = "class"
+    def get(self, directive, component, default):
+        return getattr(component, directive.dotted_name(), default)
 
-    def matches(self, frame):
-        return util.frame_is_class(frame)
+    def setattr(self, context, directive, value):
+        setattr(context, directive.dotted_name(), value)
 
-    
-class ModuleDirectiveContext(object):
-    interface.implements(IDirectiveContext)
-    
-    description = "module"
+ONCE = StoreOnce()
 
-    def matches(self, frame):
-        return util.frame_is_module(frame)
-    
+class StoreOnceGetFromThisClassOnly(StoreOnce):
 
-class ClassOrModuleDirectiveContext(object):
-    interface.implements(IDirectiveContext)
-    
-    description = "class or module"
+    def get(self, directive, component, default):
+        return component.__dict__.get(directive.dotted_name(), default)
 
-    def matches(self, frame):
-        return util.frame_is_module(frame) or util.frame_is_class(frame)
+class StoreMultipleTimes(StoreOnce):
 
+    def get(self, directive, component, default):
+        if getattr(component, directive.dotted_name(), default) is default:
+            return default
+
+        if getattr(component, 'mro', None) is None:
+            return getattr(component, directive.dotted_name())
+
+        result = []
+        for base in reversed(component.mro()):
+            list = getattr(base, directive.dotted_name(), default)
+            if list is not default and list not in result:
+                result.append(list)
+
+        result_flattened = []
+        for entry in result:
+            result_flattened.extend(entry)
+        return result_flattened
+
+    def set(self, locals_, directive, value):
+        values = locals_.setdefault(directive.dotted_name(), [])
+        values.append(value)
+
+MULTIPLE = StoreMultipleTimes()
+
+class StoreDict(StoreOnce):
+
+    def get(self, directive, component, default):
+        if getattr(component, directive.dotted_name(), default) is default:
+            return default
+
+        if getattr(component, 'mro', None) is None:
+            return getattr(component, directive.dotted_name())
+
+        result = {}
+        for base in reversed(component.mro()):
+            mapping = getattr(base, directive.dotted_name(), default)
+            if mapping is not default:
+                result.update(mapping)
+        return result
+
+    def set(self, locals_, directive, value):
+        values_dict = locals_.setdefault(directive.dotted_name(), {})
+        try:
+            key, value = value
+        except (TypeError, ValueError):
+            raise GrokImportError(
+                "The factory method for the '%s' directive should return a "
+                "key-value pair." % directive.name)
+        values_dict[key] = value
+
+DICT = StoreDict()
+
+_SENTINEL = object()
+_USE_DEFAULT = object()
+
+class ClassScope(object):
+    description = 'class'
+
+    def check(self, frame):
+        return util.frame_is_class(frame) and not is_fake_module(frame)
+
+CLASS = ClassScope()
+
+class ClassOrModuleScope(object):
+    description = 'class or module'
+
+    def check(self, frame):
+        return util.frame_is_class(frame) or util.frame_is_module(frame)
+
+CLASS_OR_MODULE = ClassOrModuleScope()
+
+class ModuleScope(object):
+    description = 'module'
+
+    def check(self, frame):
+        return util.frame_is_module(frame) or is_fake_module(frame)
+
+MODULE = ModuleScope()
 
 class Directive(object):
-    """
-    Directive sets a value into the context's locals as __<name>__
-    ('.' in the name are replaced with '_').
-    """
 
-    def __init__(self, name, directive_context):
-        self.name = name
-        self.local_name = '__%s__' % name.replace('.', '_')
-        self.directive_context = directive_context
+    default = None
 
-    def __call__(self, *args, **kw):
-        self.check_argument_signature(*args, **kw)
-        self.check_arguments(*args, **kw)
+    def __init__(self, *args, **kw):
+        self.name = self.__class__.__name__
 
-        frame = sys._getframe(1)
-        self.check_directive_context(frame)
+        self.frame = frame = sys._getframe(1)
+        if not self.scope.check(frame):
+            raise GrokImportError("The '%s' directive can only be used on "
+                                  "%s level." %
+                                  (self.name, self.scope.description))
 
-        value = self.value_factory(*args, **kw)
-        return self.store(frame, value)
+        self.check_factory_signature(*args, **kw)
 
-    def check_arguments(self, *args, **kw):
-        raise NotImplementedError
+        validate = getattr(self, 'validate', None)
+        if validate is not None:
+            validate(*args, **kw)
 
-    # to get a correct error message, we construct a function that has
+        value = self.factory(*args, **kw)
+
+        self.store.set(frame.f_locals, self, value)
+
+    # To get a correct error message, we construct a function that has
     # the same signature as check_arguments(), but without "self".
-    def check_argument_signature(self, *arguments, **kw):
+    def check_factory_signature(self, *arguments, **kw):
         args, varargs, varkw, defaults = inspect.getargspec(
-            self.check_arguments)
+            self.factory)
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
         exec("def signature_checker" + argspec + ": pass")
         try:
@@ -97,106 +146,75 @@ class Directive(object):
             message = message.replace("signature_checker()", self.name)
             raise TypeError(message)
 
-    def check_directive_context(self, frame):
-        if not self.directive_context.matches(frame):
-            raise GrokImportError("%s can only be used on %s level."
-                                  % (self.name,
-                                     self.directive_context.description))
+    def factory(self, value):
+        return value
 
-    def value_factory(self, *args, **kw):
-        raise NotImplementedError
+    def get_default(self, component):
+        return self.default
 
-    def store(self, frame, value):
-        raise NotImplementedError
+    @classmethod
+    def dotted_name(cls):
+        return cls.__module__ + '.' + cls.__name__
 
+    @classmethod
+    def get(cls, component, module=None):
+        # Create an instance of the directive without calling __init__
+        self = cls.__new__(cls)
 
-class OnceDirective(Directive):
-    def store(self, frame, value):
-        if self.local_name in frame.f_locals:
-            raise GrokImportError("%s can only be called once per %s."
-                                  % (self.name,
-                                     self.directive_context.description))
-        frame.f_locals[self.local_name] = value
+        value = self.store.get(self, component, _USE_DEFAULT)
+        if value is _USE_DEFAULT and module is not None:
+            value = self.store.get(self, module, _USE_DEFAULT)
+        if value is _USE_DEFAULT:
+            value = self.get_default(component)
 
+        return value
 
-class MarkerDirective(OnceDirective):
-    """A directive without argument that places a marker.
-    """
-    def value_factory(self):
-        return True
+    @classmethod
+    def set(cls, component, value):
+        # Create an instance of the directive without calling __init__
+        self = cls.__new__(cls)
+        cls.store.setattr(component, self, value)
 
-    def check_arguments(self):
-        pass
 
 class MultipleTimesDirective(Directive):
-    def store(self, frame, value):
-        values = frame.f_locals.get(self.local_name, [])
-        values.append(value)
-        frame.f_locals[self.local_name] = values
+    store = MULTIPLE
+    default = []
 
 
-class SingleValue(object):
+class MarkerDirective(Directive):
+    store = ONCE
+    default = False
 
-    # Even though the value_factory is called with (*args, **kw),
-    # we're safe since check_arguments would have bailed out with a
-    # TypeError if the number arguments we were called with was not
-    # what we expect here.
-    def value_factory(self, value):
-        return value
-
-class OptionalValueDirective(object):
-    def check_arguments(self, value=None):
-        pass
-
-    def value_factory(self, value=None):
-        if value is None:
-            return self.default_value()
-        return value
-
-    def default_value(self):
-        raise NotImplementedError
-
-class BaseTextDirective(object):
-    """
-    Base directive that only accepts unicode/ASCII values.
-    """
-
-    def check_arguments(self, value):
-        if util.not_unicode_or_ascii(value):
-            raise GrokImportError("You can only pass unicode or ASCII to "
-                                  "%s." % self.name)
+    def factory(self):
+        return True
 
 
-class SingleTextDirective(BaseTextDirective, SingleValue, OnceDirective):
-    """
-    Directive that accepts a single unicode/ASCII value, only once.
-    """
+class baseclass(MarkerDirective):
+    scope = CLASS
+    store = StoreOnceGetFromThisClassOnly()
 
 
-class MultipleTextDirective(BaseTextDirective, SingleValue,
-                            MultipleTimesDirective):
-    """
-    Directive that accepts a single unicode/ASCII value, multiple times.
-    """
+def validateText(directive, value):
+    if util.not_unicode_or_ascii(value):
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "unicode or ASCII." % directive.name)
+
+def validateInterfaceOrClass(directive, value):
+    if not (IInterface.providedBy(value) or util.isclass(value)):
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "a class or an interface." % directive.name)
 
 
-class InterfaceOrClassDirective(SingleValue, OnceDirective):
-    """
-    Directive that only accepts classes or interface values.
-    """
-
-    def check_arguments(self, value):
-        if not (IInterface.providedBy(value) or util.isclass(value)):
-            raise GrokImportError("You can only pass classes or interfaces to "
-                                  "%s." % self.name)
+def validateInterface(directive, value):
+    if not (IInterface.providedBy(value)):
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "an interface." % directive.name)
 
 
-class InterfaceDirective(SingleValue, OnceDirective):
-    """
-    Directive that only accepts interface values.
-    """
-
-    def check_arguments(self, value):
-        if not (IInterface.providedBy(value)):
-            raise GrokImportError("You can only pass interfaces to "
-                                  "%s." % self.name)
+# this here only for testing purposes, which is a bit unfortunate
+# but makes the tests a lot clearer for module-level directives
+# also unfortunate that fake_module needs to be defined directly
+# in the fake module being tested and not in the FakeModule base class;
+# the system cannot find it on the frame if it is in the base class.
+def is_fake_module(frame):
+    return frame.f_locals.has_key('fake_module')

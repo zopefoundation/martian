@@ -70,10 +70,14 @@ def test_suite():
                              optionflags=optionflags),
         doctest.DocFileSuite('directive.txt',
                              package='martian',
+                             globs=globs,
                              optionflags=optionflags),
-        doctest.DocFileSuite('ndir.txt',
+        doctest.DocFileSuite('core.txt',
                              package='martian',
                              globs=globs,
+                             optionflags=optionflags),
+        doctest.DocFileSuite('scan_for_classes.txt',
+                             package='martian.tests',
                              optionflags=optionflags),
         ])
     return suite

@@ -4,6 +4,34 @@ CHANGES
 0.9.4 (unreleased)
 ==================
 
+Features changes
+----------------
+
+* Replaced the various directive base classes with a single
+  ``martian.Directive`` base class:
+
+  - The directive scope is now defined with the ``scope`` class
+    attribute using one of ``martian.CLASS``, ``martian.MODULE``,
+    ``martian.CLASS_OR_MODULE``.
+
+  - The type of storage is defined with the ``store`` class attribute
+    using one of ``martian.ONCE``, ``martian.MULTIPLE``,
+    ``martian.DICT``.
+
+  - Directives have now gained the ability to read the value that they
+    have set on a component or module using a ``get()`` method.  The
+    ``class_annotation`` and ``class_annotation_list`` helpers have
+    been removed as a consequence.
+
+* Moved the ``baseclass()`` directive from Grok to Martian.
+
+* Added a ``martian.util.check_provides_one`` helper, in analogy to
+  ``check_implements_one``.
+
+* The ``scan_for_classes`` helper now also accepts an ``interface``
+  argument which allows you to scan for classes based on interface
+  rather than base classes.
+
 Bug fixes
 ---------
 

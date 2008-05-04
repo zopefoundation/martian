@@ -21,6 +21,7 @@ import inspect
 
 from zope import interface
 
+import martian
 from martian.error import GrokError, GrokImportError
 
 def not_unicode_or_ascii(value):
@@ -48,36 +49,7 @@ def caller_module():
     return sys._getframe(2).f_globals['__name__']
 
 def is_baseclass(name, component):
-    return (type(component) is type and
-            class_annotation_nobase(component, 'grok.baseclass', False))
-
-def class_annotation(obj, name, default):
-    return getattr(obj, '__%s__' % name.replace('.', '_'), default)
-
-def class_annotation_nobase(obj, name, default):
-    """This will only look in the given class obj for the annotation.
-
-    It will not look in the inheritance chain.
-    """
-    return obj.__dict__.get('__%s__' % name.replace('.', '_'), default)
-    
-def class_annotation_list(obj, name, default):
-    """This will process annotations that are lists correctly in the face of
-    inheritance.
-    """
-    if class_annotation(obj, name, default) is default:
-        return default
-
-    result = []
-    for base in reversed(obj.mro()):
-        list = class_annotation(base, name, [])
-        if list not in result:
-            result.append(list)
-
-    result_flattened = []
-    for entry in result:
-        result_flattened.extend(entry)
-    return result_flattened
+    return (isclass(component) and martian.baseclass.get(component))
 
 def defined_locally(obj, dotted_name):
     obj_module = getattr(obj, '__grok_module__', None)
@@ -100,21 +72,37 @@ def check_implements_one_from_list(list, class_):
                         "(use grok.provides to specify which one to use)."
                         % class_, class_)
 
+def check_provides_one(obj):
+    provides = list(interface.providedBy(obj))
+    if len(provides) < 1:
+        raise GrokError("%r must provide at least one interface "
+                        "(use zope.interface.classProvides to specify)."
+                        % obj, obj)
+    if len(provides) > 1:
+        raise GrokError("%r provides more than one interface "
+                        "(use grok.provides to specify which one to use)."
+                        % obj, obj)
 
-def scan_for_classes(module, classes):
+def scan_for_classes(module, classes=None, interface=None):
     """Given a module, scan for classes.
     """
-    result = set()
     for name in dir(module):
-        if name.startswith('__grok_'):
+        if '.' in name:
+            # This must be a module-level variable that couldn't have
+            # been set by the developer.  It must have been a
+            # module-level directive.
             continue
         obj = getattr(module, name)
-        if not defined_locally(obj, module.__name__):
+        if not defined_locally(obj, module.__name__) or not isclass(obj):
             continue
-        for class_ in classes:
-            if check_subclass(obj, class_):
-                result.add(obj)
-    return list(result)
+
+        if classes is not None:
+            for class_ in classes:
+                if check_subclass(obj, class_):
+                    yield obj
+
+        if interface is not None and interface.implementedBy(obj):
+            yield obj
 
 def methods_from_class(class_):
     # XXX Problem with zope.interface here that makes us special-case
@@ -128,4 +116,4 @@ def frame_is_module(frame):
     return frame.f_locals is frame.f_globals
 
 def frame_is_class(frame):
-    return '__module__' in frame.f_locals    
+    return '__module__' in frame.f_locals
