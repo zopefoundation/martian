@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.9.4 (unreleased)
+0.9.4 (2008-05-04)
 ==================
 
 Features changes
