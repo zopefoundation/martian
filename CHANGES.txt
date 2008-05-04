@@ -4,6 +4,12 @@ CHANGES
 0.9.4 (unreleased)
 ==================
 
+Features changes
+----------------
+
+* Added a ``martian.util.check_provides_one`` helper, in analogy to
+  ``check_implements_one``.
+
 Bug fixes
 ---------
 

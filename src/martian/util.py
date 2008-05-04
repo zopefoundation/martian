@@ -93,6 +93,16 @@ def check_implements_one_from_list(list, class_):
                         "(use grok.provides to specify which one to use)."
                         % class_, class_)
 
+def check_provides_one(obj):
+    provides = list(interface.providedBy(obj))
+    if len(provides) < 1:
+        raise GrokError("%r must provide at least one interface "
+                        "(use zope.interface.classProvides to specify)."
+                        % obj, obj)
+    if len(provides) > 1:
+        raise GrokError("%r provides more than one interface "
+                        "(use grok.provides to specify which one to use)."
+                        % obj, obj)
 
 def scan_for_classes(module, classes):
     """Given a module, scan for classes.
