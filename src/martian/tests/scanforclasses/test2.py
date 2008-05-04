@@ -2,7 +2,7 @@
 # this module is used in a scan_for_context.txt test.
 
 import os
-from martian.tests.scan_for_module_components_fixture import Context
+from martian.tests.scanforclasses import Context
 
 foo = "Bar"
 
