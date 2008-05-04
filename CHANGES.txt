@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.9.5 (unreleased)
+0.9.5 (2008-05-04)
 ==================
 
 * ``scan_for_classes`` just needs a single second argument specifying
