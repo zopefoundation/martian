@@ -76,5 +76,8 @@ def test_suite():
                              package='martian',
                              globs=globs,
                              optionflags=optionflags),
+        doctest.DocFileSuite('scan_for_module_components.txt',
+                             package='martian.tests',
+                             optionflags=optionflags),
         ])
     return suite

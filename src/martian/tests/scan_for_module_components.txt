@@ -1,0 +1,36 @@
+Scanning for the context object
+-------------------------------
+
+Let's import a module that contains no ``Context`` subclass, nor classes
+that implement ``IContext``::
+
+  >>> import martian.tests.scan_for_module_components_fixture as tests
+  >>> IContext = tests.IContext
+
+We shouldn't see any classes that are contexts::
+
+  >>> from martian.util import scan_for_classes
+  >>> from martian.tests.scan_for_module_components_fixture import test1
+  >>> list(scan_for_classes(test1, interface=IContext))
+  []
+
+Now we look at a module with a single ``Context`` subclass::
+
+  >>> from martian.tests.scan_for_module_components_fixture import test2
+  >>> list(scan_for_classes(test2, interface=IContext))
+  [<class 'martian.tests.scan_for_module_components_fixture.test2.MyContext'>]
+
+Now we'll look at a module with a single class that implements ``IContext``::
+
+  >>> from martian.tests.scan_for_module_components_fixture import test3
+  >>> list(scan_for_classes(test3, interface=IContext))
+  [<class 'martian.tests.scan_for_module_components_fixture.test3.MyContext'>]
+
+Let's finish by looking at a module which defines multiple contexts::
+
+  >>> from martian.tests.scan_for_module_components_fixture import test4
+  >>> len(list(scan_for_classes(test4, interface=IContext)))
+  4
+
+
+
