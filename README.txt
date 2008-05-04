@@ -37,8 +37,10 @@ it, the code is completely independent of Grok.
 
 For more information about using Martian, see:
 
-  src/martian/README.txt
-  src/martian/directive.txt
-  src/martian/scan.txt
+* ``src/martian/README.txt``
+
+* ``src/martian/directive.txt``
+
+* ``src/martian/scan.txt``
 
 .. _`Grok project`: http://grok.zope.org
