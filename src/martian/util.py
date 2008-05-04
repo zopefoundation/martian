@@ -104,20 +104,26 @@ def check_provides_one(obj):
                         "(use grok.provides to specify which one to use)."
                         % obj, obj)
 
-def scan_for_classes(module, classes):
+def scan_for_classes(module, classes=None, interface=None):
     """Given a module, scan for classes.
     """
-    result = set()
     for name in dir(module):
-        if name.startswith('__grok_'):
+        if '.' in name:
+            # This must be a module-level variable that couldn't have
+            # been set by the developer.  It must have been a
+            # module-level directive.
             continue
         obj = getattr(module, name)
-        if not defined_locally(obj, module.__name__):
+        if not defined_locally(obj, module.__name__) or not isclass(obj):
             continue
-        for class_ in classes:
-            if check_subclass(obj, class_):
-                result.add(obj)
-    return list(result)
+
+        if classes is not None:
+            for class_ in classes:
+                if check_subclass(obj, class_):
+                    yield obj
+
+        if interface is not None and interface.implementedBy(obj):
+            yield obj
 
 def methods_from_class(class_):
     # XXX Problem with zope.interface here that makes us special-case
