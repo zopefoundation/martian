@@ -171,9 +171,7 @@ class Directive(object):
 
     @classmethod
     def set(cls, component, value):
-        # Create an instance of the directive without calling __init__
-        self = cls.__new__(cls)
-        cls.store.setattr(component, self, value)
+        cls.store.setattr(component, cls, value)
 
 
 class MultipleTimesDirective(Directive):
