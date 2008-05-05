@@ -1,5 +1,5 @@
-Directives New Style
-====================
+Directives
+==========
 
 When grokking a class, the grokking procedure can be informed by
 directives, on a class, or a module. If a directive is absent, the
