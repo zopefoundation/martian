@@ -16,7 +16,7 @@ def fake_import(fake_module):
     module = new.module(fake_module.__name__)
     glob = {}
     for name in dir(fake_module):
-        if name.startswith('__'):
+        if name.startswith('__') and '.' not in name:
             continue
         obj = getattr(fake_module, name)
         glob[name] = obj

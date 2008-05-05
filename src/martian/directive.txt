@@ -151,7 +151,7 @@ We can also use it in a module::
   ...    layer('Test2')
   ...    class Foo(object):
   ...       pass
-  >>> test_module = fake_import(testmodule)
+  >>> testmodule = fake_import(testmodule)
 
 When we now try to access ``layer`` on ``Foo``, we find the
 module-level default which we just set. We pass the module as the
@@ -172,6 +172,25 @@ the default, ``None``::
 
   >>> layer.bind().get(testmodule.Foo, testmodule) is None
   True
+
+Let's now look at this using a directive with CLASS scope only::
+
+  >>> class layer2(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+
+We are not allowed to pass in a module argument to ``get`` now::
+
+  >>> class testmodule2(FakeModule):
+  ...    layer2('Test2')
+  ...    class Foo(object):
+  ...       pass
+  >>> testmodule2 = fake_import(testmodule2)
+
+  >>> layer2.bind().get(testmodule2.Foo, testmodule2)
+  Traceback (most recent call last):
+    ...
+  AssertionError: The directive 'layer2' has scope CLASS but a module was also passed into 'get'
 
 Using a directive multiple times
 --------------------------------
@@ -302,7 +321,7 @@ inheritance has no meaning there::
   ...     multi('Two')
   ...
   >>> module_with_directive = fake_import(module_with_directive)
-  >>> print multi.bind().get(module_with_directive)
+  >>> print multi.bind().get(module=module_with_directive)
   ['One', 'Two']
 
   >>> from martian import MODULE
@@ -320,7 +339,7 @@ inheritance has no meaning there::
   ...     multi(2, 'Two')
   ...
   >>> module_with_directive = fake_import(module_with_directive)
-  >>> d = multi.bind().get(module_with_directive)
+  >>> d = multi.bind().get(module=module_with_directive)
   >>> print sorted(d.items())
   [(1, 'One'), (2, 'Two')]
 

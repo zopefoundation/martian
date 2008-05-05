@@ -91,6 +91,17 @@ class ClassScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) and not is_fake_module(frame)
 
+    def get(self, directive, component, module):
+        assert component is not None, (
+            "The directive '%s' has scope CLASS "
+            "but no class was passed into 'get'" %
+                               directive.__name__)
+        assert module is None, (
+            "The directive '%s' has scope CLASS "
+            "but a module was also passed into 'get'" %
+            directive.__name__)
+        return directive.store.get(directive, component, default=_USE_DEFAULT)
+    
 CLASS = ClassScope()
 
 class ClassOrModuleScope(object):
@@ -99,6 +110,21 @@ class ClassOrModuleScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) or util.frame_is_module(frame)
 
+    def get(self, directive, component, module):
+        assert component is not None, (
+            "The directive '%s' has scope CLASS_OR_MODULE "
+            "but no class was passed into 'get'" %
+                               directive.__name__)
+        assert module is not None, (
+            "The directive '%s' has scope CLASS_OR_MODULE "
+            "but no module was passed into 'get'" %
+            directive.__name__)
+
+        value = directive.store.get(directive, component, default=_USE_DEFAULT)
+        if value is _USE_DEFAULT:
+            value = directive.store.get(directive, module, default=_USE_DEFAULT)
+        return value
+    
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class ModuleScope(object):
@@ -107,6 +133,18 @@ class ModuleScope(object):
     def check(self, frame):
         return util.frame_is_module(frame) or is_fake_module(frame)
 
+    def get(self, directive, component, module):
+        assert component is None, (
+            "The directive '%s' has scope MODULE "
+            "but a class was also passed into 'get'" %
+            directive.__name__)
+        assert module is not None, (
+            "The directive '%s' has scope MODULE "
+            "but no module was passed into 'get'" %
+            directive.__name__)
+
+        return directive.store.get(directive, module, default=_USE_DEFAULT)
+    
 MODULE = ModuleScope()
 
 class Directive(object):
@@ -178,21 +216,9 @@ class BoundDirective(object):
             return self.default
         return self.directive.default
 
-    def get(self, component, module=None, **data):
+    def get(self, component=None, module=None, **data):
         directive = self.directive
-        # a sanity check
-        if directive.scope is CLASS_OR_MODULE and module is None:
-            raise TypeError(
-                "The directive '%s' has scope CLASS_OR_MODULE "
-                "but no module was passed in to ``get``" %
-                self.directive.__name__)
-        if directive.scope is CLASS and module is not None:
-            raise TypeError(
-                "The directive '%s' has scope CLASS "
-                "but a module was also passed into ``get``")
-        value = directive.store.get(directive, component, default=_USE_DEFAULT)
-        if value is _USE_DEFAULT and module is not None:
-            value = directive.store.get(directive, module, default=_USE_DEFAULT)
+        value = directive.scope.get(directive, component, module)
         if value is _USE_DEFAULT:
             value = self.get_default(component, module, **data)
         return value
