@@ -125,18 +125,24 @@ scope both::
 By default, the ``default`` property is None which is why we can omit
 specifying it here.
 
+This directive has been declared ``CLASS_OR_MODULE``, so you will
+always have to pass a module to the directive. Since we don't have a
+module yet we'll simply create a dummy, empty, fallback module::
+
+  >>> dummy = object()
+
 We can use this directive now on a class::
 
   >>> class Foo(object):
   ...   layer('Test')
-  >>> layer.bind().get(Foo)
+  >>> layer.bind().get(Foo, dummy)
   'Test'
 
 The defaulting to ``None`` works::
 
   >>> class Foo(object):
   ...   pass
-  >>> layer.bind().get(Foo) is None
+  >>> layer.bind().get(Foo, dummy) is None
   True
 
 We can also use it in a module::

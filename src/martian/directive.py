@@ -4,7 +4,7 @@ import inspect
 from zope.interface.interfaces import IInterface
 
 from martian import util
-from martian.error import GrokImportError
+from martian.error import GrokImportError, GrokError
 
 class StoreOnce(object):
 
@@ -180,6 +180,12 @@ class BoundDirective(object):
 
     def get(self, component, module=None, **data):
         directive = self.directive
+        # a sanity check
+        if directive.scope is CLASS_OR_MODULE and module is None:
+            raise TypeError(
+                "The directive '%s' has scope CLASS_OR_MODULE "
+                "but no module was passed in to ``get``" %
+                self.directive.__name__)
         value = directive.store.get(directive, component, default=_USE_DEFAULT)
         if value is _USE_DEFAULT and module is not None:
             value = directive.store.get(directive, module, default=_USE_DEFAULT)
