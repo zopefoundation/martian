@@ -186,6 +186,10 @@ class BoundDirective(object):
                 "The directive '%s' has scope CLASS_OR_MODULE "
                 "but no module was passed in to ``get``" %
                 self.directive.__name__)
+        if directive.scope is CLASS and module is not None:
+            raise TypeError(
+                "The directive '%s' has scope CLASS "
+                "but a module was also passed into ``get``")
         value = directive.store.get(directive, component, default=_USE_DEFAULT)
         if value is _USE_DEFAULT and module is not None:
             value = directive.store.get(directive, module, default=_USE_DEFAULT)
