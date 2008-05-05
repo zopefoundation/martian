@@ -28,9 +28,9 @@ Now we look at the directive in action::
   >>> class Foo(object):
   ...    description(u"This is a description")
 
-After setting the description, we bind the directive and use the bound
-directive's ``get`` method to retrieve the description from the
-component (in other words, the class) again::
+After setting the description, we bind the directive and obtain a
+bound directive object.  This object has means for retrieving the data
+set by the directive, in particular the ``get`` method::
 
   >>> description.bind().get(Foo)
   u'This is a description'
