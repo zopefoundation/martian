@@ -149,31 +149,43 @@ class Directive(object):
     def factory(self, value):
         return value
 
-    def get_default(self, component):
-        return self.default
-
     @classmethod
     def dotted_name(cls):
         return cls.__module__ + '.' + cls.__name__
 
     @classmethod
-    def get(cls, component, module=None):
-        # Create an instance of the directive without calling __init__
-        self = cls.__new__(cls)
-
-        value = self.store.get(self, component, _USE_DEFAULT)
-        if value is _USE_DEFAULT and module is not None:
-            value = self.store.get(self, module, _USE_DEFAULT)
-        if value is _USE_DEFAULT:
-            value = self.get_default(component)
-
-        return value
+    def set(cls, component, value):
+        cls.store.setattr(component, cls, value)
 
     @classmethod
-    def set(cls, component, value):
-        # Create an instance of the directive without calling __init__
-        self = cls.__new__(cls)
-        cls.store.setattr(component, self, value)
+    def bind(cls, default=None, get_default=None, name=None):
+        return BoundDirective(cls, default, get_default, name)
+
+
+class BoundDirective(object):
+
+    def __init__(self, directive, default=None, get_default=None, name=None):
+        self.directive = directive
+        self.default = default
+        if name is None:
+            name = directive.__name__
+        self.name = name
+        if get_default is not None:
+            self.get_default = get_default
+
+    def get_default(self, component, module, **data):
+        if self.default is not None:
+            return self.default
+        return self.directive.default
+
+    def get(self, component, module=None, **data):
+        directive = self.directive
+        value = directive.store.get(directive, component, default=_USE_DEFAULT)
+        if value is _USE_DEFAULT and module is not None:
+            value = directive.store.get(directive, module, default=_USE_DEFAULT)
+        if value is _USE_DEFAULT:
+            value = self.get_default(component, module, **data)
+        return value
 
 
 class MultipleTimesDirective(Directive):

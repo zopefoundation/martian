@@ -28,10 +28,11 @@ Now we look at the directive in action::
   >>> class Foo(object):
   ...    description(u"This is a description")
 
-After setting it, we can use the ``get`` method on the directive to
-retrieve it from the class again::
+After setting the description, we bind the directive and use the bound
+directive's ``get`` method to retrieve the description from the
+component (in other words, the class) again::
 
-  >>> description.get(Foo)
+  >>> description.bind().get(Foo)
   u'This is a description'
 
 Directives in different namespaces get stored differently. We'll
@@ -43,9 +44,9 @@ define a similar directive in another namespace::
   >>> class Foo(object):
   ...     description(u"Description1")
   ...     description2(u"Description2")
-  >>> description.get(Foo)
+  >>> description.bind().get(Foo)
   u'Description1'
-  >>> description2.get(Foo)
+  >>> description2.bind().get(Foo)
   u'Description2'
 
 If we check the value of a class without the directive, we see the
@@ -53,14 +54,14 @@ default value for that directive, this case the empty unicode string::
 
   >>> class Foo(object):
   ...     pass
-  >>> description.get(Foo)
+  >>> description.bind().get(Foo)
   u''
 
 In certain cases we need to set a value on a component as if the directive was
 actually used::
 
   >>> description.set(Foo, u'value as set')
-  >>> description.get(Foo)
+  >>> description.bind().get(Foo)
   u'value as set'
 
 Subclasses of the original class will inherit the properties set by the
@@ -72,7 +73,7 @@ directive:
   >>> class Bar(Foo):
   ...     pass
   ...
-  >>> description.get(Bar)
+  >>> description.bind().get(Bar)
   'This is a foo.'
 
 When we use the directive outside of class scope, we get an error
@@ -128,14 +129,14 @@ We can use this directive now on a class::
 
   >>> class Foo(object):
   ...   layer('Test')
-  >>> layer.get(Foo)
+  >>> layer.bind().get(Foo)
   'Test'
 
 The defaulting to ``None`` works::
 
   >>> class Foo(object):
   ...   pass
-  >>> layer.get(Foo) is None
+  >>> layer.bind().get(Foo) is None
   True
 
 We can also use it in a module::
@@ -150,7 +151,7 @@ When we now try to access ``layer`` on ``Foo``, we find the
 module-level default which we just set. We pass the module as the
 second argument to the ``get`` method to have it fall back on this::
 
-  >>> layer.get(testmodule.Foo, testmodule)
+  >>> layer.bind().get(testmodule.Foo, testmodule)
   'Test2'
 
 Let's look at a module where the directive is not used::
@@ -163,7 +164,7 @@ Let's look at a module where the directive is not used::
 In this case, the value cannot be found so the system falls back on
 the default, ``None``::
 
-  >>> layer.get(testmodule.Foo, testmodule) is None
+  >>> layer.bind().get(testmodule.Foo, testmodule) is None
   True
 
 Using a directive multiple times
@@ -184,14 +185,14 @@ We can now use the directive multiple times without any errors::
 
 We can now retrieve the value and we'll get a list::
 
-  >>> multi.get(Foo)
+  >>> multi.bind().get(Foo)
   [u'Once', u'Twice']
 
 The default value for a MultipleTimesDirective is an empty list::
 
   >>> class Bar(object):
   ...   pass
-  >>> multi.get(Bar)
+  >>> multi.bind().get(Bar)
   []
 
 Whenever the directive is used on a sub class of a component, the values set by
@@ -200,7 +201,7 @@ directives on the base classes are combined::
   >>> class Qux(Foo):
   ...     multi(u'Triple')
   ...
-  >>> multi.get(Qux)
+  >>> multi.bind().get(Qux)
   [u'Once', u'Twice', u'Triple']
 
 
@@ -226,7 +227,7 @@ We can now use the directive multiple times without any errors::
 
 We can now retrieve the value and we'll get a to the items::
 
-  >>> d = multi.get(Bar)
+  >>> d = multi.bind().get(Bar)
   >>> print sorted(d.items())
   [(u'once', u'Once'), (u'twice', u'Twice')]
 
@@ -276,7 +277,7 @@ combined::
   ...   multi(3, 'DDD')
   ...   multi(4, 'EEE')
 
-  >>> d = multi.get(Fropple)
+  >>> d = multi.bind().get(Fropple)
   >>> print sorted(d.items())
   [(1, 'CCC'), (2, 'BBB'), (3, 'DDD'), (4, 'EEE')]
 
@@ -295,7 +296,7 @@ inheritance has no meaning there::
   ...     multi('Two')
   ...
   >>> module_with_directive = fake_import(module_with_directive)
-  >>> print multi.get(module_with_directive)
+  >>> print multi.bind().get(module_with_directive)
   ['One', 'Two']
 
   >>> from martian import MODULE
@@ -313,7 +314,7 @@ inheritance has no meaning there::
   ...     multi(2, 'Two')
   ...
   >>> module_with_directive = fake_import(module_with_directive)
-  >>> d = multi.get(module_with_directive)
+  >>> d = multi.bind().get(module_with_directive)
   >>> print sorted(d.items())
   [(1, 'One'), (2, 'Two')]
 
@@ -329,17 +330,21 @@ default argument::
   >>> class name(Directive):
   ...     scope = CLASS
   ...     store = ONCE
-  ...     def get_default(self, component):
-  ...         return component.__name__.lower()
+  ...
+  >>> def default_name_lowercase(component, module, **data):
+  ...     return component.__name__.lower()
+  ...
+  >>> bound_name = name.bind(get_default=default_name_lowercase)
 
   >>> class Foo(object):
   ...   name('bar')
-  >>> name.get(Foo)
+
+  >>> bound_name.get(Foo)
   'bar'
 
   >>> class Foo(object):
   ...   pass
-  >>> name.get(Foo)
+  >>> bound_name.get(Foo)
   'foo'
 
 A marker directive
@@ -357,14 +362,14 @@ no arguments at all, but when used it marks the context::
 
 Class ``Foo`` is now marked::
 
-  >>> mark.get(Foo)
+  >>> mark.bind().get(Foo)
   True
 
 When we have a class that isn't marked, we get the default value, ``False``::
 
   >>> class Bar(object):
   ...    pass
-  >>> mark.get(Bar)
+  >>> mark.bind().get(Bar)
   False
 
 If we pass in an argument, we get an error::
@@ -539,7 +544,7 @@ base class:
 As you would expect, the directive will correctly identify this class as a
 baseclass:
 
-  >>> baseclass.get(MyBase)
+  >>> baseclass.bind().get(MyBase)
   True
 
 But, if we create a subclass of this base class, the subclass won't inherit
@@ -548,7 +553,7 @@ that property, unlike with a regular directive:
   >>> class SubClass(MyBase):
   ...     pass
   ...
-  >>> baseclass.get(SubClass)
+  >>> baseclass.bind().get(SubClass)
   False
 
 Naturally, the directive will also report a false answer if the class doesn't
@@ -557,5 +562,5 @@ inherit from a base class at all and hasn't been marked with the directive:
   >>> class NoBase(object):
   ...     pass
   ...
-  >>> baseclass.get(NoBase)
+  >>> baseclass.bind().get(NoBase)
   False
