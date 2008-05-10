@@ -424,34 +424,49 @@ We can now grok a module for both ``Color`` and ``Sound`` instances::
 ClassGrokker
 ------------
 
-Besides instances we can also grok classes. Let's define an application
-where we register classes representing animals::
+Besides instances we can also grok classes. Let's define an
+application where we register classes representing animals.  Animals
+can be given names using the ``name`` directive::
+
+  >>> from martian.directive import Directive, CLASS, ONCE
 
   >>> class animal(FakeModule):
+  ...   class name(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...
   ...   class Animal(object):
-  ...     name = None
   ...     def __repr__(self):
-  ...       return '<Animal %s>' % self.name
+  ...       return '<Animal %s>' % animal.name.bind().get(self)
+  ...
   ...   all_animals = {}
   ...   def create_animal(name):
   ...     return all_animals[name]()
   >>> animal = fake_import(animal)
 
-Let's define a grokker that can grok an ``Animal``::
+Let's define a grokker that can grok an ``Animal``.  We could either
+implement the ``grok`` method as with ``InstanceGrokkers``, or we can
+rely on the implementation that the baseclass already provides.  In
+the latter case, we just have to declare what directives the grokker
+may want to use on the class and the implement the ``execute`` method::
 
   >>> from martian import ClassGrokker
   >>> class AnimalGrokker(ClassGrokker):
   ...   component_class = animal.Animal
-  ...   def grok(self, name, obj, **kw):
-  ...     animal.all_animals[obj.name] = obj
+  ...   directives = [
+  ...       animal.name.bind()
+  ...       ]
+  ...   def execute(self, class_, name, **kw):
+  ...     animal.all_animals[name] = class_
   ...     return True
 
 Let's test our grokker::
 
-  >>> animal_grokker = AnimalGrokker()
   >>> class Snake(animal.Animal):
-  ...   name = 'snake'
-  >>> animal_grokker.grok('snake', Snake)
+  ...   animal.name('snake')
+  ...
+  >>> animal_grokker = AnimalGrokker()
+  >>> animal_grokker.grok('Snake', Snake)
   True
   >>> animal.all_animals.keys()
   ['snake']
@@ -460,6 +475,80 @@ We can create a snake now::
 
   >>> animal.create_animal('snake')
   <Animal snake>
+
+Note that we can supply a different default value for the directive
+default when binding the directive to the grokker:
+
+  >>> class AnimalGrokker(AnimalGrokker):
+  ...   directives = [
+  ...       animal.name.bind(default='generic animal')
+  ...       ]
+  ...
+  >>> class Generic(animal.Animal):
+  ...   pass
+  ...
+  >>> animal_grokker = AnimalGrokker()
+  >>> animal_grokker.grok('Generic', Generic)
+  True
+  >>> sorted(animal.all_animals.keys())
+  ['generic animal', 'snake']
+
+Moreover, we can also supply a default factory that may want to
+determine a dynamic default value based on the class that's being
+grokked.  For instance, let's say the default name of an animal should
+the class name converted to lowercase letters::
+
+  >>> def default_animal_name(class_, module, **data):
+  ...   return class_.__name__.lower()
+  ...
+  >>> class AnimalGrokker(AnimalGrokker):
+  ...   directives = [
+  ...       animal.name.bind(get_default=default_animal_name)
+  ...       ]
+  ...
+  >>> class Mouse(animal.Animal):
+  ...   pass
+  ...
+  >>> animal_grokker = AnimalGrokker()
+  >>> animal_grokker.grok('Mouse', Mouse)
+  True
+  >>> sorted(animal.all_animals.keys())
+  ['generic animal', 'mouse', 'snake']
+
+Note that these default value factories will also get the data from
+all directives that are in front of them in the grokker's directive
+list.  For instance, consider the following directive:
+
+  >>> class zoologicalname(animal.name):
+  ...   pass
+  ...
+
+with the following default rule that takes the regular name as the
+default zoological name::
+
+  >>> def default_zoological_name(class_, module, name, **data):
+  ...   return name
+  ...
+  >>> class ZooAnimalGrokker(ClassGrokker):
+  ...   component_class = animal.Animal
+  ...   directives = [
+  ...       animal.name.bind(get_default=default_animal_name),
+  ...       zoologicalname.bind(get_default=default_zoological_name)
+  ...       ]
+  ...   def execute(self, class_, name, zoologicalname, **kw):
+  ...     print zoologicalname
+  ...     return True
+  ...
+  >>> class Hippopotamus(animal.Animal):
+  ...   pass
+  ...   # No need to use animal.name(), we'll take the class name as default.
+  ...   # The zoological name is the same as well.
+  ...
+
+  >>> zoo_animal_grokker = ZooAnimalGrokker()
+  >>> zoo_animal_grokker.grok('Hippopotamus', Hippopotamus)
+  hippopotamus
+  True
 
 MultiClassGrokker
 -----------------
@@ -470,13 +559,13 @@ animal) automatically become available::
 
   >>> class animals(FakeModule):
   ...   class Elephant(animal.Animal):
-  ...     name = 'elephant'
+  ...     animal.name('elephant')
   ...   class Tiger(animal.Animal):
-  ...     name = 'tiger'
+  ...     animal.name('tiger')
   ...   class Lion(animal.Animal):
-  ...     name = 'lion'
+  ...     animal.name('lion')
   ...   class Chair(object):
-  ...     name = 'chair'
+  ...     animal.name('chair')
   >>> animals = fake_import(animals)
 
 First we need to wrap our ``AnimalGrokker`` into a ``MultiClassGrokker``::
@@ -494,7 +583,7 @@ Now let's wrap it into a ``ModuleGrokker`` and grok the module::
 The animals (but not anything else) should have become available::
 
   >>> sorted(animal.all_animals.keys())
-  ['elephant', 'lion', 'snake', 'tiger']
+  ['elephant', 'generic animal', 'lion', 'mouse', 'snake', 'tiger']
 
 We can create animals using their name now::
 
@@ -524,7 +613,7 @@ Let's fill a ``MultiGrokker`` with a bunch of grokkers::
 Let's try it with some individual objects::
 
   >>> class Whale(animal.Animal):
-  ...    name = 'whale'
+  ...    animal.name('whale')
   >>> multi.grok('Whale', Whale)
   True
   >>> 'whale' in animal.all_animals
@@ -599,7 +688,7 @@ some of which can be grokked::
   >>> class mix(FakeModule):
   ...   # grokked by AnimalGrokker
   ...   class Whale(animal.Animal):
-  ...      name = 'whale'
+  ...      animal.name('whale')
   ...   # not grokked
   ...   my_whale = Whale()
   ...   # grokked by ColorGrokker
@@ -613,7 +702,7 @@ some of which can be grokked::
   ...   rocknroll = RockMusic('rock n roll')
   ...   # grokked by AnimalGrokker
   ...   class Dragon(animal.Animal):
-  ...     name = 'dragon'
+  ...     animal.name('dragon')
   ...   # not grokked
   ...   class Chair(object):
   ...     pass
@@ -625,7 +714,7 @@ some of which can be grokked::
   ...     pass
   ...   # grokked by AnimalGrokker
   ...   class SpermWhale(Whale):
-  ...     name = 'sperm whale'
+  ...     animal.name('sperm whale')
   ...   # not grokked
   ...   another = object()
   >>> mix = fake_import(mix)

@@ -179,19 +179,6 @@ Let's now look at this using a directive with CLASS scope only::
   ...     scope = CLASS
   ...     store = ONCE
 
-We are not allowed to pass in a module argument to ``get`` now::
-
-  >>> class testmodule2(FakeModule):
-  ...    layer2('Test2')
-  ...    class Foo(object):
-  ...       pass
-  >>> testmodule2 = fake_import(testmodule2)
-
-  >>> layer2.bind().get(testmodule2.Foo, testmodule2)
-  Traceback (most recent call last):
-    ...
-  AssertionError: The directive 'layer2' has scope CLASS but a module was also passed into 'get'
-
 Using a directive multiple times
 --------------------------------
 

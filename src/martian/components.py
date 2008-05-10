@@ -48,7 +48,21 @@ class ComponentGrokkerBase(GrokkerBase):
 class ClassGrokker(ComponentGrokkerBase):
     """Grokker that groks classes in a module.
     """
-    pass
+    # Use a tuple instead of a list here to make it immutable, just to be safe
+    directives = ()
+
+    def grok(self, name, class_, module_info=None, **kw):
+        module = None
+        if module_info is not None:
+            module = module_info.getModule()
+
+        # Populate the data dict with information from the directives:
+        for directive in self.directives:
+            kw[directive.name] = directive.get(class_, module, **kw)
+        return self.execute(class_, **kw)
+
+    def execute(self, class_, **data):
+        raise NotImplementedError
 
 class InstanceGrokker(ComponentGrokkerBase):
     """Grokker that groks instances in a module.

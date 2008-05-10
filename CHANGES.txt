@@ -4,7 +4,21 @@ CHANGES
 0.9.6 (unreleased)
 ==================
 
-* ...
+Feature changes
+---------------
+
+* Refactored the ``martian.Directive`` base class yet again to allow
+  more declarative (rather than imperative) usage in grokkers.
+  Directives themselves no longer have a ``get()`` method nor a
+  default value factory (``get_default()``).  Instead you will have to
+  "bind" the directive first which is typically done in a grokker.
+
+* Extended the ``ClassGrokker`` baseclass with a standard ``grok()``
+  method that allows you to simply declare a set of directives that
+  are used on the grokked classes.  Then you just have to implement an
+  ``execute()`` method that will receive the data from those
+  directives as keyword arguments.  This simplifies the implementation
+  of class grokkers a lot.
 
 0.9.5 (2008-05-04)
 ==================
