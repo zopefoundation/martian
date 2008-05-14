@@ -4,7 +4,7 @@ import inspect
 from zope.interface.interfaces import IInterface
 
 from martian import util
-from martian.error import GrokImportError
+from martian.error import GrokImportError, GrokError
 
 class StoreOnce(object):
 
@@ -82,7 +82,6 @@ class StoreDict(StoreOnce):
 
 DICT = StoreDict()
 
-_SENTINEL = object()
 _USE_DEFAULT = object()
 
 class ClassScope(object):
@@ -91,6 +90,9 @@ class ClassScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) and not is_fake_module(frame)
 
+    def get(self, directive, component, module, default):
+        return directive.store.get(directive, component, default)
+    
 CLASS = ClassScope()
 
 class ClassOrModuleScope(object):
@@ -99,6 +101,12 @@ class ClassOrModuleScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) or util.frame_is_module(frame)
 
+    def get(self, directive, component, module, default):
+        value = directive.store.get(directive, component, default)
+        if value is default:
+            value = directive.store.get(directive, module, default)
+        return value
+    
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class ModuleScope(object):
@@ -107,6 +115,9 @@ class ModuleScope(object):
     def check(self, frame):
         return util.frame_is_module(frame) or is_fake_module(frame)
 
+    def get(self, directive, component, module, default):
+        return directive.store.get(directive, module, default)
+    
 MODULE = ModuleScope()
 
 class Directive(object):
@@ -149,30 +160,42 @@ class Directive(object):
     def factory(self, value):
         return value
 
-    def get_default(self, component):
-        return self.default
-
     @classmethod
     def dotted_name(cls):
         return cls.__module__ + '.' + cls.__name__
 
     @classmethod
-    def get(cls, component, module=None):
-        # Create an instance of the directive without calling __init__
-        self = cls.__new__(cls)
-
-        value = self.store.get(self, component, _USE_DEFAULT)
-        if value is _USE_DEFAULT and module is not None:
-            value = self.store.get(self, module, _USE_DEFAULT)
-        if value is _USE_DEFAULT:
-            value = self.get_default(component)
-
-        return value
-
-    @classmethod
     def set(cls, component, value):
         cls.store.setattr(component, cls, value)
 
+    @classmethod
+    def bind(cls, default=None, get_default=None, name=None):
+        return BoundDirective(cls, default, get_default, name)
+
+
+class BoundDirective(object):
+
+    def __init__(self, directive, default=None, get_default=None, name=None):
+        self.directive = directive
+        self.default = default
+        if name is None:
+            name = directive.__name__
+        self.name = name
+        if get_default is not None:
+            self.get_default = get_default
+
+    def get_default(self, component, module=None, **data):
+        if self.default is not None:
+            return self.default
+        return self.directive.default
+
+    def get(self, component=None, module=None, **data):
+        directive = self.directive
+        value = directive.scope.get(directive, component, module,
+                                    default=_USE_DEFAULT)
+        if value is _USE_DEFAULT:
+            value = self.get_default(component, module, **data)
+        return value
 
 class MultipleTimesDirective(Directive):
     store = MULTIPLE

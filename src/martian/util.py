@@ -49,7 +49,7 @@ def caller_module():
     return sys._getframe(2).f_globals['__name__']
 
 def is_baseclass(name, component):
-    return (isclass(component) and martian.baseclass.get(component))
+    return (isclass(component) and martian.baseclass.bind().get(component))
 
 def defined_locally(obj, dotted_name):
     obj_module = getattr(obj, '__grok_module__', None)
