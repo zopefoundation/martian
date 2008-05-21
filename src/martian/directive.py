@@ -106,7 +106,7 @@ class ClassOrModuleScope(object):
         if value is default:
             value = directive.store.get(directive, module, default)
         return value
-    
+
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class ModuleScope(object):
@@ -117,7 +117,7 @@ class ModuleScope(object):
 
     def get(self, directive, component, module, default):
         return directive.store.get(directive, module, default)
-    
+
 MODULE = ModuleScope()
 
 class Directive(object):
