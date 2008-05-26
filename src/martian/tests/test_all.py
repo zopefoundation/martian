@@ -5,13 +5,6 @@ import new, types
 class FakeModule(object):
     pass
 
-def class_annotation_nobase(obj, name, default):
-    """This will only look in the given class obj for the annotation.
-
-    It will not look in the inheritance chain.
-    """
-    return obj.__dict__.get('__%s__' % name.replace('.', '_'), default)
-
 def fake_import(fake_module):
     module = new.module(fake_module.__name__)
     glob = {}
