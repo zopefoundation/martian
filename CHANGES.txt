@@ -4,7 +4,16 @@ CHANGES
 0.9.7 (unreleased)
 ==================
 
-* ...
+Feature changes
+---------------
+
+* Added a ``MethodGrokker`` base class for grokkers that want to grok
+  methods of a class rather than the whole class itself.  It works
+  quite similar to the ``ClassGrokker`` regarding directive
+  definition, except that directives evaluated not only on class (and
+  possibly module) level but also for each method.  That way,
+  directives can also be applied to methods (as decorators) in case
+  they support it.
 
 0.9.6 (2008-05-14)
 ==================
