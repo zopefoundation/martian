@@ -66,9 +66,7 @@ class ClassGrokker(ComponentGrokkerBase):
         raise NotImplementedError
 
 
-class MethodGrokker(ComponentGrokkerBase):
-    # Use a tuple instead of a list here to make it immutable, just to be safe
-    directives = ()
+class MethodGrokker(ClassGrokker):
 
     def grok(self, name, class_, module_info=None, **kw):
         module = None
