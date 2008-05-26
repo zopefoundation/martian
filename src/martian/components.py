@@ -15,7 +15,6 @@
 from zope.interface import implements
 
 from martian import util
-from martian import directive
 from martian.error import GrokError
 from martian.interfaces import IGrokker, IComponentGrokker
 
@@ -67,8 +66,9 @@ class ClassGrokker(ComponentGrokkerBase):
         raise NotImplementedError
 
 
-class MethodGrokker(ClassGrokker):
-    directive.baseclass()
+class MethodGrokker(ComponentGrokkerBase):
+    # Use a tuple instead of a list here to make it immutable, just to be safe
+    directives = ()
 
     def grok(self, name, class_, module_info=None, **kw):
         module = None
