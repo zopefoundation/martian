@@ -550,6 +550,77 @@ default zoological name::
   hippopotamus
   True
 
+MethodGrokker
+-------------
+
+A special kind of class grokker is the ``MethodGrokker``.  It inspects
+the class at hand and calls ``execute`` for each *method* the class
+provides.
+
+Consider the following baseclass for circus animals:
+
+  >>> class CircusAnimal(animal.Animal):
+  ...   def begin_show(self):
+  ...     pass
+  ...   def end_show(self):
+  ...      pass
+
+Circus animals define lots of methods which we'll collect using this
+grokker:
+
+  >>> circus_animals = {}
+  >>> from martian import MethodGrokker
+  >>> class CircusAnimalGrokker(MethodGrokker):
+  ...   component_class = CircusAnimal
+  ...   def execute(self, class_, method, **kw):
+  ...     circus_animals.setdefault(class_.__name__, []).append(method.__name__)
+  ...     return True
+  ...
+
+Now consider the following circus animals:
+
+  >>> class Monkey(CircusAnimal):
+  ...   def climb(self):
+  ...     pass
+  ...   def _take_dump(self):
+  ...     pass
+  ...
+  >>> class Camel(CircusAnimal):
+  ...   def walk(self):
+  ...     pass
+  ...   def spit(self):
+  ...     pass
+
+  >>> circus_animal_grokker = CircusAnimalGrokker()
+  >>> circus_animal_grokker.grok('Monkey', Monkey)
+  True
+  >>> circus_animal_grokker.grok('Camel', Camel)
+  True
+
+Let's look at the results:
+
+  >>> for circus_animal, methods in sorted(circus_animals.items()):
+  ...     print "%s can %s." % (circus_animal, " and ".join(sorted(methods)))
+  ...
+  Camel can spit and walk.
+  Monkey can climb.
+
+As we see, private methods (those beginning with underscores) have
+been ignored.  Furthermore, methods inherited from the component
+baseclass (in this case ``CircusAnimal``) have also been ignored.
+
+If we wrote a class without any methods, we would encounter an error:
+
+  >>> class Snail(CircusAnimal):
+  ...   pass
+
+  >>> circus_animal_grokker.grok('Snail', Snail)
+  Traceback (most recent call last):
+    ...
+  GrokError: <class 'Snail'> does not define any public
+  methods. Please add methods to this class to enable its
+  registration.
+
 MultiClassGrokker
 -----------------
 

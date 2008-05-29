@@ -107,6 +107,10 @@ def methods_from_class(class_):
     methods = [c for c in candidates if inspect.ismethod(c)]
     return methods
 
+def public_methods_from_class(class_):
+    return [m for m in methods_from_class(class_) if \
+            not m.__name__.startswith('_')]
+
 def frame_is_module(frame):
     return frame.f_locals is frame.f_globals
 
