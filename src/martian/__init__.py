@@ -8,5 +8,5 @@ from martian.directive import Directive, MarkerDirective, MultipleTimesDirective
 from martian.directive import ONCE, MULTIPLE, DICT
 from martian.directive import CLASS, CLASS_OR_MODULE, MODULE
 from martian.directive import (
-    validateText, validateInterface, validateInterfaceOrClass)
+    validateText, validateInterface, validateClass, validateInterfaceOrClass)
 from martian.directive import baseclass

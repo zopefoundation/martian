@@ -4,7 +4,10 @@ CHANGES
 0.9.8 (unreleased)
 ==================
 
-* ...
+Feature changes
+---------------
+
+* Add a ``validateClass`` validate function for directives.
 
 0.9.7 (2008-05-29)
 ==================

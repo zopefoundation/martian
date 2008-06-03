@@ -541,6 +541,31 @@ It won't work with classes or other things::
     ...
   GrokImportError: The 'iface' directive can only be called with an interface.
 
+The ``validateClass`` validator only accepts a class::
+
+  >>> from martian import validateClass
+  >>> class klass(Directive):
+  ...    scope = CLASS 
+  ...    store = ONCE
+  ...    validate = validateClass
+
+  >>> class Foo(object):
+  ...    klass(Bar)
+
+But it won't work with an interface or other things::
+
+  >>> class Foo(object):
+  ...    klass(IBar)
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'klass' directive can only be called with a class.
+
+  >>> class Foo(object):
+  ...    klass(Bar())
+  Traceback (most recent call last):
+    ...
+  GrokImportError: The 'klass' directive can only be called with a class.
+
 Declaring base classes
 ----------------------
 

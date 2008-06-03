@@ -225,6 +225,10 @@ def validateInterfaceOrClass(directive, value):
         raise GrokImportError("The '%s' directive can only be called with "
                               "a class or an interface." % directive.name)
 
+def validateClass(directive, value):
+    if not util.isclass(value):
+        raise GrokImportError("The '%s' directive can only be called with "
+                              "a class." % directive.name)
 
 def validateInterface(directive, value):
     if not (IInterface.providedBy(value)):
