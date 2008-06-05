@@ -6,7 +6,27 @@ Strange Land, by Robert A. Heinlein
 
 Martian provides infrastructure for declarative configuration of
 Python code. Martian is especially useful for the construction of
-frameworks that need to provide a flexible plugin infrastructure.
+frameworks that need to provide a flexible plugin
+infrastructure. Martian doesn't actually provide any infrastructure
+for plugin registries and such. Many frameworks have their own, and if
+you need a generic one, you might want to consider
+``zope.component``. Martian just allows you to make the registration
+of such plugins less verbose. 
+
+You can see Martian as doing something that you can also solve with
+metaclasses, with the following advantages:
+
+* the developer of the framework doesn't have to write a lot of ad-hoc
+  metaclasses anymore; instead we offer an infrastructure to make life
+  easier.
+
+* configuration doesn't need to happen at import time, but can happen at
+  program startup time. This also makes configuration more tractable for
+  a developer.
+
+* we don't bother the developer that *uses* the framework with the
+  surprising behavior that metaclasses sometimes bring. The classes
+  the user has to deal with are normal classes.
 
 Why is this package named ``martian``? In the novel "Stranger in a
 Strange Land", the verb *grok* is introduced:
