@@ -9,6 +9,9 @@ Feature changes
 
 * Add a ``validateClass`` validate function for directives.
 
+* Moved ``FakeModule`` and ``fake_import`` into a ``martian.testing``
+  module so that they can be reused by external packages.
+
 0.9.7 (2008-05-29)
 ==================
 
