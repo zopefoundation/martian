@@ -1,0 +1,47 @@
+(Edge-case) tests of Martian core components
+============================================
+
+ModuleGrokker ignores values set by directives
+----------------------------------------------
+
+Consider the following module-level directive:
+
+  >>> import martian
+  >>> class store(martian.Directive):
+  ...     scope = martian.MODULE
+  ...     store = martian.ONCE
+  ...
+  >>> store.__module__ = 'somethingelse'  # just so that it isn't __builtin__
+
+Now let's look at a module that contains a simple function and a call
+to the directive defined above:
+
+  >>> class module_with_directive(FakeModule):
+  ...     fake_module = True
+  ...
+  ...     def some_function():
+  ...         return 11
+  ...
+  ...     store(some_function)
+  ...
+  >>> module_with_directive = fake_import(module_with_directive)
+
+Now imagine we have the following grokker for functions:
+
+  >>> import types
+  >>> class FunctionGrokker(martian.InstanceGrokker):
+  ...     martian.component(types.FunctionType)
+  ...     def grok(self, name, obj, **kw):
+  ...         print name, obj()
+  ...         return True
+  ...
+  >>> module_grokker = martian.ModuleGrokker()
+  >>> module_grokker.register(FunctionGrokker())
+
+and let it loose on the module, we see that it will only find functions
+set by regular variable assignment, not the ones stored by the
+directive:
+
+  >>> module_grokker.grok('module_with_directive', module_with_directive)
+  some_function 11
+  True
