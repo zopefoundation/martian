@@ -144,7 +144,7 @@ class Directive(object):
         self.store.set(frame.f_locals, self, value)
 
     # To get a correct error message, we construct a function that has
-    # the same signature as check_arguments(), but without "self".
+    # the same signature as factory(), but without "self".
     def check_factory_signature(self, *arguments, **kw):
         args, varargs, varkw, defaults = inspect.getargspec(
             self.factory)
