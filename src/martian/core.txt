@@ -1,60 +1,11 @@
-Martian
-=======
+Martian core
+============
 
-"There was so much to grok, so little to grok from." -- Stranger in a
-Strange Land, by Robert A. Heinlein
+A simple framework
+------------------
 
-Martian provides infrastructure for declarative configuration of
-Python code. Martian is especially useful for the construction of
-frameworks that need to provide a flexible plugin
-infrastructure. Martian doesn't actually provide any infrastructure
-for plugin registries and such. Many frameworks have their own, and if
-you need a generic one, you might want to consider
-``zope.component``. Martian just allows you to make the registration
-of such plugins less verbose. 
-
-You can see Martian as doing something that you can also solve with
-metaclasses, with the following advantages:
-
-* the developer of the framework doesn't have to write a lot of ad-hoc
-  metaclasses anymore; instead we offer an infrastructure to make life
-  easier.
-
-* configuration doesn't need to happen at import time, but can happen at
-  program startup time. This also makes configuration more tractable for
-  a developer.
-
-* we don't bother the developer that *uses* the framework with the
-  surprising behavior that metaclasses sometimes bring. The classes
-  the user has to deal with are normal classes.
-
-Why is this package named ``martian``? In the novel "Stranger in a
-Strange Land", the verb *grok* is introduced:
-
-  Grok means to understand so thoroughly that the observer becomes a
-  part of the observed -- to merge, blend, intermarry, lose identity
-  in group experience.
-
-In the context of this package, "grokking" stands for the process of
-deducing declarative configuration actions from Python code. In the
-novel, grokking is originally a concept that comes from the planet
-Mars. Martians *grok*. Since this package helps you grok code, it's
-called Martian.
-
-The ``martian`` package is a spin-off from the `Grok project`_, in the
-context of which this codebase was first developed. While Grok uses
-it, the code is completely independent of Grok.
-
-.. _`Grok project`: http://grok.zope.org
-
-Motivation
-----------
-
-"Deducing declarative configuration actions from Python code" - that
-sounds very abstract. What does it actually mean? In order to explain
-this, let's first look at an example of a simple framework that can be
-*configured* with plugins. We will define a framework for handling
-files based on their extensions::
+Let's look at a very simple framework where files are handled by their
+extensions::
 
   >>> class filehandler(FakeModule):
   ...   import os
@@ -70,15 +21,6 @@ files based on their extensions::
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
   ...      return extension_handlers[ext](filepath)
-
-Since normally we cannot create modules in a doctest, we have emulated
-the ``filehandler`` Python module using the ``FakeModule``
-class. Whenever you see ``FakeModule`` subclasses, imagine you're
-looking at a module definition in a ``.py`` file. Now that we have
-defined a module ``filehandler``, we also need to be able to import
-it. To do so we can use a a fake import statement that lets us do
-this::
-
   >>> filehandler = fake_import(filehandler)
 
 Now let's try the ``handle`` function for a few file types::
@@ -97,9 +39,7 @@ raised::
   KeyError: '.png'
 
 We now want to plug into this filehandler framework and provide a
-handler for ``.png`` files. Since we are writing a plugin, we cannot
-change the ``filehandler`` module directly. Let's write an extension
-module instead::
+handler for ``.png`` files::
 
   >>> class pnghandler(FakeModule):
   ...    def handle_png(filepath):
@@ -115,36 +55,11 @@ function. PNG handling works now::
   >>> filehandler.handle('image.png')
   'PNG file'
 
-The action of registering something into a central registry is also
-called *configuration*. Larger frameworks often offer a lot of points
-where you can configure them: ways to combine its own components with
-components you provide yourself to build a larger application.
-
-Above we plug into our ``extension_handler`` registry using Python
-code. Using separate code to manually hook components into registries
-can get rather cumbersome - each time you write an extension, you also
-need to remember you need to register it. It also poses a maintenance
-risk. It is tempting to start doing fancy things in Python code such
-as conditional configuration, making the configuration state of a
-program hard to understand. Another problem is that doing
-configuration at import time can also lead to unwanted side effects
-during import and ordering problems. It can also make code harder to
-test.
-
-Martian provides a framework that allows configuration to be expressed
-in declarative Python code. These declarations can often be deduced
-from the structure of the code itself. The idea is to make these
-declarations so minimal and easy to read that even extensive
-configuration does not overly burden the programmers working with the
-code. Configuration actions are executed during a separate phase
-("grok time"), not at import time, which makes it easier to reason
-about and easier to test.
-
 Grokkers that grok
 ------------------
 
-In this section we define the concept of a ``Grokker``. A ``Grokker``
-is an object that can *grok* objects - execute configuration actions
+Let's write a grokker that can grok the file types. A ``Grokker`` is
+an object that can *grok* objects - execute configuration actions
 pertaining to the grokked object, such as registering it with some
 central registry. Different kinds of grokkers can grok different types
 of objects (instances, classes, functions).
@@ -493,7 +408,7 @@ We can create a snake now::
   <Animal snake>
 
 Note that we can supply a different default value for the directive
-default when binding the directive to the grokker:
+default::
 
   >>> class AnimalGrokker(AnimalGrokker):
   ...   martian.directive(animal.name, default='generic animal')
