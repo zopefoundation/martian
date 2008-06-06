@@ -12,7 +12,9 @@ Feature changes
 * Moved ``FakeModule`` and ``fake_import`` into a ``martian.testing``
   module so that they can be reused by external packages.
 
-* Introduce new tutorial text.
+* Introduce new tutorial text as README.txt. The text previously in
+  ``README.txt`` was rather too detailed for a tutorial, so has been
+  moved into ``core.txt``.
 
 * Introduce a ``GrokkerRegistry`` class that is a ``ModuleGrokker``
   with a ``MetaMultiGrokker`` in it. This is the convenient thing to
