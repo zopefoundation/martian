@@ -409,3 +409,10 @@ The animals will now be in the ``animals`` dictionary::
    ('elephant', <Animal object at ...>), 
    ('horse', <Animal object at ...>), 
    ('lion', <Animal object at ...>)]
+
+More information
+----------------
+
+For many more details and examples of more kinds of grokkers, please
+see ``core.txt``. For more information on directives see
+``directive.txt``.
