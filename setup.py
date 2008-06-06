@@ -7,12 +7,9 @@ def read(*rnames):
 long_description = (
     read('README.txt')
     + '\n' +
-    read('CHANGES.txt')
-    + '\n' +
-    'Detailed Documentation\n'
-    '**********************\n'
-    + '\n' +
     read('src', 'martian', 'README.txt')
+    + '\n' +
+    read('CHANGES.txt')
     + '\n' +
     'Download\n'
     '********\n'

@@ -1,5 +1,8 @@
-Martian
-=======
+Martian tutorial
+****************
+
+Introduction
+============
 
 "There was so much to grok, so little to grok from." -- Stranger in a
 Strange Land, by Robert A. Heinlein
@@ -7,11 +10,11 @@ Strange Land, by Robert A. Heinlein
 Martian provides infrastructure for declarative configuration of
 Python code. Martian is especially useful for the construction of
 frameworks that need to provide a flexible plugin
-infrastructure. Martian doesn't actually provide any infrastructure
-for plugin registries and such. Many frameworks have their own, and if
-you need a generic one, you might want to consider
-``zope.component``. Martian just allows you to make the registration
-of such plugins less verbose. 
+infrastructure. Martian doesn't actually provide infrastructure for
+plugin registries (except for itself). Many frameworks have their own
+systems for this, and if you need a generic one, you might want to
+consider ``zope.component``. Martian just allows you to make the
+registration of plugins less verbose.
 
 You can see Martian as doing something that you can also solve with
 metaclasses, with the following advantages:
@@ -41,6 +44,13 @@ novel, grokking is originally a concept that comes from the planet
 Mars. Martians *grok*. Since this package helps you grok code, it's
 called Martian.
 
+Martian provides a framework that allows configuration to be expressed
+in declarative Python code. These declarations can often be deduced
+from the structure of the code itself. The idea is to make these
+declarations so minimal and easy to read that even extensive
+configuration does not overly burden the programmers working with the
+code.
+
 The ``martian`` package is a spin-off from the `Grok project`_, in the
 context of which this codebase was first developed. While Grok uses
 it, the code is completely independent of Grok.
@@ -48,7 +58,7 @@ it, the code is completely independent of Grok.
 .. _`Grok project`: http://grok.zope.org
 
 Motivation
-----------
+==========
 
 "Deducing declarative configuration actions from Python code" - that
 sounds very abstract. What does it actually mean? What is
@@ -192,7 +202,7 @@ time"), not at import time, which makes it easier to reason about and
 easier to test.
 
 Configuration the Martian Way
------------------------------
+=============================
 
 Let's now transform the above ``templating`` module and the
 ``sillytemplating`` module to use Martian. First we must recognize
@@ -360,7 +370,7 @@ Finally note how Martian was used to define the ``TemplateGrokker`` as
 well. In this way Martian can use itself to extend itself.
 
 Grokking instances
-------------------
+==================
 
 Above we've seen how you can grok classes. Martian also supplies a way
 to grok instances. This is less common in typical frameworks, and has
@@ -411,8 +421,8 @@ The animals will now be in the ``animals`` dictionary::
    ('lion', <Animal object at ...>)]
 
 More information
-----------------
+================
 
 For many more details and examples of more kinds of grokkers, please
-see ``core.txt``. For more information on directives see
-``directive.txt``.
+see ``src/martian/core.txt``. For more information on directives see
+``src/martian/directive.txt``.
