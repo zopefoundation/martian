@@ -28,6 +28,8 @@ class StoreOnceGetFromThisClassOnly(StoreOnce):
     def get(self, directive, component, default):
         return component.__dict__.get(directive.dotted_name(), default)
 
+ONCE_NOBASE = StoreOnceGetFromThisClassOnly()
+
 class StoreMultipleTimes(StoreOnce):
 
     def get(self, directive, component, default):
@@ -208,12 +210,6 @@ class MarkerDirective(Directive):
 
     def factory(self):
         return True
-
-
-class baseclass(MarkerDirective):
-    scope = CLASS
-    store = StoreOnceGetFromThisClassOnly()
-
 
 def validateText(directive, value):
     if util.not_unicode_or_ascii(value):

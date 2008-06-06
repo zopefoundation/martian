@@ -1,7 +1,8 @@
 """Martian-specific directives"""
 
 from martian.directive import (Directive, MultipleTimesDirective,
-                               CLASS, ONCE, validateClass)
+                               MarkerDirective, validateClass,
+                               CLASS, ONCE, ONCE_NOBASE)
 from martian.error import GrokImportError
 
 class component(Directive):
@@ -9,6 +10,7 @@ class component(Directive):
     store = ONCE
     default = None
     validate = validateClass
+
 
 class directive(MultipleTimesDirective):
     scope = CLASS
@@ -26,9 +28,14 @@ class directive(MultipleTimesDirective):
     def factory(self, directive, *args, **kw):
         return directive.bind(*args, **kw)
 
+
 class priority(Directive):
     scope = CLASS
     store = ONCE
     default = 0
 
+
+class baseclass(MarkerDirective):
+    scope = CLASS
+    store = ONCE_NOBASE
 

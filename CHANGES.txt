@@ -30,7 +30,8 @@ Feature changes
   ``martian.directive`` takes the directive itself as an argument, and
   then optionally the same arguments as the ``bind`` method of
   directives (``name``, ``default`` and ``get_default``). It may be
-  used multiple times.
+  used multiple times. Note that ``martian.baseclass`` was already a
+  Martian-specific directive and this has been unchanged.
 
 * For symmetry, add an ``execute`` method to ``InstanceGrokker``.
 

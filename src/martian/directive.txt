@@ -569,19 +569,19 @@ But it won't work with an interface or other things::
 Declaring base classes
 ----------------------
 
-There's a special directive called 'baseclass' which lets you declare that a
-certain class is the base class for a series of other components.  This
-property should not be inherited by those components.  Consider the following
-base class:
+There's a special directive called ``martian.baseclass`` which lets
+you declare that a certain class is the base class for a series of
+other components.  This property should not be inherited by those
+components.  Consider the following base class:
 
-  >>> from martian import baseclass
+  >>> import martian
   >>> class MyBase(object):
-  ...     baseclass()
+  ...     martian.baseclass()
 
 As you would expect, the directive will correctly identify this class as a
 baseclass:
 
-  >>> baseclass.bind().get(MyBase)
+  >>> martian.baseclass.bind().get(MyBase)
   True
 
 But, if we create a subclass of this base class, the subclass won't inherit
@@ -590,7 +590,7 @@ that property, unlike with a regular directive:
   >>> class SubClass(MyBase):
   ...     pass
   ...
-  >>> baseclass.bind().get(SubClass)
+  >>> martian.baseclass.bind().get(SubClass)
   False
 
 Naturally, the directive will also report a false answer if the class doesn't
@@ -599,5 +599,5 @@ inherit from a base class at all and hasn't been marked with the directive:
   >>> class NoBase(object):
   ...     pass
   ...
-  >>> baseclass.bind().get(NoBase)
+  >>> martian.baseclass.bind().get(NoBase)
   False
