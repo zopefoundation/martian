@@ -9,6 +9,10 @@ globs = dict(FakeModule=FakeModule, fake_import=fake_import)
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTests([
+        doctest.DocFileSuite('tutorial.txt',
+                             package='martian',
+                             globs=globs,
+                             optionflags=optionflags),
         doctest.DocFileSuite('README.txt',
                              package='martian',
                              globs=globs,

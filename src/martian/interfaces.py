@@ -15,8 +15,12 @@
 from zope.interface import Interface, Attribute
 
 class IGrokker(Interface):
-    priority = Attribute('Priority during module grokking.')
+    """A grokker that groks components.
 
+    Use the martian.priority directive to specify the priority
+    (within a module) with which to grok. The higher the priority,
+    the earlier the grokker will be executed.
+    """
     def grok(name, obj, **kw):
         """Grok obj.
 
@@ -33,9 +37,8 @@ class IGrokker(Interface):
 class IComponentGrokker(IGrokker):
     """A grokker that groks components in a module.
 
-    Components may be instances or classes indicated by component_class.
+    Use the martian.component directive to specify the component to grok.
     """
-    component_class = Attribute('Class of the component to match')
     
 class IMultiGrokker(IComponentGrokker):
     """A grokker that is composed out of multiple grokkers.

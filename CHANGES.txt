@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-0.9.8 (unreleased)
-==================
+0.10 (unreleased)
+=================
 
 Feature changes
 ---------------
@@ -11,6 +11,26 @@ Feature changes
 
 * Moved ``FakeModule`` and ``fake_import`` into a ``martian.testing``
   module so that they can be reused by external packages.
+
+* Introduce new tutorial text.
+
+* Introduce a ``GrokkerRegistry`` class that is a ``ModuleGrokker``
+  with a ``MetaMultiGrokker`` in it. This is the convenient thing to
+  instantiate to start working with Grok and is demonstrated in the
+  tutorial.
+
+* Introduced three new martian-specific directives:
+  ``martian.component``, ``martian.directive`` and
+  ``martian.priority``. These replace the ``component_class``,
+  ``directives`` and ``priority`` class-level attributes. This way
+  Grokkers look the same as what they grok. This breaks backwards
+  compatibility again, but it's an easy replace operation. Note that
+  ``martian.directive`` takes the directive itself as an argument, and
+  then optionally the same arguments as the ``bind`` method of
+  directives (``name``, ``default`` and ``get_default``). It may be
+  used multiple times.
+
+* For symmetry, add an ``execute`` method to ``InstanceGrokker``.
 
 0.9.7 (2008-05-29)
 ==================

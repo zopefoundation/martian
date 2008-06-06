@@ -30,7 +30,7 @@ Now imagine we have the following grokker for functions:
 
   >>> import types
   >>> class FunctionGrokker(martian.InstanceGrokker):
-  ...     component_class = types.FunctionType
+  ...     martian.component(types.FunctionType)
   ...     def grok(self, name, obj, **kw):
   ...         print name, obj()
   ...         return True

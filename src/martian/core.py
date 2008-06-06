@@ -8,6 +8,7 @@ from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
                                 GlobalGrokker)
 from martian.error import GrokError
 
+from martiandirective import component, priority
 
 class MultiGrokkerBase(GrokkerBase):
     implements(IMultiGrokker)
@@ -35,6 +36,11 @@ class MultiGrokkerBase(GrokkerBase):
     def grokkers(self, name, obj):
         raise NotImplementedError
 
+def _grokker_sort_key((grokker, name, obj)):
+    """Helper function to calculate sort order of grokker.
+    """
+    return priority.bind().get(grokker)
+    
 class ModuleGrokker(MultiGrokkerBase):
 
     def __init__(self, grokker=None, prepare=None, finalize=None):
@@ -59,7 +65,7 @@ class ModuleGrokker(MultiGrokkerBase):
 
         # sort grokkers by priority
         grokkers = sorted(self.grokkers(name, module),
-                          key=lambda (grokker, name, obj): grokker.priority,
+                          key=_grokker_sort_key,
                           reverse=True)
 
         for g, name, obj in grokkers:
@@ -104,7 +110,7 @@ class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
         self.clear()
 
     def register(self, grokker):
-        key = grokker.component_class
+        key = component.bind().get(grokker)
         grokkers = self._grokkers.setdefault(key, [])
         for g in grokkers:
             if g.__class__ is grokker.__class__:
@@ -217,10 +223,14 @@ class MetaGrokker(ClassGrokker):
         return True
 
 class ClassMetaGrokker(MetaGrokker):
-    component_class = ClassGrokker
+    component(ClassGrokker)
 
 class InstanceMetaGrokker(MetaGrokker):
-    component_class = InstanceGrokker
+    component(InstanceGrokker)
 
 class GlobalMetaGrokker(MetaGrokker):
-    component_class = GlobalGrokker
+    component(GlobalGrokker)
+
+class GrokkerRegistry(ModuleGrokker):
+    def __init__(self):
+        super(GrokkerRegistry, self).__init__(MetaMultiGrokker())

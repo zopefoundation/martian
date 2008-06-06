@@ -154,9 +154,9 @@ functions as seen in our previous example::
 
   >>> import types
   >>> from zope.interface import implements
-  >>> from martian import InstanceGrokker
-  >>> class FileTypeGrokker(InstanceGrokker):
-  ...   component_class = types.FunctionType
+  >>> import martian
+  >>> class FileTypeGrokker(martian.InstanceGrokker):
+  ...   martian.component(types.FunctionType)
   ...
   ...   def grok(self, name, obj, **kw):
   ...     if not name.startswith('handle_'):
@@ -167,7 +167,7 @@ functions as seen in our previous example::
 
 This ``InstanceGrokker`` allows us to grok instances of a particular
 type (such as functions). We need to define the type of object we're
-looking for with the ``component_class`` attribute. In the ``grok``
+looking for with the ``martian.component`` directive. In the ``grok``
 method, we first make sure we only grok functions that have a name
 that starts with ``handle_``. Then we determine the used extension
 from the name and register the funcion in the ``extension_handlers``
@@ -215,16 +215,15 @@ Grokking a module
 
 Grokking individual components is useful, but to make Martian really
 useful we need to be able to grok whole modules or packages as well.
-Let's look at a special grokker that can grok a Python module::
-
-  >>> from martian import ModuleGrokker
+Let's look at a special grokker that can grok a Python module, the
+``ModuleGrokker``.
 
 The idea is that the ``ModuleGrokker`` groks any components in a
 module that it recognizes. A ``ModuleGrokker`` does not work alone. It
 needs to be supplied with one or more grokkers that can grok the
 components to be founded in a module::
 
-  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker = martian.ModuleGrokker()
   >>> module_grokker.register(filetype_grokker)
 
 We now define a module that defines a few filetype handlers to be
@@ -309,8 +308,8 @@ We now want a grokker that can recognize colors and put them in the
 ``all_colors`` dictionary, with the names as the keys, and the color
 object as the values. We can use ``InstanceGrokker`` to construct it::
 
-  >>> class ColorGrokker(InstanceGrokker):
-  ...   component_class = color.Color
+  >>> class ColorGrokker(martian.InstanceGrokker):
+  ...   martian.component(color.Color)
   ...   def grok(self, name, obj, **kw):
   ...     color.all_colors[name] = obj
   ...     return True
@@ -337,7 +336,7 @@ multiple colors in a module::
   ...   blue = Color(0, 0, 255)
   ...   white = Color(255, 255, 255)
   >>> colors = fake_import(colors)
-  >>> colors_grokker = ModuleGrokker()
+  >>> colors_grokker = martian.ModuleGrokker()
   >>> colors_grokker.register(color_grokker)
   >>> colors_grokker.grok('colors', colors)
   True
@@ -377,8 +376,8 @@ instances of ``Sound``::
   ...   all_sounds = {}
   >>> sound = fake_import(sound)
 
-  >>> class SoundGrokker(InstanceGrokker):
-  ...   component_class = sound.Sound
+  >>> class SoundGrokker(martian.InstanceGrokker):
+  ...   martian.component(sound.Sound)
   ...   def grok(self, name, obj, **kw):
   ...     sound.all_sounds[name] = obj
   ...     return True
@@ -419,7 +418,7 @@ We can also grok other objects, but this will have no effect::
 Let's put our ``multi_grokker`` in a ``ModuleGrokker``. We can do
 this by passing it explicitly to the ``ModuleGrokker`` factory::
 
-  >>> module_grokker = ModuleGrokker(grokker=multi_grokker)
+  >>> module_grokker = martian.ModuleGrokker(grokker=multi_grokker)
 
 We can now grok a module for both ``Color`` and ``Sound`` instances::
 
@@ -470,12 +469,9 @@ rely on the implementation that the baseclass already provides.  In
 the latter case, we just have to declare what directives the grokker
 may want to use on the class and the implement the ``execute`` method::
 
-  >>> from martian import ClassGrokker
-  >>> class AnimalGrokker(ClassGrokker):
-  ...   component_class = animal.Animal
-  ...   directives = [
-  ...       animal.name.bind()
-  ...       ]
+  >>> class AnimalGrokker(martian.ClassGrokker):
+  ...   martian.component(animal.Animal)
+  ...   martian.directive(animal.name)
   ...   def execute(self, class_, name, **kw):
   ...     animal.all_animals[name] = class_
   ...     return True
@@ -500,9 +496,7 @@ Note that we can supply a different default value for the directive
 default when binding the directive to the grokker:
 
   >>> class AnimalGrokker(AnimalGrokker):
-  ...   directives = [
-  ...       animal.name.bind(default='generic animal')
-  ...       ]
+  ...   martian.directive(animal.name, default='generic animal')
   ...
   >>> class Generic(animal.Animal):
   ...   pass
@@ -522,9 +516,7 @@ the class name converted to lowercase letters::
   ...   return class_.__name__.lower()
   ...
   >>> class AnimalGrokker(AnimalGrokker):
-  ...   directives = [
-  ...       animal.name.bind(get_default=default_animal_name)
-  ...       ]
+  ...   martian.directive(animal.name, get_default=default_animal_name)
   ...
   >>> class Mouse(animal.Animal):
   ...   pass
@@ -549,12 +541,11 @@ default zoological name::
   >>> def default_zoological_name(class_, module, name, **data):
   ...   return name
   ...
-  >>> class ZooAnimalGrokker(ClassGrokker):
-  ...   component_class = animal.Animal
-  ...   directives = [
-  ...       animal.name.bind(get_default=default_animal_name),
-  ...       zoologicalname.bind(get_default=default_zoological_name)
-  ...       ]
+  >>> class ZooAnimalGrokker(martian.ClassGrokker):
+  ...   martian.component(animal.Animal)
+  ...   martian.directive(animal.name, get_default=default_animal_name)
+  ...   martian.directive(zoologicalname, get_default=default_zoological_name)
+  ...
   ...   def execute(self, class_, name, zoologicalname, **kw):
   ...     print zoologicalname
   ...     return True
@@ -569,6 +560,13 @@ default zoological name::
   >>> zoo_animal_grokker.grok('Hippopotamus', Hippopotamus)
   hippopotamus
   True
+
+If you pass a non-directive to ``martian.directive``, you get an error::
+
+  >>> class Test(martian.ClassGrokker):
+  ...    martian.directive('foo')
+  Traceback (most recent call last):
+  GrokImportError: The 'directive' directive can only be called with a directive.
 
 MethodGrokker
 -------------
@@ -591,7 +589,7 @@ grokker:
   >>> circus_animals = {}
   >>> from martian import MethodGrokker
   >>> class CircusAnimalGrokker(MethodGrokker):
-  ...   component_class = CircusAnimal
+  ...   martian.component(CircusAnimal)
   ...   def execute(self, class_, method, **kw):
   ...     circus_animals.setdefault(class_.__name__, []).append(method.__name__)
   ...     return True
@@ -667,7 +665,7 @@ First we need to wrap our ``AnimalGrokker`` into a ``MultiClassGrokker``::
 
 Now let's wrap it into a ``ModuleGrokker`` and grok the module::
 
-  >>> grokker = ModuleGrokker(grokker=multi_grokker)
+  >>> grokker = martian.ModuleGrokker(grokker=multi_grokker)
   >>> grokker.grok('animals', animals)
   True
 
@@ -812,7 +810,7 @@ some of which can be grokked::
 
 Let's construct a ``ModuleGrokker`` that can grok this module::
 
-  >>> mix_grokker = ModuleGrokker(grokker=multi)
+  >>> mix_grokker = martian.ModuleGrokker(grokker=multi)
 
 Note that this is actually equivalent to calling ``ModuleGrokker``
 without arguments and then calling ``register`` for the individual
@@ -863,7 +861,7 @@ it in the ``read_amount`` dictionary::
 
 Let's construct a ``ModuleGrokker`` with this ``GlobalGrokker`` registered::
 
-  >>> grokker = ModuleGrokker()
+  >>> grokker = martian.ModuleGrokker()
   >>> grokker.register(AmountGrokker())
 
 Now we grok and should pick up the right value::
@@ -889,16 +887,16 @@ their instances::
 
 Let's make a grokker for the old style class::
 
-  >>> class MachineGrokker(ClassGrokker):
-  ...   component_class = oldstyle.Machine
+  >>> class MachineGrokker(martian.ClassGrokker):
+  ...   martian.component(oldstyle.Machine)
   ...   def grok(self, name, obj, **kw):
   ...     oldstyle.all_machines[name] = obj
   ...     return True
 
 And another grokker for old style instances::
 
-  >>> class MachineInstanceGrokker(InstanceGrokker):
-  ...   component_class = oldstyle.Machine
+  >>> class MachineInstanceGrokker(martian.InstanceGrokker):
+  ...   martian.component(oldstyle.Machine)
   ...   def grok(self, name, obj, **kw):
   ...     oldstyle.all_machine_instances[name] = obj
   ...     return True
@@ -930,8 +928,8 @@ grokker for the ``Animal`` class defined by the package::
 
   >>> from martian.tests.testpackage import animal
   >>> all_animals = {}
-  >>> class AnimalGrokker(ClassGrokker):
-  ...   component_class = animal.Animal
+  >>> class AnimalGrokker(martian.ClassGrokker):
+  ...   martian.component(animal.Animal)
   ...   def grok(self, name, obj, **kw):
   ...     all_animals[name] = obj
   ...     return True
@@ -940,7 +938,7 @@ The grokker will collect animals into the ``all_animals`` dictionary.
 
 Let's register this grokker for a ModuleGrokker::
 
-  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker = martian.ModuleGrokker()
   >>> module_grokker.register(AnimalGrokker())
 
 Now let's grok the whole ``testpackage`` for animals::
@@ -965,14 +963,14 @@ a ``prepare`` function a the ModuleGrokker::
   ...   def __init__(self, nr):
   ...     self.nr = nr
   >>> all_numbers = {}
-  >>> class NumberGrokker(InstanceGrokker):
-  ...  component_class = Number
+  >>> class NumberGrokker(martian.InstanceGrokker):
+  ...  martian.component(Number)
   ...  def grok(self, name, obj, multiplier, **kw):
   ...    all_numbers[obj.nr] = obj.nr * multiplier
   ...    return True
   >>> def prepare(name, module, kw):
   ...   kw['multiplier'] = 3
-  >>> module_grokker = ModuleGrokker(prepare=prepare)
+  >>> module_grokker = martian.ModuleGrokker(prepare=prepare)
   >>> module_grokker.register(NumberGrokker())
 
 We have created a ``prepare`` function that does one thing: create a
@@ -997,7 +995,7 @@ be run at the end of a module grok::
 
   >>> def finalize(name, module, kw):
   ...     all_numbers['finalized'] = True
-  >>> module_grokker = ModuleGrokker(prepare=prepare, finalize=finalize)
+  >>> module_grokker = martian.ModuleGrokker(prepare=prepare, finalize=finalize)
   >>> module_grokker.register(NumberGrokker())
   >>> all_numbers = {}
   >>> module_grokker.grok('numbers', numbers)
@@ -1012,12 +1010,12 @@ Grokkers must return ``True`` if grokking succeeded, or ``False`` if
 it didn't. If they return something else (typically ``None`` as the
 programmer forgot to), the system will raise an error::
 
-  >>> class BrokenGrokker(InstanceGrokker):
-  ...  component_class = Number
+  >>> class BrokenGrokker(martian.InstanceGrokker):
+  ...  martian.component(Number)
   ...  def grok(self, name, obj, **kw):
   ...    pass
 
-  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker = martian.ModuleGrokker()
   >>> module_grokker.register(BrokenGrokker())
   >>> module_grokker.grok('numbers', numbers)
   Traceback (most recent call last):
@@ -1030,7 +1028,7 @@ Let's also try this with a GlobalGrokker::
   >>> class MyGrokker(GlobalGrokker):
   ...   def grok(self, name, module, **kw):
   ...     return "Foo"
-  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker = martian.ModuleGrokker()
   >>> module_grokker.register(MyGrokker())
   >>> module_grokker.grok('numbers', numbers)
   Traceback (most recent call last):
@@ -1046,7 +1044,7 @@ looks for subclasses of ``ClassGrokker``::
 
   >>> from martian.core import MetaGrokker
   >>> class ClassMetaGrokker(MetaGrokker):
-  ...   component_class = ClassGrokker
+  ...   martian.component(martian.ClassGrokker)
   >>> multi_grokker = MultiGrokker()
   >>> multi_grokker.register(ClassMetaGrokker(multi_grokker))
 
@@ -1127,13 +1125,13 @@ the same module (or package) is grokked twice::
   ...   pass
   >>> executed = []
   >>> class somemodule(FakeModule):
-  ...   class TestGrokker(ClassGrokker):
-  ...     component_class = TestOnce
+  ...   class TestGrokker(martian.ClassGrokker):
+  ...     martian.component(TestOnce)
   ...     def grok(self, name, obj, **kw):
   ...        executed.append(name)
   ...        return True
   >>> somemodule = fake_import(somemodule)
-  >>> module_grokker = ModuleGrokker(MetaMultiGrokker())
+  >>> module_grokker = martian.ModuleGrokker(MetaMultiGrokker())
 
 Let's grok the module once::
 
@@ -1163,8 +1161,8 @@ This also works for instance grokkers::
   ...   pass
   >>> executed = []
   >>> class somemodule(FakeModule):
-  ...   class TestGrokker(InstanceGrokker):
-  ...     component_class = TestInstanceOnce
+  ...   class TestGrokker(martian.InstanceGrokker):
+  ...     martian.component(TestInstanceOnce)
   ...     def grok(self, name, obj, **kw):
   ...        executed.append(name)
   ...        return True
@@ -1230,7 +1228,7 @@ Let's define a special kind of class grokker that records the order in
 which names get grokked::
 
   >>> order = []
-  >>> class OrderGrokker(ClassGrokker):
+  >>> class OrderGrokker(martian.ClassGrokker):
   ...   def grok(self, name, obj, **kw):
   ...     order.append(name)
   ...     return True
@@ -1239,10 +1237,10 @@ Now we define two grokkers for subclasses of ``A`` and ``B``, where
 the ``BGrokker`` has a higher priority::
 
   >>> class AGrokker(OrderGrokker):
-  ...   component_class = A
+  ...   martian.component(A)
   >>> class BGrokker(OrderGrokker):
-  ...   component_class = B
-  ...   priority = 10
+  ...   martian.component(B)
+  ...   martian.priority(10)
 
 Let's register these grokkers::
 
@@ -1263,7 +1261,7 @@ Let's create a module containing ``A`` and ``B`` subclasses::
 
 We'll grok it::
 
-  >>> module_grokker = ModuleGrokker(multi_grokker)
+  >>> module_grokker = martian.ModuleGrokker(multi_grokker)
   >>> module_grokker.grok('mymodule', mymodule)
   True
 
@@ -1277,7 +1275,7 @@ This also works for GlobalGrokkers. We will define a GlobalGrokker
 that has a higher priority than the default, but lower than B::
 
   >>> class MyGlobalGrokker(GlobalGrokker):
-  ...   priority = 5
+  ...   martian.priority(5)
   ...   def grok(self, name, obj, **kw):
   ...     order.append(name)
   ...     return True
@@ -1323,7 +1321,7 @@ Now let's provide a fake module:
 
 Clearly, it can't find the module-level variable yet:
 
-  >>> module_grokker = ModuleGrokker()
+  >>> module_grokker = martian.ModuleGrokker()
   >>> module_grokker.register(AnnotationsGrokker())
   >>> import martian
   >>> martian.grok_dotted_name('annotations', module_grokker)
