@@ -44,8 +44,6 @@ class ComponentGrokkerBase(GrokkerBase):
 class ClassGrokker(ComponentGrokkerBase):
     """Grokker that groks classes in a module.
     """
-    # Use a tuple instead of a list here to make it immutable, just to be safe
-    directives = ()
 
     def grok(self, name, class_, module_info=None, **kw):
         module = None
