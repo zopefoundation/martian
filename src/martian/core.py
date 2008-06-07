@@ -7,8 +7,7 @@ from martian import util, scan
 from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
                                 GlobalGrokker)
 from martian.error import GrokError
-
-from martiandirective import component, priority
+from martian.martiandirective import component, priority
 
 class MultiGrokkerBase(GrokkerBase):
     implements(IMultiGrokker)

@@ -9,4 +9,4 @@ from martian.directive import ONCE, ONCE_NOBASE, MULTIPLE, DICT
 from martian.directive import CLASS, CLASS_OR_MODULE, MODULE
 from martian.directive import (
     validateText, validateInterface, validateClass, validateInterfaceOrClass)
-from martiandirective import component, directive, priority, baseclass
+from martian.martiandirective import component, directive, priority, baseclass

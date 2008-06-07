@@ -17,7 +17,7 @@ from zope.interface import implements
 from martian import util
 from martian.error import GrokError
 from martian.interfaces import IGrokker, IComponentGrokker
-from martiandirective import directive, component
+from martian.martiandirective import directive, component
 
 class GrokkerBase(object):
     implements(IGrokker)
