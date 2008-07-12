@@ -56,6 +56,13 @@ class StoreMultipleTimes(StoreOnce):
 
 MULTIPLE = StoreMultipleTimes()
 
+class StoreMultipleTimesGetFromThisClassOnly(StoreMultipleTimes):
+
+    def get(self, directive, component, default):
+        return component.__dict__.get(directive.dotted_name(), default)
+
+MULTIPLE_NOBASE = StoreMultipleTimesGetFromThisClassOnly()
+
 class StoreDict(StoreOnce):
 
     def get(self, directive, component, default):
