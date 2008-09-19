@@ -56,12 +56,12 @@ class StoreMultipleTimes(StoreOnce):
 
 MULTIPLE = StoreMultipleTimes()
 
-class StoreMultipleTimesGetFromThisClassOnly(StoreMultipleTimes):
+class StoreMultipleTimesNoBase(StoreMultipleTimes):
 
     def get(self, directive, component, default):
         return component.__dict__.get(directive.dotted_name(), default)
 
-MULTIPLE_NOBASE = StoreMultipleTimesGetFromThisClassOnly()
+MULTIPLE_NOBASE = StoreMultipleTimesNoBase()
 
 class StoreDict(StoreOnce):
 
@@ -209,7 +209,6 @@ class BoundDirective(object):
 class MultipleTimesDirective(Directive):
     store = MULTIPLE
     default = []
-
 
 class MarkerDirective(Directive):
     store = ONCE
