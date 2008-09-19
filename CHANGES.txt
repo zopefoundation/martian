@@ -4,7 +4,11 @@ CHANGES
 0.11 (unreleased)
 =================
 
-* ...
+Feature changes
+---------------
+
+* Added MULTIPLE_NOBASE option for directive store. This is like MULTIPLE
+  but doesn't inherit information from the base class.
 
 0.10 (2008-06-06)
 =================

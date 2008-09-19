@@ -216,6 +216,24 @@ directives on the base classes are combined::
   >>> multi.bind().get(Qux)
   [u'Once', u'Twice', u'Triple']
 
+You can also create a directive that ignores the values on the base classes::
+
+  >>> from martian import MULTIPLE_NOBASE
+  >>> class multi(Directive):
+  ...     scope = CLASS
+  ...     store = MULTIPLE_NOBASE
+
+  >>> class Foo(object):
+  ...     multi(u"Once")
+  ...     multi(u"Twice")
+  >>> multi.bind().get(Foo)
+  [u'Once', u'Twice']
+
+  >>> class Qux(Foo):
+  ...     multi(u'Triple')
+  ...     multi(u'More')
+  >>> multi.bind().get(Qux)
+  [u'Triple', u'More']
 
 Using a directive multiple times, as a dictionary
 -------------------------------------------------
