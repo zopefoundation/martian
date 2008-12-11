@@ -4,7 +4,12 @@ CHANGES
 0.12 (unreleased)
 =================
 
-* ...
+Bugs fixed
+----------
+
+* Ignore things that look like Python modules and packages but aren't.
+  These are sometimes created by editors, operating systems and
+  network file systems and we don't want to confuse them.
 
 0.11 (2008-09-24)
 =================

@@ -197,3 +197,22 @@ nor 'ftests' we could do::
   >>> print module_info.getSubModuleInfos()
   [<ModuleInfo object for 'martian.tests.withtestsmodules.subpackage'>]
 
+Non-modules that look like modules
+----------------------------------
+
+Sometimes the environment (an editor or network file system, for
+instance) will create a situation where there is a file or directory
+that looks like a Python module or package but is in fact not really
+one (file name starts with a dot, for instance). Module and package
+names must be valid Python identifiers.
+
+The package ``martian.tests.withbogusmodules`` contains only one real
+module and one real package. The rest are almost right, but do not
+start with an underscore and a letter and are therefore not valid. We
+will see that Martian will ignore these other things::
+
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withbogusmodules')
+  >>> module_info.getSubModuleInfos()
+  [<ModuleInfo object for 'martian.tests.withbogusmodules.nonbogus'>, 
+   <ModuleInfo object for 'martian.tests.withbogusmodules.subpackage'>]

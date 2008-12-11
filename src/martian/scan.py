@@ -72,6 +72,11 @@ class ModuleInfo(object):
         module_infos = []
         seen = []
         for entry in sorted(os.listdir(directory)):
+            # we are only interested in things that are potentially
+            # python modules or packages, and therefore start with a
+            # letter or _
+            if not entry[0].isalpha() and entry[0] != '_':
+                continue
             entry_path = os.path.join(directory, entry)
             name, ext = os.path.splitext(entry)
             dotted_name = self.dotted_name + '.' + name
