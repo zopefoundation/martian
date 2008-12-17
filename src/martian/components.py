@@ -34,16 +34,10 @@ class GlobalGrokker(GrokkerBase):
         raise NotImplementedError
     
 
-class ComponentGrokkerBase(GrokkerBase):
-    implements(IComponentGrokker)
-
-    def grok(self, name, obj, **kw):
-        raise NotImplementedError
-
-
-class ClassGrokker(ComponentGrokkerBase):
+class ClassGrokker(GrokkerBase):
     """Grokker that groks classes in a module.
     """
+    implements(IComponentGrokker)
 
     def grok(self, name, class_, module_info=None, **kw):
         module = None
@@ -99,9 +93,11 @@ class MethodGrokker(ClassGrokker):
         raise NotImplementedError
 
 
-class InstanceGrokker(ComponentGrokkerBase):
+class InstanceGrokker(GrokkerBase):
     """Grokker that groks instances in a module.
     """
+    implements(IComponentGrokker)
+
     def grok(self, name, class_, **kw):        
         return self.execute(class_, **kw)
 
