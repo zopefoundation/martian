@@ -196,8 +196,10 @@ class MetaMultiGrokker(MultiGrokker):
         self.register(InstanceMetaGrokker(self))
         self.register(GlobalMetaGrokker(self))
 
-def grok_dotted_name(dotted_name, grokker, exclude_filter=None, **kw):
-    module_info = scan.module_info_from_dotted_name(dotted_name, exclude_filter)
+def grok_dotted_name(dotted_name, grokker, exclude_filter=None,
+                     ignore_nonsource=True, **kw):
+    module_info = scan.module_info_from_dotted_name(dotted_name, exclude_filter,
+                                                    ignore_nonsource)
     grok_package(module_info, grokker, **kw)
 
 def grok_package(module_info, grokker, **kw):

@@ -216,3 +216,30 @@ will see that Martian will ignore these other things::
   >>> module_info.getSubModuleInfos()
   [<ModuleInfo object for 'martian.tests.withbogusmodules.nonbogus'>, 
    <ModuleInfo object for 'martian.tests.withbogusmodules.subpackage'>]
+
+Packages which contain .pyc files only
+--------------------------------------
+
+When a .py file in a package is renamed, an "orphaned" .pyc object is
+often left around.  By default, Martian will ignore such .pyc files:
+
+  >>> import martian.tests.withpyconly
+  >>> from martian.tests.withpyconly import foo
+  >>> d = os.path.abspath(os.path.dirname(martian.tests.withpyconly.__file__))
+  >>> os.rename(os.path.join(d, 'foo.py'), os.path.join(d, 'foo.py_aside'))
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withpyconly')
+  >>> module_info.getSubModuleInfos()
+  [<ModuleInfo object for 'martian.tests.withpyconly.subpackage'>]
+
+However, if ``ignore_nonsource=False`` is passed to
+``module_info_from_dotted_name`` (or friends, such as
+``module_info_from_module``), we will pick up these modules::
+
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.withpyconly', ignore_nonsource=False)
+  >>> module_info.getSubModuleInfos()
+  [<ModuleInfo object for 'martian.tests.withpyconly.foo'>,
+   <ModuleInfo object for 'martian.tests.withpyconly.subpackage'>]
+  >>> # rename back to normal name
+  >>> os.rename(os.path.join(d, 'foo.py_aside'), os.path.join(d, 'foo.py'))

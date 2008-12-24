@@ -11,6 +11,15 @@ Bugs fixed
   These are sometimes created by editors, operating systems and
   network file systems and we don't want to confuse them.
 
+* Ignore .pyc and .pyo files that don't have a matching .py file via
+  ``module_info_from_dotted_name`` if its ``ignore_nonsource``
+  parameter is ``True``.  The default is ``True``.  To revert to the
+  older behavior where .pyc files were honored, pass
+  ``ignore_nonsource=False``.
+
+* Pass along ``exclude_filter`` (and the new ``ignore_nonsource``
+  flag) to ModuleInfo constructor when it calls itself recursively.
+
 0.11 (2008-09-24)
 =================
 
