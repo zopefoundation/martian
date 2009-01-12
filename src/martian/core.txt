@@ -21,7 +21,7 @@ extensions::
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
   ...      return extension_handlers[ext](filepath)
-  >>> filehandler = fake_import(filehandler)
+  >>> from martiantest.fake import filehandler
 
 Now let's try the ``handle`` function for a few file types::
 
@@ -46,7 +46,7 @@ handler for ``.png`` files::
   ...        return "PNG file"
   ...
   ...    filehandler.extension_handlers['.png'] = handle_png
-  >>> pnghandler = fake_import(pnghandler)
+  >>> from martiantest.fake import pnghandler
 
 In the extension module, we manipulate the ``extension_handlers``
 dictionary of the ``filehandler`` module and plug in our own
@@ -153,7 +153,7 @@ grokked::
   ...
   ...   def handle_svg(filepath):
   ...     return "SVG file"
-  >>> lotsofhandlers = fake_import(lotsofhandlers)
+  >>> from martiantest.fake import lotsofhandlers
 
 Let's grok it::
 
@@ -192,8 +192,7 @@ original module and take out the manual registrations completely::
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
   ...      return extension_handlers[ext](filepath)
-
-  >>> filehandler = fake_import(filehandler)
+  >>> from martiantest.fake import filehandler
 
 Let's use martian to do the registrations for us::
 
@@ -217,7 +216,7 @@ other kind of instance, a ``Color``::
   ...     def __repr__(self):
   ...       return '<Color %s %s %s>' % (self.r, self.g, self.b)
   ...   all_colors = {}
-  >>> color = fake_import(color)
+  >>> from martiantest.fake import color
 
 We now want a grokker that can recognize colors and put them in the
 ``all_colors`` dictionary, with the names as the keys, and the color
@@ -250,7 +249,7 @@ multiple colors in a module::
   ...   green = Color(0, 255, 0)
   ...   blue = Color(0, 0, 255)
   ...   white = Color(255, 255, 255)
-  >>> colors = fake_import(colors)
+  >>> from martiantest.fake import colors
   >>> colors_grokker = martian.ModuleGrokker()
   >>> colors_grokker.register(color_grokker)
   >>> colors_grokker.grok('colors', colors)
@@ -268,7 +267,7 @@ Subclasses of ``Color`` are also grokked::
   ...   class SpecialColor(Color):
   ...     pass
   ...   octarine = SpecialColor(-255, 0, -255)
-  >>> subcolors = fake_import(subcolors)
+  >>> from martiantest.fake import subcolors
   >>> colors_grokker.grok('subcolors', subcolors)
   True
   >>> 'octarine' in color.all_colors
@@ -289,7 +288,7 @@ instances of ``Sound``::
   ...     def __repr__(self):
   ...       return '<Sound %s>' % (self.desc)
   ...   all_sounds = {}
-  >>> sound = fake_import(sound)
+  >>> from martiantest.fake import sound
 
   >>> class SoundGrokker(martian.InstanceGrokker):
   ...   martian.component(sound.Sound)
@@ -343,7 +342,7 @@ We can now grok a module for both ``Color`` and ``Sound`` instances::
   ...   scream = Sound('scream')
   ...   dark_green = Color(0, 150, 0)
   ...   cheer = Sound('cheer')
-  >>> lightandsound = fake_import(lightandsound)
+  >>> from martiantest.fake import lightandsound
   >>> module_grokker.grok('lightandsound', lightandsound)
   True
   >>> 'dark_red' in color.all_colors
@@ -376,7 +375,7 @@ can be given names using the ``name`` directive::
   ...   all_animals = {}
   ...   def create_animal(name):
   ...     return all_animals[name]()
-  >>> animal = fake_import(animal)
+  >>> from martiantest.fake import animal
 
 Let's define a grokker that can grok an ``Animal``.  We could either
 implement the ``grok`` method as with ``InstanceGrokkers``, or we can
@@ -570,7 +569,7 @@ animal) automatically become available::
   ...     animal.name('lion')
   ...   class Chair(object):
   ...     animal.name('chair')
-  >>> animals = fake_import(animals)
+  >>> from martiantest.fake import animals
 
 First we need to wrap our ``AnimalGrokker`` into a ``MultiClassGrokker``::
 
@@ -721,7 +720,7 @@ some of which can be grokked::
   ...     animal.name('sperm whale')
   ...   # not grokked
   ...   another = object()
-  >>> mix = fake_import(mix)
+  >>> from martiantest.fake import mix
 
 Let's construct a ``ModuleGrokker`` that can grok this module::
 
@@ -762,7 +761,7 @@ with some global value::
 
   >>> class g(FakeModule):
   ...   amount = 50
-  >>> g = fake_import(g)
+  >>> from martiantest.fake import g
 
 Now let's create a ``GlobalGrokker`` that reads ``amount`` and stores
 it in the ``read_amount`` dictionary::
@@ -798,7 +797,7 @@ their instances::
   ...     pass
   ...   all_machines = {}
   ...   all_machine_instances = {}
-  >>> oldstyle = fake_import(oldstyle)
+  >>> from martiantest.fake import oldstyle
 
 Let's make a grokker for the old style class::
 
@@ -899,7 +898,7 @@ Let's try this with a module::
   ...   one = Number(1)
   ...   two = Number(2)
   ...   four = Number(4)
-  >>> numbers = fake_import(numbers)
+  >>> from martiantest.fake import numbers
   >>> module_grokker.grok('numbers', numbers)
   True
   >>> sorted(all_numbers.items())
@@ -1045,7 +1044,7 @@ the same module (or package) is grokked twice::
   ...     def grok(self, name, obj, **kw):
   ...        executed.append(name)
   ...        return True
-  >>> somemodule = fake_import(somemodule)
+  >>> from martiantest.fake import somemodule
   >>> module_grokker = martian.ModuleGrokker(MetaMultiGrokker())
 
 Let's grok the module once::
@@ -1064,7 +1063,7 @@ can show this by actually having it grok a ``TestOnce`` subclass::
   >>> class anothermodule(FakeModule):
   ...   class TestSub(TestOnce):
   ...      pass
-  >>> anothermodule = fake_import(anothermodule)
+  >>> from martiantest.fake import anothermodule
   >>> module_grokker.grok('anothermodule', anothermodule)
   True
   >>> executed
@@ -1081,7 +1080,7 @@ This also works for instance grokkers::
   ...     def grok(self, name, obj, **kw):
   ...        executed.append(name)
   ...        return True
-  >>> somemodule = fake_import(somemodule)
+  >>> from martiantest.fake import somemodule
   >>> module_grokker.clear()
   >>> module_grokker.grok('somemodule', somemodule) # once
   True
@@ -1089,7 +1088,7 @@ This also works for instance grokkers::
   True
   >>> class anothermodule(FakeModule):
   ...   test = TestInstanceOnce()
-  >>> anothermodule = fake_import(anothermodule)
+  >>> from martiantest.fake import anothermodule
   >>> module_grokker.grok('anothermodule', anothermodule)
   True
   >>> executed
@@ -1103,7 +1102,7 @@ It also works for global grokkers::
   ...     def grok(self, name, obj, **kw):
   ...       executed.append(name)
   ...       return True
-  >>> somemodule = fake_import(somemodule)
+  >>> from martiantest.fake import somemodule
   >>> module_grokker.clear()
   >>> module_grokker.grok('somemodule', somemodule) # once
   True
@@ -1119,7 +1118,7 @@ Now let's grok another module::
 
   >>> class anothermodule(FakeModule):
   ...   pass
-  >>> anothermodule = fake_import(anothermodule)
+  >>> from martiantest.fake import anothermodule
   >>> module_grokker.grok('anothermodule', anothermodule)
   True
   >>> executed
@@ -1172,7 +1171,7 @@ Let's create a module containing ``A`` and ``B`` subclasses::
   ...     pass
   ...   class BSub(B):
   ...     pass
-  >>> mymodule = fake_import(mymodule)
+  >>> from martiantest.fake import mymodule
 
 We'll grok it::
 

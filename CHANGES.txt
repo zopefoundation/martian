@@ -20,6 +20,13 @@ Bugs fixed
 * Pass along ``exclude_filter`` (and the new ``ignore_nonsource``
   flag) to ModuleInfo constructor when it calls itself recursively.
 
+* Replace ``fake_import`` to import fake modules in tests with a real
+  python import statement (``from martiantest.fake import
+  my_fake_module``). This works by introducing a metaclass for
+  ``FakeModule`` that automatically registers it as a module. The
+  irony does not escape us. This also means that
+  ``martian.scan.resolve()`` will now work on fake modules.
+
 0.11 (2008-09-24)
 =================
 

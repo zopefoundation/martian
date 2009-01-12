@@ -1,10 +1,12 @@
 import new
-
-class FakeModule(object):
-    pass
+import sys
 
 def fake_import(fake_module):
-    module = new.module(fake_module.__name__)
+    module_name = 'martiantest.fake.' + fake_module.__name__
+    module = new.module(module_name)
+    module_name_parts = module_name.split('.')
+    module.__file__ =  '/' + '/'.join(module_name_parts)
+    
     glob = {}
     for name in dir(fake_module):
         if name.startswith('__') and '.' not in name:
@@ -43,4 +45,22 @@ def fake_import(fake_module):
             glob[name] = new_func
         except AttributeError:
             pass
+
+    if not 'martiantest' in sys.modules:
+        sys.modules['martiantest'] = new.module('martiantest')
+        sys.modules['martiantest.fake'] = new.module('martiantest.fake')
+        sys.modules['martiantest'].fake = sys.modules['martiantest.fake']
+
+    sys.modules[module_name] = module
+    setattr(sys.modules['martiantest.fake'], module_name.split('.')[-1],
+            module)
+    
     return module
+
+class FakeModuleMetaclass(type):
+    def __init__(cls, classname, bases, dict_):
+        fake_import(cls)
+        return type.__init__(cls, classname, bases, dict_)
+
+class FakeModule(object):
+    __metaclass__ = FakeModuleMetaclass

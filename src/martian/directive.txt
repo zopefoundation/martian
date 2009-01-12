@@ -151,7 +151,7 @@ We can also use it in a module::
   ...    layer('Test2')
   ...    class Foo(object):
   ...       pass
-  >>> testmodule = fake_import(testmodule)
+  >>> from martiantest.fake import testmodule
 
 When we now try to access ``layer`` on ``Foo``, we find the
 module-level default which we just set. We pass the module as the
@@ -165,7 +165,7 @@ Let's look at a module where the directive is not used::
   >>> class testmodule(FakeModule):
   ...   class Foo(object):
   ...      pass
-  >>> testmodule = fake_import(testmodule)
+  >>> from martiantest.fake import testmodule
 
 In this case, the value cannot be found so the system falls back on
 the default, ``None``::
@@ -325,7 +325,7 @@ inheritance has no meaning there::
   ...     multi('One')
   ...     multi('Two')
   ...
-  >>> module_with_directive = fake_import(module_with_directive)
+  >>> from martiantest.fake import module_with_directive
   >>> print multi.bind().get(module=module_with_directive)
   ['One', 'Two']
 
@@ -343,7 +343,7 @@ inheritance has no meaning there::
   ...     multi(1, 'One')
   ...     multi(2, 'Two')
   ...
-  >>> module_with_directive = fake_import(module_with_directive)
+  >>> from martiantest.fake import module_with_directive
   >>> d = multi.bind().get(module=module_with_directive)
   >>> print sorted(d.items())
   [(1, 'One'), (2, 'Two')]

@@ -1,10 +1,10 @@
 import unittest
 from zope.testing import doctest
-from martian.testing import FakeModule, fake_import
+from martian.testing import FakeModule
 
 optionflags = doctest.NORMALIZE_WHITESPACE + doctest.ELLIPSIS
 
-globs = dict(FakeModule=FakeModule, fake_import=fake_import)
+globs = dict(FakeModule=FakeModule)
 
 def test_suite():
     suite = unittest.TestSuite()

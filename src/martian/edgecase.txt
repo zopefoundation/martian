@@ -24,7 +24,7 @@ to the directive defined above:
   ...
   ...     store(some_function)
   ...
-  >>> module_with_directive = fake_import(module_with_directive)
+  >>> from martiantest.fake import module_with_directive
 
 Now imagine we have the following grokker for functions:
 

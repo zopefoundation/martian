@@ -125,10 +125,10 @@ the ``templating`` Python module using the ``FakeModule``
 class. Whenever you see ``FakeModule`` subclasses, imagine you're
 looking at a module definition in a ``.py`` file. Now that we have
 defined a module ``templating``, we also need to be able to import
-it. To do so we can use a a fake import statement that lets us do
-this::
+it. Fake modules are always placed automatically into the
+``martiantest.fake`` namespace so you can import them from there::
 
-  >>> templating = fake_import(templating)
+  >>> from martiantest.fake import templating
 
 Now let's try the ``render`` function for the registered template
 types, to demonstrate that our framework works::
@@ -163,7 +163,7 @@ module instead::
   ...          return text
   ...
   ...   templating.extension_handlers['.silly'] = SillyTemplate
-  >>> sillytemplating = fake_import(sillytemplating)
+  >>> from martiantest.fake import sillytemplating
 
 In the extension module, we manipulate the ``extension_handlers``
 dictionary of the ``templating`` module (in normal code we'd need to
@@ -256,7 +256,7 @@ Martian style base class and annotations::
   ...      # this hasn't changed
   ...      template = extension_handlers[extension](data)
   ...      return template.render(**kw)
-  >>> templating = fake_import(templating)
+  >>> from martiantest.fake import templating
 
 As you can see, there have been very few changes:
 
@@ -278,7 +278,7 @@ template languages? Now we can use Martian. We define a *grokker* for
   ...     def execute(self, class_, extension, **kw):
   ...       templating.extension_handlers[extension] = class_
   ...       return True
-  >>> meta = fake_import(meta)
+  >>> from martiantest.fake import meta
 
 What does this do? A ``ClassGrokker`` has its ``execute`` method
 called for subclasses of what's indicated by the ``martian.component``
@@ -341,7 +341,7 @@ Let's now register ``.silly`` from an extension module::
   ...          for key, value in kw.items():
   ...              text = text.replace('{%s}' % key, value)
   ...          return text
-  >>> sillytemplating = fake_import(sillytemplating)
+  >>> from martiantest.fake import sillytemplating
 
 As you can see, the developer that uses the framework has no need
 anymore to know about ``templating.extension_handlers``. Instead we can
@@ -389,7 +389,7 @@ class, and we want to track instances of it::
   ...   elephant = Animal('elephant')
   ...   lion = Animal('lion')
   ...   animals = {}
-  >>> zoo = fake_import(zoo)
+  >>> from martiantest.fake import zoo
  
 We define an ``InstanceGrokker`` subclass to grok ``Animal`` instances::
 
@@ -399,7 +399,7 @@ We define an ``InstanceGrokker`` subclass to grok ``Animal`` instances::
   ...     def execute(self, instance, **kw):
   ...       zoo.animals[instance.name] = instance
   ...       return True
-  >>> meta = fake_import(meta)
+  >>> from martiantest.fake import meta
 
 Let's create a new registry with the ``AnimalGrokker`` in it::
    
