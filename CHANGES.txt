@@ -4,6 +4,25 @@ CHANGES
 0.12 (unreleased)
 =================
 
+Feature changes
+---------------
+
+* ``CLASS_OR_MODULE`` scope directives will be aware of inheritance of
+  values that are defined in module-scope. Consider the following case::
+
+    module a:
+      some_directive('A')
+      class Foo(object):
+        pass
+
+    module b:
+      import a
+      class Bar(a.Foo):
+        pass
+
+  As before, ``Foo`` will have the value ``A`` configured for it. ``Bar``,
+  since it inherits from ``Foo``, will inherit this value.
+
 Bugs fixed
 ----------
 

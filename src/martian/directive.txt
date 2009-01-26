@@ -179,6 +179,68 @@ Let's now look at this using a directive with CLASS scope only::
   ...     scope = CLASS
   ...     store = ONCE
 
+Inheritance in combination with module scope
+--------------------------------------------
+
+Let's look at how our layer directive can inherit in combination with
+directive use on module scope. 
+
+First we define a module which defines a class that gets the ``Test``
+layer through the use of the layer directive on module scope::
+
+  >>> class inheritmodule1(FakeModule):
+  ...   layer('Test')
+  ...   class Foo(object):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule1
+
+Now we define another module that has a class that inherits from ``Foo``::
+
+  >>> class inheritmodule2(FakeModule):
+  ...   class Bar(inheritmodule1.Foo):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule2
+
+We will now see that ``Bar`` has inherited the layer ``Test``::
+
+  >>> layer.bind().get(inheritmodule2.Bar, inheritmodule2)
+  'Test'
+
+Let's try it with another level of inheritance::
+
+  >>> class inheritmodule3(FakeModule):
+  ...   class Baz(inheritmodule2.Bar):
+  ...       pass
+  >>> from martiantest.fake import inheritmodule3
+ 
+The layer should still be inherited::
+
+  >>> layer.bind().get(inheritmodule3.Baz, inheritmodule3)
+  'Test'
+
+Let's override now by having an explicit layer directive on the class
+that subclasses ``Foo``::
+
+  >>> class inheritmodule4(FakeModule):
+  ...   class OverrideFoo(inheritmodule1.Foo):
+  ...      layer('AnotherTest')
+  >>> from martiantest.fake import inheritmodule4
+
+  >>> layer.bind().get(inheritmodule4.OverrideFoo, inheritmodule4)
+  'AnotherTest'
+
+Let's override now by having an explicit layer directive on
+module-level instead::
+
+  >>> class inheritmodule5(FakeModule):
+  ...   layer('AnotherTest')
+  ...   class OverrideFoo(inheritmodule1.Foo):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule5
+
+  >>> layer.bind().get(inheritmodule5.OverrideFoo, inheritmodule5)
+  'AnotherTest'
+
 Using a directive multiple times
 --------------------------------
 

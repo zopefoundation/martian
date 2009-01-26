@@ -5,6 +5,7 @@ from zope.interface.interfaces import IInterface
 
 from martian import util
 from martian.error import GrokImportError, GrokError
+from martian import scan
 
 class StoreOnce(object):
 
@@ -114,6 +115,12 @@ class ClassOrModuleScope(object):
         value = directive.store.get(directive, component, default)
         if value is default:
             value = directive.store.get(directive, module, default)
+        if value is default:
+            mro = component.__mro__
+            if len(mro) > 1:
+                base = mro[1]
+                module_of_base = scan.resolve(base.__module__)
+                value = self.get(directive, base, module_of_base, default)
         return value
 
 CLASS_OR_MODULE = ClassOrModuleScope()
