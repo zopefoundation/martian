@@ -439,6 +439,49 @@ default argument::
   >>> bound_name.get(Foo)
   'foo'
 
+Calculated defaults in combination with inheritance
+---------------------------------------------------
+
+Calculated defaults should not kick in when we can actually find a
+value due to inheritance of a module-level directive. Let's set up a
+situation that has this inheritance::
+
+  >>> class inheritmodule1(FakeModule):
+  ...   layer('Test')
+  ...   class Foo(object):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule1
+  >>> class inheritmodule2(FakeModule):
+  ...   class Bar(inheritmodule1.Foo):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule2
+
+We define a way to compute the default::
+
+  >>> def our_get_default(component, module, **data):
+  ...   return "the computed default"
+
+We don't expect the default rule to kick in as we can find an explicitly
+set value::
+
+  >>> layer.bind(get_default=our_get_default).get(inheritmodule2.Bar, inheritmodule2)
+  'Test'
+
+Let's now consider a case where we have inheritance without explicit use
+of the directive::
+
+  >>> class inheritmodule1(FakeModule):
+  ...   class Foo(object):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule1
+  >>> class inheritmodule2(FakeModule):
+  ...   class Bar(inheritmodule1.Foo):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule2
+
+  >>> layer.bind(get_default=our_get_default).get(inheritmodule2.Bar, inheritmodule2)
+  'the computed default'
+
 A marker directive
 ------------------
 
