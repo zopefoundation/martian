@@ -7,6 +7,9 @@ CHANGES
 Feature changes
 ---------------
 
+* Changes to better support various inheritance scenarios in combination with
+  directives. Details follow.
+
 * ``CLASS_OR_MODULE`` scope directives will be aware of inheritance of
   values that are defined in module-scope. Consider the following case::
 
@@ -22,6 +25,38 @@ Feature changes
 
   As before, ``Foo`` will have the value ``A`` configured for it. ``Bar``,
   since it inherits from ``Foo``, will inherit this value.
+
+* ``CLASS_OR_MODULE`` and ``CLASS`` scope directives will be aware of 
+  inheritance of computed default values. Consider the following case::
+
+    module a:
+      class Foo(object):
+         pass
+  
+    module b:
+      import a
+      class Bar(a.Foo):
+         pass
+
+    def get_default(component, module, **data):
+        if module.__name__ == 'a':
+           return "we have a default value for module a"
+        return martian.UNKNOWN
+
+  When we now do this::
+
+    some_directive.bind(get_default=get_default).get(b.Bar)
+
+  We will get the value "we have a default value for module a". This
+  is because when trying to compute the default value for ``Bar`` we
+  returned ``martian.UNKNOWN`` to indicate the value couldn't be found
+  yet. The system then looks at the base class and tries again, and in
+  this case it succeeds (as the module-name is ``a``).
+
+* ``martian.ONCE_IFACE`` storage option to allow the creation of
+  directives that store their value on ``zope.interface``
+  interfaces. This was originally in ``grokcore.view`` but was of
+  wider usefulness.
 
 Bugs fixed
 ----------

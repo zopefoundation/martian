@@ -2,10 +2,13 @@ import sys
 import inspect
 
 from zope.interface.interfaces import IInterface
+from zope.interface.interface import TAGGED_DATA
 
 from martian import util
 from martian.error import GrokImportError, GrokError
 from martian import scan
+
+UNKNOWN = object()
 
 class StoreOnce(object):
 
@@ -65,7 +68,7 @@ class StoreMultipleTimesNoBase(StoreMultipleTimes):
 MULTIPLE_NOBASE = StoreMultipleTimesNoBase()
 
 class StoreDict(StoreOnce):
-
+    
     def get(self, directive, component, default):
         if getattr(component, directive.dotted_name(), default) is default:
             return default
@@ -92,6 +95,33 @@ class StoreDict(StoreOnce):
 
 DICT = StoreDict()
 
+class TaggedValueStoreOnce(StoreOnce):
+    """Stores the directive value in a interface tagged value.
+    """
+
+    def get(self, directive, component, default):
+        return component.queryTaggedValue(directive.dotted_name(), default)
+
+    def set(self, locals_, directive, value):
+        if directive.dotted_name() in locals_:
+            raise GrokImportError(
+                "The '%s' directive can only be called once per %s." %
+                (directive.name, directive.scope.description))
+        # Make use of the implementation details of interface tagged
+        # values.  Instead of being able to call "setTaggedValue()"
+        # on an interface object, we only have access to the "locals"
+        # of the interface object.  We inject whatever setTaggedValue()
+        # would've injected.
+        taggeddata = locals_.setdefault(TAGGED_DATA, {})
+        taggeddata[directive.dotted_name()] = value
+
+    def setattr(self, context, directive, value):
+        context.setTaggedValue(directive.dotted_name(), value)
+
+# for now, use scope = martian.CLASS to create directives that can
+# work on interfaces (or martian.CLASS_OR_MODULE)
+ONCE_IFACE = TaggedValueStoreOnce()
+
 _USE_DEFAULT = object()
 
 class ClassScope(object):
@@ -100,9 +130,20 @@ class ClassScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) and not is_fake_module(frame)
 
-    def get(self, directive, component, module, default):
-        return directive.store.get(directive, component, default)
-    
+    def get(self, directive, component, module, get_default):
+        result = directive.store.get(directive, component, _USE_DEFAULT)
+        if result is not _USE_DEFAULT:
+            return result
+        # we may be really dealing with an instance instead of a class
+        if not util.isclass(component):
+            component = component.__class__
+        for base in inspect.getmro(component):
+            module_of_base = scan.resolve(base.__module__)
+            result = get_default(base, module_of_base)
+            if result is not UNKNOWN:
+                return result
+        return UNKNOWN
+
 CLASS = ClassScope()
 
 class ClassOrModuleScope(object):
@@ -111,18 +152,30 @@ class ClassOrModuleScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) or util.frame_is_module(frame)
 
-    def get(self, directive, component, module, default):
-        value = directive.store.get(directive, component, default)
-        if value is default:
-            value = directive.store.get(directive, module, default)
-        if value is default:
-            mro = component.__mro__
-            if len(mro) > 1:
-                base = mro[1]
-                module_of_base = scan.resolve(base.__module__)
-                value = self.get(directive, base, module_of_base, default)
-        return value
-
+    def get(self, directive, component, module, get_default):
+        # look up class-level directive on this class or its bases
+        # we don't need to loop through the __mro__ here as Python will
+        # do it for us
+        result = directive.store.get(directive, component, _USE_DEFAULT)
+        if result is not _USE_DEFAULT:
+            return result
+        # now we need to loop through the mro, potentially twice
+        mro = inspect.getmro(component)
+        # look up module-level directive for this class or its bases
+        for base in mro:
+            module_of_base = scan.resolve(base.__module__)
+            result = directive.store.get(directive, module_of_base,
+                                         _USE_DEFAULT)
+            if result is not _USE_DEFAULT:
+                return result
+        # look up default rule for this class or its bases
+        for base in mro:
+            module_of_base = scan.resolve(base.__module__)
+            result = get_default(base, module_of_base)
+            if result is not UNKNOWN:
+                return result
+        return UNKNOWN
+    
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class ModuleScope(object):
@@ -131,8 +184,11 @@ class ModuleScope(object):
     def check(self, frame):
         return util.frame_is_module(frame) or is_fake_module(frame)
 
-    def get(self, directive, component, module, default):
-        return directive.store.get(directive, module, default)
+    def get(self, directive, component, module, get_default):
+        result = directive.store.get(directive, module, _USE_DEFAULT)
+        if result is not _USE_DEFAULT:
+            return result
+        return get_default(component, module)
 
 MODULE = ModuleScope()
 
@@ -207,11 +263,10 @@ class BoundDirective(object):
 
     def get(self, component=None, module=None, **data):
         directive = self.directive
-        value = directive.scope.get(directive, component, module,
-                                    default=_USE_DEFAULT)
-        if value is _USE_DEFAULT:
-            value = self.get_default(component, module, **data)
-        return value
+        def get_default(component, module):
+            return self.get_default(component, module, **data)
+        return directive.scope.get(directive, component, module,
+                                   get_default=get_default)
 
 class MultipleTimesDirective(Directive):
     store = MULTIPLE

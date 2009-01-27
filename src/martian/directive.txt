@@ -241,6 +241,20 @@ module-level instead::
   >>> layer.bind().get(inheritmodule5.OverrideFoo, inheritmodule5)
   'AnotherTest'
 
+Inheritance with module scope also works for old-style classes::
+
+  >>> class oldstyle1(FakeModule):
+  ...    layer('one')
+  ...    class Base:
+  ...       pass
+  >>> from martiantest.fake import oldstyle1
+  >>> class oldstyle2(FakeModule):
+  ...    class Sub(oldstyle1.Base):
+  ...       pass
+  >>> from martiantest.fake import oldstyle2
+  >>> layer.bind().get(oldstyle2.Sub)
+  'one'
+
 Using a directive multiple times
 --------------------------------
 
@@ -410,12 +424,42 @@ inheritance has no meaning there::
   >>> print sorted(d.items())
   [(1, 'One'), (2, 'Two')]
 
-Calculated defaults
--------------------
+Directives on an interface
+--------------------------
+
+When you use ``zope.interface.Interface`` to define a new interface using
+the class statement, in fact a special interface instance is created, not a 
+class. To let the directive store a value on an interface, we need to
+use a special storage (``martian.ONCE_IFACE``)::
+
+  >>> from martian import ONCE_IFACE
+  >>> class skin(Directive):
+  ...    scope = CLASS
+  ...    store = ONCE_IFACE
+  
+Note that we still indicate the ``CLASS`` scope for this kind of
+directive. At some point we may introduce a special scope for
+directives on interfaces.
+
+Let's try the directive. We shouldn't get an error::
+
+  >>> class once_iface(FakeModule):
+  ...   from zope.interface import Interface
+  ...   class TestIface(Interface):
+  ...     skin('Foo')
+  >>> from martiantest.fake import once_iface
+
+We can now retrieve the value::
+
+  >>> skin.bind().get(once_iface.TestIface)
+  'Foo'
+
+Computed defaults
+-----------------
 
 Often instead of just supplying the system with a default, we want to
-calculate the default in some way. We define the ``name`` directive,
-which if not present, will calculate its value from the name of class,
+compute the default in some way. We define the ``name`` directive,
+which if not present, will compute its value from the name of class,
 lower-cased. Instead of passing a default value, we pass a function as the
 default argument::
 
@@ -434,17 +478,88 @@ default argument::
   >>> bound_name.get(Foo)
   'bar'
 
-  >>> class Foo(object):
+  >>> class Foo2(object):
   ...   pass
-  >>> bound_name.get(Foo)
+  >>> bound_name.get(Foo2)
+  'foo2'
+
+Let's test this with a deeper inheritance hierarchy. Explicit
+directives should always trump computed defaults::
+
+  >>> class Subclass(Foo):
+  ...   pass
+  >>> bound_name.get(Subclass)
+  'bar'
+
+Now let's look at a hierarchy in which the explicit rule should
+apply::
+
+  >>> def default_name_lowercase2(component, module, **data):
+  ...     return component.__name__.lower()
+  ...
+  >>> bound_name2 = name.bind(get_default=default_name_lowercase2)
+  >>> class Alpha(object):
+  ...    pass
+  >>> class Beta(Alpha):
+  ...    pass
+  >>> bound_name2.get(Alpha)
+  'alpha'
+  >>> bound_name2.get(Beta)
+  'beta'
+
+We will now define a default rule that only triggers for particular
+components in the inheritance chain, but returns ``UNKNOWN``
+otherwise. This can be useful if the default rule is dependent on
+outside information. In Grok for instance, the default rule for
+``grok.context`` will look for a class that implements ``IContext`` in
+the same module, and ``grok.templatedir`` will look for a directory
+with templates with a name based on the name of the module with
+``_templates`` appended.
+
+This rule returns a value only if the module name includes the number
+``1``, and will return ``UNKNOWN`` otherwise::
+
+  >>> import martian
+  >>> def default_name_lowercase3(component, module, **data):
+  ...     if '1' in module.__name__:
+  ...         return component.__name__.lower()
+  ...     return martian.UNKNOWN
+
+  >>> bound_name3 = name.bind(get_default=default_name_lowercase3)
+
+This won't trigger for this module, as it doesn't have the character
+``1`` in it::
+
+  >>> class testmodule(FakeModule):
+  ...    class Foo(object):
+  ...       pass
+  >>> from martiantest.fake import testmodule
+  >>> bound_name3.get(testmodule.Foo, testmodule) is martian.UNKNOWN
+  True
+
+Now we define a module which does have ``1`` in it, so the rule should 
+be triggered::
+
+  >>> class testmodule1(FakeModule):
+  ...    class Foo(object):
+  ...       pass
+  >>> from martiantest.fake import testmodule1
+  >>> bound_name3.get(testmodule1.Foo, testmodule1)
   'foo'
 
-Calculated defaults in combination with inheritance
----------------------------------------------------
+This also works with inheritance::
 
-Calculated defaults should not kick in when we can actually find a
-value due to inheritance of a module-level directive. Let's set up a
-situation that has this inheritance::
+  >>> class testmodule2(FakeModule):
+  ...   class Bar(testmodule1.Foo):
+  ...      pass
+  >>> from martiantest.fake import testmodule2
+  >>> bound_name3.get(testmodule2.Bar, testmodule2)
+  'foo'
+
+Module-level explicit directives always trump computed defaults as
+well.  The ``layer`` directive is ``CLASS_OR_MODULE`` scope. Let's set
+up a hierarchy of modules and classes using ``layer`` to demonstrate
+this::
 
   >>> class inheritmodule1(FakeModule):
   ...   layer('Test')
@@ -456,19 +571,22 @@ situation that has this inheritance::
   ...      pass
   >>> from martiantest.fake import inheritmodule2
 
-We define a way to compute the default::
+We define a way to compute the default in which we compute a string
+based on the module name and the class name, so we can later check
+whether the right module and class was passed to compute the default::
 
-  >>> def our_get_default(component, module, **data):
-  ...   return "the computed default"
+  >>> def immediate_get_default(component, module, **data):
+  ...   return "computed: %s %s" % (module.__name__, component.__name__)
 
-We don't expect the default rule to kick in as we can find an explicitly
-set value::
+We don't expect the default rule to kick in as we can find an
+explicitly set value::
 
-  >>> layer.bind(get_default=our_get_default).get(inheritmodule2.Bar, inheritmodule2)
+  >>> layer.bind(get_default=immediate_get_default).get(inheritmodule2.Bar, 
+  ...   inheritmodule2)
   'Test'
 
-Let's now consider a case where we have inheritance without explicit use
-of the directive::
+Let's now consider a case where we have inheritance without explicit
+use of the ``layer`` directive::
 
   >>> class inheritmodule1(FakeModule):
   ...   class Foo(object):
@@ -479,8 +597,120 @@ of the directive::
   ...      pass
   >>> from martiantest.fake import inheritmodule2
 
-  >>> layer.bind(get_default=our_get_default).get(inheritmodule2.Bar, inheritmodule2)
-  'the computed default'
+We expect to receive the computed default for ``Bar``, as
+``immediate_get_default`` immediately returns a result for any
+component::
+
+  >>> layer.bind(get_default=immediate_get_default).get(inheritmodule2.Bar,
+  ...   inheritmodule2)
+  'computed: martiantest.fake.inheritmodule2 Bar'
+
+Let's try the default rule that triggers upon seeing ``1`` in the
+module name again, this time for the ``CLASS_OR_MODULE`` scope
+directive ``layer``::
+
+  >>> def picky_get_default(component, module, **data):
+  ...     if '1' in module.__name__:
+  ...         return "computed: %s %s" % (module.__name__, component.__name__)
+  ...     return martian.UNKNOWN
+
+Since only the ``Foo`` class is in a module with the character ``1``
+in it (``inheritmodule1``), we will get the result for ``Foo`` (and
+its module)::
+
+  >>> layer.bind(get_default=picky_get_default).get(inheritmodule2.Bar,
+  ...   inheritmodule2)
+  'computed: martiantest.fake.inheritmodule1 Foo'
+
+We will get the same result if we ask ``Foo`` directly::
+
+  >>> layer.bind(get_default=picky_get_default).get(inheritmodule1.Foo,
+  ...   inheritmodule1)
+  'computed: martiantest.fake.inheritmodule1 Foo'
+
+If we have a hierarchy that never has a module with the character
+``1`` in it, we will receive ``UNKNOWN`` (and the grokkker that uses
+this directive should raise an error)::
+
+  >>> class inheritmodule3(FakeModule):
+  ...   class Foo(object):
+  ...      pass
+  >>> from martiantest.fake import inheritmodule3
+  >>> layer.bind(get_default=picky_get_default).get(inheritmodule3.Foo,
+  ...   inheritmodule3) is martian.UNKNOWN
+  True
+
+Computed defaults for instances
+-------------------------------
+
+In some cases directives are used to retrieve values from instances instead of
+from their classes::
+
+  >>> class name(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  >>> class instancemodule(FakeModule):
+  ...   class Hoi(object):
+  ...     name('Test')
+  ...   class NoDirectiveOnThis(object):
+  ...     pass
+  ...   hoi = Hoi()
+  ...   no_directive_on_this = NoDirectiveOnThis()
+  >>> from martiantest.fake import instancemodule
+
+Let's try to use the directive::
+
+  >>> name.bind().get(instancemodule.hoi, instancemodule)
+  'Test'
+
+If no directive was used on the class, we will get ``None``, the
+default default value::
+
+  >>> (name.bind().get(instancemodule.no_directive_on_this, instancemodule) is 
+  ...  None)
+  True
+
+Let's try it with a computed value now::
+
+  >>> def get_default(component, module, **data):
+  ...   return "The default"
+
+  >>> name.bind(get_default=get_default).get(instancemodule.no_directive_on_this)
+  'The default'
+
+Computed default for old-style classes
+--------------------------------------
+
+We should also test old-style classes with ``CLASS`` scope directives in
+combination with computed defaults::
+
+  >>> class layer2(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+
+  >>> class oldstyle1(FakeModule):
+  ...    class Base:
+  ...       pass
+  >>> from martiantest.fake import oldstyle1
+  >>> class oldstyle2(FakeModule):
+  ...    class Sub(oldstyle1.Base):
+  ...       pass
+  >>> from martiantest.fake import oldstyle2
+
+  >>> def get_default(component, module, **data):
+  ...   if '1' in module.__name__:
+  ...     return 'we found it'
+  ...   return martian.UNKNOWN    
+  >>> layer2.bind(get_default=get_default).get(oldstyle2.Sub)
+  'we found it'
+
+And let's try it with a ``CLASS_OR_MODULE`` scope directive too::
+
+  >>> class layer3(Directive):
+  ...     scope = CLASS_OR_MODULE
+  ...     store = ONCE
+  >>> layer3.bind(get_default=get_default).get(oldstyle2.Sub)
+  'we found it'
 
 A marker directive
 ------------------
