@@ -130,11 +130,11 @@ class ClassScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) and not is_fake_module(frame)
 
-    def get(self, directive, component, module, get_default):
+    def get(self, directive, component, get_default):
         result = directive.store.get(directive, component, _USE_DEFAULT)
         if result is not _USE_DEFAULT:
             return result
-        # we may be really dealing with an instance instead of a class
+        # We may be really dealing with an instance instead of a class.
         if not util.isclass(component):
             component = component.__class__
         for base in inspect.getmro(component):
@@ -152,13 +152,18 @@ class ClassOrModuleScope(object):
     def check(self, frame):
         return util.frame_is_class(frame) or util.frame_is_module(frame)
 
-    def get(self, directive, component, module, get_default):
+    def get(self, directive, component, get_default):
         # look up class-level directive on this class or its bases
         # we don't need to loop through the __mro__ here as Python will
         # do it for us
         result = directive.store.get(directive, component, _USE_DEFAULT)
         if result is not _USE_DEFAULT:
             return result
+
+        # we may be really dealing with an instance or a module here
+        if not util.isclass(component):
+            return get_default(component, component)
+
         # now we need to loop through the mro, potentially twice
         mro = inspect.getmro(component)
         # look up module-level directive for this class or its bases
@@ -184,11 +189,11 @@ class ModuleScope(object):
     def check(self, frame):
         return util.frame_is_module(frame) or is_fake_module(frame)
 
-    def get(self, directive, component, module, get_default):
-        result = directive.store.get(directive, module, _USE_DEFAULT)
+    def get(self, directive, component, get_default):
+        result = directive.store.get(directive, component, _USE_DEFAULT)
         if result is not _USE_DEFAULT:
             return result
-        return get_default(component, module)
+        return get_default(component, component)
 
 MODULE = ModuleScope()
 
@@ -265,7 +270,7 @@ class BoundDirective(object):
         directive = self.directive
         def get_default(component, module):
             return self.get_default(component, module, **data)
-        return directive.scope.get(directive, component, module,
+        return directive.scope.get(directive, component,
                                    get_default=get_default)
 
 class MultipleTimesDirective(Directive):
