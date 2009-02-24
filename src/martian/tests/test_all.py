@@ -34,5 +34,9 @@ def test_suite():
         doctest.DocFileSuite('public_methods_from_class.txt',
                              package='martian.tests',
                              optionflags=optionflags),
+        doctest.DocFileSuite('context.txt',
+                             package='martian',
+                             globs=globs,
+                             optionflags=optionflags),
         ])
     return suite

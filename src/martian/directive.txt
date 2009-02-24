@@ -683,6 +683,102 @@ this directive should raise an error)::
   ...   inheritmodule3) is martian.UNKNOWN
   True
 
+Raising errors in a computed default
+------------------------------------
+
+Let's define a simple directive with a default rule that always raises
+a ``GrokError`` if the class name doesn't start with an upper case
+letter::
+
+  >>> class name(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+
+  >>> from martian.error import GrokError
+  >>> def name_get_default(component, module, **data):
+  ...     if component.__name__[0].isupper():
+  ...          return component.__name__
+  ...     raise GrokError("Component %r has a name that doesn't start with upper case letter." % component, component)
+
+Let's test it::
+
+  >>> class A(object):
+  ...   pass
+  >>> class b(object):
+  ...   pass
+  >>> name.bind(get_default=name_get_default).get(A)
+  'A'
+  >>> name.bind(get_default=name_get_default).get(b)
+  Traceback (most recent call last):
+    ...
+  GrokError: Component <class 'b'> has a name that doesn't start with upper case letter.
+
+Instead of raising ``GrokError`` we can also raise ``UnknownError`` in
+a computed default. This has the same meaning as returning
+``UNKNOWN``, except that the error information is recorded and the
+default rule is tried again on the base class in the mro chain. If the
+default rule has the error raised or ``UNKNOWN`` value returned in
+each step of the chain, the first ``UnknownError`` that was raised is
+converted into a ``GrokError``.
+
+This makes it possible for the default logic to raise specific errors
+for the most specific class if the implicit rule failed to apply on
+the class and any of its bases. This is used for instance in the
+implementation of the ``get_default`` rule for ``grok.context``.
+
+Let's test this behavior with a rule that raises an ``UnknownError``
+if there is no ``foo`` attribute on the class::
+
+  >>> from martian import UnknownError
+  >>> def foo_get_default(component, module, **data):
+  ...   if not component.__dict__.has_key('foo'):
+  ...      raise UnknownError("Foo cannot be found for class %s" % component.__name__, component)
+  ...   return "Found for class %s" % component.__name__
+
+Let's try it on a simple class first::
+
+  >>> class Test:
+  ...   pass
+  >>> name.bind(get_default=foo_get_default).get(Test)
+  Traceback (most recent call last):
+    ...
+  GrokError: Foo cannot be found for class Test
+
+Let's try it on a new style class::
+
+  >>> class Test(object):
+  ...   pass
+  >>> name.bind(get_default=foo_get_default).get(Test)
+  Traceback (most recent call last):
+    ...
+  GrokError: Foo cannot be found for class Test
+
+Let's try it on a class where there is some inheritance::
+
+  >>> class Test1(object):
+  ...    pass
+  >>> class Test2(Test1):
+  ...    pass
+  >>> name.bind(get_default=foo_get_default).get(Test2)
+  Traceback (most recent call last):
+    ...
+  GrokError: Foo cannot be found for class Test2
+
+As you can see the error message will apply to the most specific
+class, ``Test2``, even though of course the error will also occur for
+the base class, ``Test1``.
+
+Let's now demonstrate an inheritance scenario where the error does
+not occur, because the get_default rule will succeed at some point
+during the inheritance chain::
+
+  >>> class Test1(object):
+  ...    foo = 1
+  >>> class Test2(Test1):
+  ...    pass
+  >>> name.bind(get_default=foo_get_default).get(Test2)
+  'Found for class Test1'
+
 Computed defaults for instances
 -------------------------------
 

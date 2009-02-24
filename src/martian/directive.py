@@ -124,6 +124,30 @@ ONCE_IFACE = TaggedValueStoreOnce()
 
 _USE_DEFAULT = object()
 
+class UnknownError(GrokError):
+    pass
+
+def _default(mro, get_default):
+    """Apply default rule to list of classes in mro.
+    """
+    error = None
+    for base in mro:
+        module_of_base = scan.resolve(base.__module__)
+        try:
+            result = get_default(base, module_of_base)
+        except UnknownError, e:
+            # store error if this is the first UnknownError we ran into
+            if error is None:
+                error = e
+            result = UNKNOWN
+        if result is not UNKNOWN:
+            return result
+    # if we haven't found a result, raise the first error we had as
+    # a GrokError
+    if error is not None:
+        raise GrokError(unicode(error), error.component)
+    return UNKNOWN
+
 class ClassScope(object):
     description = 'class'
 
@@ -137,12 +161,7 @@ class ClassScope(object):
         # We may be really dealing with an instance instead of a class.
         if not util.isclass(component):
             component = component.__class__
-        for base in inspect.getmro(component):
-            module_of_base = scan.resolve(base.__module__)
-            result = get_default(base, module_of_base)
-            if result is not UNKNOWN:
-                return result
-        return UNKNOWN
+        return _default(inspect.getmro(component), get_default)
 
 CLASS = ClassScope()
 
@@ -174,12 +193,7 @@ class ClassOrModuleScope(object):
             if result is not _USE_DEFAULT:
                 return result
         # look up default rule for this class or its bases
-        for base in mro:
-            module_of_base = scan.resolve(base.__module__)
-            result = get_default(base, module_of_base)
-            if result is not UNKNOWN:
-                return result
-        return UNKNOWN
+        return _default(mro, get_default)
     
 CLASS_OR_MODULE = ClassOrModuleScope()
 

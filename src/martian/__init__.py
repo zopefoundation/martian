@@ -8,7 +8,8 @@ from martian.directive import Directive, MarkerDirective, MultipleTimesDirective
 from martian.directive import (ONCE, ONCE_NOBASE, ONCE_IFACE,
                                MULTIPLE, MULTIPLE_NOBASE, DICT)
 from martian.directive import CLASS, CLASS_OR_MODULE, MODULE
-from martian.directive import UNKNOWN
+from martian.directive import UNKNOWN, UnknownError
 from martian.directive import (
     validateText, validateInterface, validateClass, validateInterfaceOrClass)
 from martian.martiandirective import component, directive, priority, baseclass
+from martian.context import GetDefaultComponentFactory
