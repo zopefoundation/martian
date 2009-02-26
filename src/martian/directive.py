@@ -134,6 +134,8 @@ def _default(mro, get_default):
     for base in mro:
         module_of_base = scan.resolve(base.__module__)
         try:
+            if util.is_baseclass(base):
+                break
             result = get_default(base, module_of_base)
         except UnknownError, e:
             # store error if this is the first UnknownError we ran into

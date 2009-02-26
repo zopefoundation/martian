@@ -48,8 +48,13 @@ def check_subclass(obj, class_):
 def caller_module():
     return sys._getframe(2).f_globals['__name__']
 
-def is_baseclass(name, component):
-    return (isclass(component) and martian.baseclass.bind().get(component))
+def is_baseclass(component):
+    # this is a bit more low-level than we really want, but
+    # using martian.baseclass.bind().get(component) has the unfortunate
+    # site effect of causing infinite recursion when using this within
+    # the implementation of directives, which we now do...
+    return (isclass(component) and
+            'martian.martiandirective.baseclass' in component.__dict__)
 
 def defined_locally(obj, dotted_name):
     obj_module = getattr(obj, '__grok_module__', None)

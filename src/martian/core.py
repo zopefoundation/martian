@@ -98,7 +98,7 @@ class ModuleGrokker(MultiGrokkerBase):
             obj = getattr(module, name)
             if not util.defined_locally(obj, module.__name__):
                 continue
-            if util.is_baseclass(name, obj):
+            if util.is_baseclass(obj):
                 continue
             for t in grokker.grokkers(name, obj):
                 yield t

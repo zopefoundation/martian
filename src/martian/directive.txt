@@ -1093,3 +1093,76 @@ inherit from a base class at all and hasn't been marked with the directive:
   ...
   >>> martian.baseclass.bind().get(NoBase)
   False
+
+Base classes influence computed directives: a directive computation
+will not happen on a base class (or in base classes of it).
+
+Let's define a directive with the computed rule that it will look for
+an object ``Context`` in the module it finds itself in and return its
+``value`` attribute::
+
+  >>> class info(Directive):
+  ...    scope = CLASS
+  ...    store = ONCE
+  >>> def get_default(component, module, **data):
+  ...     context = getattr(module, 'Context', None)
+  ...     if context is None:
+  ...         return martian.UNKNOWN  
+  ...     return context.value
+
+Let use this rule with an example where no baseclass is declared
+first::
+
+  >>> class basemodule(FakeModule):
+  ...    class Context(object):
+  ...       value = 1
+  ...    class A(object):
+  ...       pass
+  >>> from martiantest.fake import basemodule
+  >>> class submodule(FakeModule):
+  ...    class B(basemodule.A):
+  ...        pass
+  >>> from martiantest.fake import submodule
+  >>> info.bind(get_default=get_default).get(submodule.B)
+  1
+
+Now let's apply the rule where ``A`` is declared to be a
+baseclass. Since ``A`` is a base class, the computed default will not
+take effect::
+
+  >>> class basemodule2(FakeModule):
+  ...    class Context(object):
+  ...       value = 1
+  ...    class A(object):
+  ...       martian.baseclass()
+  >>> from martiantest.fake import basemodule2
+  >>> class submodule2(FakeModule):
+  ...    class B(basemodule2.A):
+  ...        pass
+  >>> from martiantest.fake import submodule2
+  >>> info.bind(get_default=get_default).get(submodule2.B) is martian.UNKNOWN
+  True
+
+If we change the default rule so we use ``UnknownError`` we see the same
+behavior, except an error message is raised::
+
+  >>> def get_default(component, module, **data):
+  ...     context = getattr(module, 'Context', None)
+  ...     if context is None:
+  ...         raise UnknownError("No Context object found!", component)
+  ...     return context.value
+
+It will work for the case where no baseclass is defined, as the rule
+can take effect then::
+
+  >>> info.bind(get_default=get_default).get(submodule.B)
+  1
+
+But we will get a ``GrokError`` when a baseclass is in play::
+ 
+  >>> info.bind(get_default=get_default).get(submodule2.B)
+  Traceback (most recent call last):
+    ...
+  GrokError: No Context object found!
+
+
