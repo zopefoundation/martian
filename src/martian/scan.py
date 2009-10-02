@@ -85,24 +85,28 @@ class ModuleInfo(object):
                 if name in seen:
                     continue
                 seen.append(name)
-                module_infos.append(ModuleInfo(entry_path, dotted_name))
+                module_infos.append(ModuleInfo(entry_path, dotted_name,
+                                               exclude_filter=self.exclude_filter))
             # Case two: packages
             elif is_package(entry_path):
                 # We can blindly use __init__.py even if only
                 # __init__.pyc exists because we never actually use
                 # that filename.
                 module_infos.append(ModuleInfo(
-                    os.path.join(entry_path, '__init__.py'), dotted_name))
+                    os.path.join(entry_path, '__init__.py'), dotted_name,
+                                 exclude_filter=self.exclude_filter))
         return module_infos
 
     def getSubModuleInfo(self, name):
         path = os.path.join(os.path.dirname(self.path), name)
         if is_package(path):
             return ModuleInfo(os.path.join(path, '__init__.py'),
-                              '%s.%s' % (self.package_dotted_name, name))
+                              '%s.%s' % (self.package_dotted_name, name),
+                              exclude_filter=self.exclude_filter)
         elif os.path.isfile(path + '.py') or os.path.isfile(path + '.pyc'):
                 return ModuleInfo(path + '.py',
-                                  '%s.%s' % (self.package_dotted_name, name))
+                                  '%s.%s' % (self.package_dotted_name, name),
+                                  exclude_filter=self.exclude_filter)
         else:
             return None
 

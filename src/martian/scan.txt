@@ -194,6 +194,8 @@ nor 'ftests' we could do::
   >>> module_info
   <ModuleInfo object for 'martian.tests.withtestsmodules'>
   >>> no_tests_filter = lambda x: x in ['tests', 'ftests']
-  >>> print module_info.getSubModuleInfos()
+  >>> submodules = module_info.getSubModuleInfos()
+  >>> print submodules
   [<ModuleInfo object for 'martian.tests.withtestsmodules.subpackage'>]
-
+  >>> print submodules[0].getSubModuleInfos()
+  []

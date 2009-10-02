@@ -1,6 +1,15 @@
 CHANGES
 *******
 
+0.11.1 (unreleased)
+===================
+
+Bug fixes
+---------
+
+* Backported fix for correctly applying `exclude_filter` recursively for
+  sub-modules.
+
 0.11 (2008-09-24)
 =================
 
