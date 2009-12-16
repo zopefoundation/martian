@@ -81,54 +81,45 @@ languages, where each template language uses its own extension. You
 can then supply the framework with the template body and the template
 extension and some data, and render the template.
 
-Let's look at the framework::
+Let's look at the framework defined in a module called `templating`::
 
-  >>> import string
-  >>> class templating(FakeModule):
-  ...
-  ...   class InterpolationTemplate(object):
-  ...      "Use %(foo)s for dictionary interpolation."
-  ...      def __init__(self, text):
-  ...          self.text = text
-  ...      def render(self, **kw):
-  ...          return self.text % kw
-  ...
-  ...   class TemplateStringTemplate(object):
-  ...      "PEP 292 string substitutions."
-  ...      def __init__(self, text):
-  ...          self.template = string.Template(text)
-  ...      def render(self, **kw):
-  ...          return self.template.substitute(**kw)
-  ...
-  ...   # the registry, we plug in the two templating systems right away
-  ...   extension_handlers = { '.txt': InterpolationTemplate, 
-  ...                          '.tmpl': TemplateStringTemplate }
-  ...
-  ...   def render(data, extension, **kw):
-  ...      """Render the template at filepath with arguments.
-  ...  
-  ...      data - the data in the file
-  ...      extension - the extension of the file
-  ...      keyword arguments - variables to interpolate
-  ...
-  ...      In a real framework you could pass in the file path instead of
-  ...      data and extension, but we don't want to open files in our
-  ...      example.
-  ...
-  ...      Returns the rendered template
-  ...      """
-  ...      template = extension_handlers[extension](data)
-  ...      return template.render(**kw)
+.. module-block:: templating
 
-Since normally we cannot create modules in a doctest, we have emulated
-the ``templating`` Python module using the ``FakeModule``
-class. Whenever you see ``FakeModule`` subclasses, imagine you're
-looking at a module definition in a ``.py`` file. Now that we have
-defined a module ``templating``, we also need to be able to import
-it. Fake modules are always placed automatically into the
-``martiantest.fake`` namespace so you can import them from there::
+  import string
 
-  >>> from martiantest.fake import templating
+  class InterpolationTemplate(object):
+     "Use %(foo)s for dictionary interpolation."
+     def __init__(self, text):
+         self.text = text
+     def render(self, **kw):
+         return self.text % kw
+
+  class TemplateStringTemplate(object):
+     "PEP 292 string substitutions."
+     def __init__(self, text):
+         self.template = string.Template(text)
+     def render(self, **kw):
+         return self.template.substitute(**kw)
+  
+  # the registry, we plug in the two templating systems right away
+  extension_handlers = { '.txt': InterpolationTemplate, 
+                         '.tmpl': TemplateStringTemplate }
+ 
+  def render(data, extension, **kw):
+     """Render the template at filepath with arguments.
+  
+     data - the data in the file
+     extension - the extension of the file
+     keyword arguments - variables to interpolate
+
+     In a real framework you could pass in the file path instead of
+     data and extension, but we don't want to open files in our
+     example.
+ 
+     Returns the rendered template
+     """
+     template = extension_handlers[extension](data)
+     return template.render(**kw)
 
 Now let's try the ``render`` function for the registered template
 types, to demonstrate that our framework works::
@@ -149,21 +140,21 @@ raised::
 We now want to plug into this filehandler framework and provide a
 handler for ``.silly`` files. Since we are writing a plugin, we cannot
 change the ``templating`` module directly. Let's write an extension
-module instead::
+module instead, called `sillytemplating`::
 
-  >>> class sillytemplating(FakeModule):
-  ...   class SillyTemplate(object):
-  ...      "Replace {key} with dictionary values."
-  ...      def __init__(self, text):
-  ...          self.text = text
-  ...      def render(self, **kw):
-  ...          text = self.text
-  ...          for key, value in kw.items():
-  ...              text = text.replace('{%s}' % key, value)
-  ...          return text
-  ...
-  ...   templating.extension_handlers['.silly'] = SillyTemplate
-  >>> from martiantest.fake import sillytemplating
+.. module-block:: sillytemplating
+
+  class SillyTemplate(object):
+     "Replace {key} with dictionary values."
+     def __init__(self, text):
+         self.text = text
+     def render(self, **kw):
+         text = self.text
+         for key, value in kw.items():
+             text = text.replace('{%s}' % key, value)
+         return text
+  
+  >>> templating.extension_handlers['.silly'] = sillytemplating.SillyTemplate
 
 In the extension module, we manipulate the ``extension_handlers``
 dictionary of the ``templating`` module (in normal code we'd need to
@@ -231,32 +222,33 @@ pattern for this in Martian is to use a base class, so let's define a
 We now have enough infrastructure to allow us to change the code to use
 Martian style base class and annotations::
 
-  >>> class templating(FakeModule):
-  ...
-  ...   class InterpolationTemplate(Template):
-  ...      "Use %(foo)s for dictionary interpolation."
-  ...      extension('.txt')
-  ...      def __init__(self, text):
-  ...          self.text = text
-  ...      def render(self, **kw):
-  ...          return self.text % kw
-  ...
-  ...   class TemplateStringTemplate(Template):
-  ...      "PEP 292 string substitutions."
-  ...      extension('.tmpl')
-  ...      def __init__(self, text):
-  ...          self.template = string.Template(text)
-  ...      def render(self, **kw):
-  ...          return self.template.substitute(**kw)
-  ...
-  ...   # the registry, empty to start with
-  ...   extension_handlers = {}
-  ...
-  ...   def render(data, extension, **kw):
-  ...      # this hasn't changed
-  ...      template = extension_handlers[extension](data)
-  ...      return template.render(**kw)
-  >>> from martiantest.fake import templating
+.. module-block:: templating
+
+   import string
+
+   class InterpolationTemplate(Template):
+      "Use %(foo)s for dictionary interpolation."
+      extension('.txt')
+      def __init__(self, text):
+          self.text = text
+      def render(self, **kw):
+          return self.text % kw
+ 
+   class TemplateStringTemplate(Template):
+      "PEP 292 string substitutions."
+      extension('.tmpl')
+      def __init__(self, text):
+          self.template = string.Template(text)
+      def render(self, **kw):
+          return self.template.substitute(**kw)
+ 
+   # the registry, empty to start with
+   extension_handlers = {}
+   
+   def render(data, extension, **kw):
+      # this hasn't changed
+      template = extension_handlers[extension](data)
+      return template.render(**kw)
 
 As you can see, there have been very few changes:
 
@@ -271,14 +263,13 @@ template languages? Now we can use Martian. We define a *grokker* for
 ``Template`` that registers the template classes in the
 ``extension_handlers`` registry::
 
-  >>> class meta(FakeModule):   
-  ...   class TemplateGrokker(martian.ClassGrokker):
-  ...     martian.component(Template)
-  ...     martian.directive(extension)
-  ...     def execute(self, class_, extension, **kw):
-  ...       templating.extension_handlers[extension] = class_
-  ...       return True
-  >>> from martiantest.fake import meta
+.. module-block:: meta
+  class TemplateGrokker(martian.ClassGrokker):
+    martian.component(Template)
+    martian.directive(extension)
+    def execute(self, class_, extension, **kw):
+      templating.extension_handlers[extension] = class_
+      return True
 
 What does this do? A ``ClassGrokker`` has its ``execute`` method
 called for subclasses of what's indicated by the ``martian.component``
@@ -330,18 +321,18 @@ we have successfully grokked the template classes::
 
 Let's now register ``.silly`` from an extension module::
 
-  >>> class sillytemplating(FakeModule):
-  ...   class SillyTemplate(Template):
-  ...      "Replace {key} with dictionary values."
-  ...      extension('.silly')
-  ...      def __init__(self, text):
-  ...          self.text = text
-  ...      def render(self, **kw):
-  ...          text = self.text
-  ...          for key, value in kw.items():
-  ...              text = text.replace('{%s}' % key, value)
-  ...          return text
-  >>> from martiantest.fake import sillytemplating
+.. module-block:: sillytemplating
+
+  class SillyTemplate(Template):
+     "Replace {key} with dictionary values."
+     extension('.silly')
+     def __init__(self, text):
+         self.text = text
+     def render(self, **kw):
+         text = self.text
+         for key, value in kw.items():
+             text = text.replace('{%s}' % key, value)
+         return text
 
 As you can see, the developer that uses the framework has no need
 anymore to know about ``templating.extension_handlers``. Instead we can
@@ -380,26 +371,30 @@ be useful.
 Let's imagine a case where we have a zoo framework with an ``Animal``
 class, and we want to track instances of it::
 
+  >>> import martian
   >>> class Animal(object):
   ...   def __init__(self, name):
   ...     self.name = name
-  >>> class zoo(FakeModule):
-  ...   horse = Animal('horse')
-  ...   chicken = Animal('chicken')
-  ...   elephant = Animal('elephant')
-  ...   lion = Animal('lion')
-  ...   animals = {}
-  >>> from martiantest.fake import zoo
- 
+
+Let's create a module named ``zoo``::
+
+.. module-block:: zoo
+
+   horse = Animal('horse')
+   chicken = Animal('chicken')
+   elephant = Animal('elephant')
+   lion = Animal('lion')
+   animals = {}
+
 We define an ``InstanceGrokker`` subclass to grok ``Animal`` instances::
 
-  >>> class meta(FakeModule):   
-  ...   class AnimalGrokker(martian.InstanceGrokker):
-  ...     martian.component(Animal)
-  ...     def execute(self, instance, **kw):
-  ...       zoo.animals[instance.name] = instance
-  ...       return True
-  >>> from martiantest.fake import meta
+.. module-block:: meta
+
+  class AnimalGrokker(martian.InstanceGrokker):
+    martian.component(Animal)
+    def execute(self, instance, **kw):
+      zoo.animals[instance.name] = instance
+      return True
 
 Let's create a new registry with the ``AnimalGrokker`` in it::
    
@@ -415,10 +410,10 @@ We can now grok the ``zoo`` module::
 The animals will now be in the ``animals`` dictionary::
 
   >>> sorted(zoo.animals.items())
-  [('chicken', <Animal object at ...>), 
-   ('elephant', <Animal object at ...>), 
-   ('horse', <Animal object at ...>), 
-   ('lion', <Animal object at ...>)]
+  [('chicken', <...Animal object at ...>), 
+   ('elephant', <...Animal object at ...>), 
+   ('horse', <...Animal object at ...>), 
+   ('lion', <...Animal object at ...>)]
 
 More information
 ================

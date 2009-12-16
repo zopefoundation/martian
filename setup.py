@@ -35,6 +35,8 @@ that uses Martian is the system where it originated: Grok
     license='ZPL',
     install_requires=[
     'zope.interface',
+    'manuel',
+    'manuelpi.fakemodule',
     'setuptools',
     ],
 )
