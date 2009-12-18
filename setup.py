@@ -33,10 +33,13 @@ that uses Martian is the system where it originated: Grok
     include_package_data = True,
     zip_safe=False,
     license='ZPL',
+    extras_require = dict(
+        'test' = ['manuel',
+                  'manuelpi.fakemodule',
+                 ]
+        ),
     install_requires=[
     'zope.interface',
-    'manuel',
-    'manuelpi.fakemodule',
     'setuptools',
     ],
 )
