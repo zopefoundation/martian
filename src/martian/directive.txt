@@ -86,11 +86,13 @@ message::
 
 In particular, we cannot use it in a module::
 
-  >>> class testmodule(FakeModule):
-  ...   fake_module = True
-  ...   description("Description")
-  Traceback (most recent call last):
-    ...
+.. module-block:: testmodule
+
+  fake_module = True
+  description("Description")
+
+  >>> e = testmodule.__exception__
+  >>> print e.__class__.__name__ + ': ' + str(e)
   GrokImportError: The 'description' directive can only be used on class level.
 
 We cannot use the directive twice in the class scope. If we do so, we
@@ -147,11 +149,10 @@ The defaulting to ``None`` works::
 
 We can also use it in a module::
 
-  >>> class testmodule(FakeModule):
-  ...    layer('Test2')
-  ...    class Foo(object):
-  ...       pass
-  >>> from martiantest.fake import testmodule
+.. module-block:: testmodule
+   layer('Test2')
+   class Foo(object):
+      pass
 
 When we now try to access ``layer`` on ``Foo``, we find the
 module-level default which we just set. We pass the module as the
@@ -162,10 +163,9 @@ second argument to the ``get`` method to have it fall back on this::
 
 Let's look at a module where the directive is not used::
 
-  >>> class testmodule(FakeModule):
-  ...   class Foo(object):
-  ...      pass
-  >>> from martiantest.fake import testmodule
+.. module-block:: testmodule
+   class Foo(object):
+       pass
 
 In this case, the value cannot be found so the system falls back on
 the default, ``None``::
@@ -180,16 +180,14 @@ Like with CLASS scope directive where values set are inherited by subclasses,
 values set on a class or module level are inherited too, even if the subclass
 is defined another module::
 
-  >>> class testmodule_a(FakeModule):
-  ...   layer('Value set on baseclass module')
-  ...   class FooA(object):
-  ...      pass
-  >>> from martiantest.fake import testmodule_a
-  >>>
-  >>> class testmodule_b(FakeModule):
-  ...   class FooB(testmodule_a.FooA):
-  ...      pass
-  >>> from martiantest.fake import testmodule_b
+.. module-block:: testmodule_a
+   layer('Value set on baseclass module')
+   class FooA(object):
+      pass
+
+.. module-block:: testmodule_b
+   class FooB(testmodule_a.FooA):
+      pass
 
 On the baseclass::
 
@@ -204,11 +202,10 @@ Inherited by the subclass::
 Whenever there's a directive set on the baseclass' module, it will take
 precedence like with "normal" inheritance::
 
-  >>> class testmodule_c(FakeModule):
-  ...   layer('Value set on subclass module')
-  ...   class FooC(testmodule_a.FooA):
-  ...      pass
-  >>> from martiantest.fake import testmodule_c
+.. module-block:: testmodule_c
+  layer('Value set on subclass module')
+  class FooC(testmodule_a.FooA):
+      pass
 
   >>> layer.bind().get(testmodule_c.FooC)
   'Value set on subclass module'
@@ -231,18 +228,16 @@ directive use on module scope.
 First we define a module which defines a class that gets the ``Test``
 layer through the use of the layer directive on module scope::
 
-  >>> class inheritmodule1(FakeModule):
-  ...   layer('Test')
-  ...   class Foo(object):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule1
+.. module-block:: inheritmodule1
+   layer('Test')
+   class Foo(object):
+      pass
 
 Now we define another module that has a class that inherits from ``Foo``::
 
-  >>> class inheritmodule2(FakeModule):
-  ...   class Bar(inheritmodule1.Foo):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule2
+.. module-block:: inheritmodule2
+   class Bar(inheritmodule1.Foo):
+      pass
 
 We will now see that ``Bar`` has inherited the layer ``Test``::
 
@@ -251,10 +246,9 @@ We will now see that ``Bar`` has inherited the layer ``Test``::
 
 Let's try it with another level of inheritance::
 
-  >>> class inheritmodule3(FakeModule):
-  ...   class Baz(inheritmodule2.Bar):
-  ...       pass
-  >>> from martiantest.fake import inheritmodule3
+.. module-block:: inheritmodule3
+   class Baz(inheritmodule2.Bar):
+      pass
  
 The layer should still be inherited::
 
@@ -264,10 +258,10 @@ The layer should still be inherited::
 Let's override now by having an explicit layer directive on the class
 that subclasses ``Foo``::
 
-  >>> class inheritmodule4(FakeModule):
-  ...   class OverrideFoo(inheritmodule1.Foo):
-  ...      layer('AnotherTest')
-  >>> from martiantest.fake import inheritmodule4
+.. module-block:: inheritmodule4
+   class OverrideFoo(inheritmodule1.Foo):
+      layer('AnotherTest')
+
 
   >>> layer.bind().get(inheritmodule4.OverrideFoo, inheritmodule4)
   'AnotherTest'
@@ -275,26 +269,27 @@ that subclasses ``Foo``::
 Let's override now by having an explicit layer directive on
 module-level instead::
 
-  >>> class inheritmodule5(FakeModule):
-  ...   layer('AnotherTest')
-  ...   class OverrideFoo(inheritmodule1.Foo):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule5
+.. module-block:: inheritmodule5
+   layer('AnotherTest')
+   class OverrideFoo(inheritmodule1.Foo):
+       pass
+
 
   >>> layer.bind().get(inheritmodule5.OverrideFoo, inheritmodule5)
   'AnotherTest'
 
 Inheritance with module scope also works for old-style classes::
 
-  >>> class oldstyle1(FakeModule):
-  ...    layer('one')
-  ...    class Base:
-  ...       pass
-  >>> from martiantest.fake import oldstyle1
-  >>> class oldstyle2(FakeModule):
-  ...    class Sub(oldstyle1.Base):
-  ...       pass
-  >>> from martiantest.fake import oldstyle2
+.. module-block:: oldstyle1
+   layer('one')
+   class Base:
+      pass
+
+.. module-block:: oldstyle2
+    class Sub(oldstyle1.Base):
+      pass
+
+
   >>> layer.bind().get(oldstyle2.Sub)
   'one'
 
@@ -438,13 +433,15 @@ inheritance has no meaning there::
   ...     scope = MODULE
   ...
   >>> multi.__module__ = 'somethingelse'
-  >>> class module_with_directive(FakeModule):
-  ...     fake_module = True
-  ...
-  ...     multi('One')
-  ...     multi('Two')
-  ...
-  >>> from martiantest.fake import module_with_directive
+
+.. module-block:: module_with_directive
+
+  fake_module = True
+  
+  multi('One')
+  multi('Two')
+
+
   >>> print multi.bind().get(module_with_directive)
   ['One', 'Two']
 
@@ -456,13 +453,15 @@ inheritance has no meaning there::
   ...         return value, andanother
   ...
   >>> multi.__module__ = 'somethingelse'
-  >>> class module_with_directive(FakeModule):
-  ...     fake_module = True
-  ...
-  ...     multi(1, 'One')
-  ...     multi(2, 'Two')
-  ...
-  >>> from martiantest.fake import module_with_directive
+
+.. module-block:: module_with_directive
+
+  fake_module = True
+  
+  multi(1, 'One')
+  multi(2, 'Two')
+
+
   >>> d = multi.bind().get(module_with_directive)
   >>> print sorted(d.items())
   [(1, 'One'), (2, 'Two')]
@@ -486,11 +485,10 @@ directives on interfaces.
 
 Let's try the directive. We shouldn't get an error::
 
-  >>> class once_iface(FakeModule):
-  ...   from zope.interface import Interface
-  ...   class TestIface(Interface):
-  ...     skin('Foo')
-  >>> from martiantest.fake import once_iface
+.. module-block:: once_iface
+   from zope.interface import Interface
+   class TestIface(Interface):
+      skin('Foo')
 
 We can now retrieve the value::
 
@@ -573,29 +571,33 @@ This rule returns a value only if the module name includes the number
 This won't trigger for this module, as it doesn't have the character
 ``1`` in it::
 
-  >>> class testmodule(FakeModule):
-  ...    class Foo(object):
-  ...       pass
-  >>> from martiantest.fake import testmodule
+.. module-block:: testmodule
+
+   class Foo(object):
+       pass
+
+::
   >>> bound_name3.get(testmodule.Foo, testmodule) is martian.UNKNOWN
   True
 
 Now we define a module which does have ``1`` in it, so the rule should 
 be triggered::
 
-  >>> class testmodule1(FakeModule):
-  ...    class Foo(object):
-  ...       pass
-  >>> from martiantest.fake import testmodule1
+.. module-block:: testmodule1
+   class Foo(object):
+       pass
+
+::
   >>> bound_name3.get(testmodule1.Foo, testmodule1)
   'foo'
 
 This also works with inheritance::
 
-  >>> class testmodule2(FakeModule):
-  ...   class Bar(testmodule1.Foo):
-  ...      pass
-  >>> from martiantest.fake import testmodule2
+.. module-block:: testmodule2
+   class Bar(testmodule1.Foo):
+      pass
+
+::
   >>> bound_name3.get(testmodule2.Bar, testmodule2)
   'foo'
 
@@ -604,15 +606,14 @@ well.  The ``layer`` directive is ``CLASS_OR_MODULE`` scope. Let's set
 up a hierarchy of modules and classes using ``layer`` to demonstrate
 this::
 
-  >>> class inheritmodule1(FakeModule):
-  ...   layer('Test')
-  ...   class Foo(object):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule1
-  >>> class inheritmodule2(FakeModule):
-  ...   class Bar(inheritmodule1.Foo):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule2
+.. module-block:: inheritmodule1
+   layer('Test')
+   class Foo(object):
+      pass
+
+.. module-block:: inheritmodule2
+   class Bar(inheritmodule1.Foo):
+      pass
 
 We define a way to compute the default in which we compute a string
 based on the module name and the class name, so we can later check
@@ -631,14 +632,13 @@ explicitly set value::
 Let's now consider a case where we have inheritance without explicit
 use of the ``layer`` directive::
 
-  >>> class inheritmodule1(FakeModule):
-  ...   class Foo(object):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule1
-  >>> class inheritmodule2(FakeModule):
-  ...   class Bar(inheritmodule1.Foo):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule2
+.. module-block:: inheritmodule1
+   class Foo(object):
+       pass
+
+.. module-block:: inheritmodule2
+   class Bar(inheritmodule1.Foo):
+       pass
 
 We expect to receive the computed default for ``Bar``, as
 ``immediate_get_default`` immediately returns a result for any
@@ -646,7 +646,7 @@ component::
 
   >>> layer.bind(get_default=immediate_get_default).get(inheritmodule2.Bar,
   ...   inheritmodule2)
-  'computed: martiantest.fake.inheritmodule2 Bar'
+  'computed: manueltest.fake.inheritmodule2 Bar'
 
 Let's try the default rule that triggers upon seeing ``1`` in the
 module name again, this time for the ``CLASS_OR_MODULE`` scope
@@ -663,22 +663,23 @@ its module)::
 
   >>> layer.bind(get_default=picky_get_default).get(inheritmodule2.Bar,
   ...   inheritmodule2)
-  'computed: martiantest.fake.inheritmodule1 Foo'
+  'computed: manueltest.fake.inheritmodule1 Foo'
 
 We will get the same result if we ask ``Foo`` directly::
 
   >>> layer.bind(get_default=picky_get_default).get(inheritmodule1.Foo,
   ...   inheritmodule1)
-  'computed: martiantest.fake.inheritmodule1 Foo'
+  'computed: manueltest.fake.inheritmodule1 Foo'
 
 If we have a hierarchy that never has a module with the character
 ``1`` in it, we will receive ``UNKNOWN`` (and the grokkker that uses
 this directive should raise an error)::
 
-  >>> class inheritmodule3(FakeModule):
-  ...   class Foo(object):
-  ...      pass
-  >>> from martiantest.fake import inheritmodule3
+.. module-block:: inheritmodule3
+   class Foo(object):
+      pass
+
+::
   >>> layer.bind(get_default=picky_get_default).get(inheritmodule3.Foo,
   ...   inheritmodule3) is martian.UNKNOWN
   True
@@ -788,14 +789,14 @@ from their classes::
   >>> class name(Directive):
   ...     scope = CLASS
   ...     store = ONCE
-  >>> class instancemodule(FakeModule):
-  ...   class Hoi(object):
-  ...     name('Test')
-  ...   class NoDirectiveOnThis(object):
-  ...     pass
-  ...   hoi = Hoi()
-  ...   no_directive_on_this = NoDirectiveOnThis()
-  >>> from martiantest.fake import instancemodule
+
+.. module-block:: instancemodule
+   class Hoi(object):
+      name('Test')
+   class NoDirectiveOnThis(object):
+      pass
+   hoi = Hoi()
+   no_directive_on_this = NoDirectiveOnThis()
 
 Let's try to use the directive::
 
@@ -827,14 +828,13 @@ combination with computed defaults::
   ...     scope = CLASS
   ...     store = ONCE
 
-  >>> class oldstyle1(FakeModule):
-  ...    class Base:
-  ...       pass
-  >>> from martiantest.fake import oldstyle1
-  >>> class oldstyle2(FakeModule):
-  ...    class Sub(oldstyle1.Base):
-  ...       pass
-  >>> from martiantest.fake import oldstyle2
+.. module-block:: oldstyle1
+  class Base:
+      pass
+
+.. module-block:: oldstyle2
+  class Sub(oldstyle1.Base):
+      pass
 
   >>> def get_default(component, module, **data):
   ...   if '1' in module.__name__:
@@ -1113,16 +1113,17 @@ an object ``Context`` in the module it finds itself in and return its
 Let use this rule with an example where no baseclass is declared
 first::
 
-  >>> class basemodule(FakeModule):
-  ...    class Context(object):
-  ...       value = 1
-  ...    class A(object):
-  ...       pass
-  >>> from martiantest.fake import basemodule
-  >>> class submodule(FakeModule):
-  ...    class B(basemodule.A):
-  ...        pass
-  >>> from martiantest.fake import submodule
+.. module-block:: basemodule
+   class Context(object):
+      value = 1
+   class A(object):
+      pass
+
+.. module-block:: submodule
+   class B(basemodule.A):
+      pass
+
+::
   >>> info.bind(get_default=get_default).get(submodule.B)
   1
 
@@ -1130,16 +1131,17 @@ Now let's apply the rule where ``A`` is declared to be a
 baseclass. Since ``A`` is a base class, the computed default will not
 take effect::
 
-  >>> class basemodule2(FakeModule):
-  ...    class Context(object):
-  ...       value = 1
-  ...    class A(object):
-  ...       martian.baseclass()
-  >>> from martiantest.fake import basemodule2
-  >>> class submodule2(FakeModule):
-  ...    class B(basemodule2.A):
-  ...        pass
-  >>> from martiantest.fake import submodule2
+.. module-block:: basemodule2
+   class Context(object):
+      value = 1
+   class A(object):
+      martian.baseclass()
+
+.. module-block:: submodule2
+   class B(basemodule2.A):
+       pass
+
+::
   >>> info.bind(get_default=get_default).get(submodule2.B) is martian.UNKNOWN
   True
 
