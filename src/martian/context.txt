@@ -35,40 +35,39 @@ Let's use an explicit class context::
 
   >>> class A(object):
   ...   pass
-  >>> class explicitclasscontext(FakeModule):
-  ...    class B(object):
-  ...      context(A)
-  >>> from martiantest.fake import explicitclasscontext
+
+.. module-block:: explicitclasscontext
+   class B(object):
+     context(A)
+
   >>> context.bind().get(explicitclasscontext.B)
   <class 'A'>
 
 Let's now use the directive on the module-level, explicitly::
 
-  >>> class explicitmodulecontext(FakeModule):
-  ...   context(A)
-  ...   class B(object):
-  ...     pass
-  >>> from martiantest.fake import explicitmodulecontext
-  >>> context.bind().get(explicitmodulecontext.B)
-  <class 'martiantest.fake.explicitmodulecontext.A'>
+.. module-block:: explicitmodulecontext
+   context(A)
+   class B(object):
+     pass
 
-XXX why does this get this put into martiantest.fake.explicitmodule? A
-problem in FakeModule?
+  >>> context.bind().get(explicitmodulecontext.B)
+  <class 'A'>
 
 Let's see a combination of the two, to check whether context on the class
 level overrides that on the module level::
 
   >>> class D(object):
   ...   pass
-  >>> class explicitcombo(FakeModule):
-  ...   context(A)
-  ...   class B(object):
-  ...     pass
-  ...   class C(object):
-  ...     context(D)
-  >>> from martiantest.fake import explicitcombo
+
+.. module-block:: explicitcombo
+   context(A)
+   class B(object):
+     pass
+   class C(object):
+     context(D)
+
   >>> context.bind().get(explicitcombo.B)
-  <class 'martiantest.fake.explicitcombo.A'>
+  <class 'A'>
   >>> context.bind().get(explicitcombo.C)
   <class 'D'>
 
@@ -91,91 +90,92 @@ We define a base class that will be automatically associated with::
 
 Let's experiment whether implicit context association works::
 
-  >>> class implicitcontext(FakeModule):
-  ...    class A(Context):
-  ...      pass
-  ...    class B(object):
-  ...      pass
-  >>> from martiantest.fake import implicitcontext
+.. module-block:: implicitcontext
+    class A(Context):
+      pass
+    class B(object):
+      pass
+
   >>> context.bind(get_default=get_default_context).get(implicitcontext.B)
-  <class 'martiantest.fake.implicitcontext.A'>
+  <class 'manueltest.fake.implicitcontext.A'>
 
 We now test the failure conditions.
 
 There is no implicit context to associate with::
 
-  >>> class noimplicitcontext(FakeModule):
-  ...    class B(object):
-  ...      pass
-  >>> from martiantest.fake import noimplicitcontext
+.. module-block:: noimplicitcontext
+    class B(object):
+      pass
+
+  >>> dir(noimplicitcontext)
+  >>> globals().keys()
   >>> context.bind(get_default=get_default_context).get(noimplicitcontext.B)
   Traceback (most recent call last):
     ...
-  GrokError: No module-level context for <class 'martiantest.fake.noimplicitcontext.B'>, please use the 'context' directive.
+  GrokError: No module-level context for <class 'manueltest.fake.noimplicitcontext.B'>, please use the 'context' directive.
 
 There are too many possible contexts::
 
-  >>> class ambiguouscontext(FakeModule):
-  ...   class A(Context):
-  ...     pass
-  ...   class B(Context):
-  ...     pass
-  ...   class C(object):
-  ...     pass
-  >>> from martiantest.fake import ambiguouscontext
+.. module-block:: ambiguouscontext
+   class A(Context):
+     pass
+   class B(Context):
+     pass
+   class C(object):
+     pass
+
   >>> context.bind(get_default=get_default_context).get(ambiguouscontext.B)
   Traceback (most recent call last):
     ... 
-  GrokError: Multiple possible contexts for <class 'martiantest.fake.ambiguouscontext.B'>, please use the 'context' directive.
+  GrokError: Multiple possible contexts for <class 'manueltest.fake.ambiguouscontext.B'>, please use the 'context' directive.
 
 Let's try this with inheritance, where an implicit context is provided
 by a base class defined in another module::
 
-  >>> class basemodule(FakeModule):
-  ...   class A(Context):
-  ...     pass
-  ...   class B(object):
-  ...     pass
-  >>> from martiantest.fake import basemodule
-  >>> class submodule(FakeModule):
-  ...   class C(basemodule.B):
-  ...     pass
-  >>> from martiantest.fake import submodule
+.. module-block:: basemodule
+   class A(Context):
+     pass
+   class B(object):
+     pass
+
+.. module-block:: submodule
+   class C(basemodule.B):
+     pass
+
   >>> context.bind(get_default=get_default_context).get(submodule.C)
-  <class 'martiantest.fake.basemodule.A'>
+  <class 'manueltest.fake.basemodule.A'>
 
 Let's try it again with an ambiguous context in this case, resolved because
 there is an unambiguous context for the base class ``B``::
 
-  >>> class basemodule2(FakeModule):
-  ...   class A(Context):
-  ...     pass
-  ...   class B(object):
-  ...     pass
-  >>> from martiantest.fake import basemodule2
-  >>> class submodule2(FakeModule):
-  ...   class Ambiguous1(Context):
-  ...     pass
-  ...   class Ambiguous2(Context):
-  ...     pass
-  ...   class C(basemodule2.B):
-  ...     pass
-  >>> from martiantest.fake import submodule2
+.. module-block:: basemodule2
+   class A(Context):
+     pass
+   class B(object):
+     pass
+
+.. module-block:: submodule2
+   class Ambiguous1(Context):
+     pass
+   class Ambiguous2(Context):
+     pass
+   class C(basemodule2.B):
+     pass
   >>> context.bind(get_default=get_default_context).get(submodule2.C)
-  <class 'martiantest.fake.basemodule2.A'>
+  <class 'manueltest.fake.basemodule2.A'>
 
 If the implicit context cannot be found in the base class either, the error
 will show up for the most specific class (``C``)::
 
-  >>> class basemodule3(FakeModule):
-  ...   class B(object):
-  ...     pass
-  >>> from martiantest.fake import basemodule3
-  >>> class submodule3(FakeModule):
-  ...   class C(basemodule3.B):
-  ...     pass
-  >>> from martiantest.fake import submodule3
+.. module-block:: basemodule3
+   class B(object):
+     pass
+
+.. module-block:: submodule3
+   class C(basemodule3.B):
+     pass
+
   >>> context.bind(get_default=get_default_context).get(submodule3.C)
   Traceback (most recent call last):
     ...
-  GrokError: No module-level context for <class 'martiantest.fake.submodule3.C'>, please use the 'context' directive.
+  GrokError: No module-level context for <class 'manueltest.fake.submodule3.C'>, please use the 'context' directive.
