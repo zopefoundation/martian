@@ -34,9 +34,9 @@ that uses Martian is the system where it originated: Grok
     zip_safe=False,
     license='ZPL',
     extras_require = dict(
-        'test' = ['manuel',
-                  'manuelpi.fakemodule',
-                 ]
+        test = ['manuel',
+                'manuelpi.fakemodule',
+               ]
         ),
     install_requires=[
     'zope.interface',

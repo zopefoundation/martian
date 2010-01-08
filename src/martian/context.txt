@@ -107,9 +107,7 @@ There is no implicit context to associate with::
     class B(object):
       pass
 
-  >>> dir(noimplicitcontext)
-  >>> globals().keys()
-  >>> context.bind(get_default=get_default_context).get(noimplicitcontext.B)
+  >>> context.bind(get_default=get_default_context).get(noimplicitcontext.B, module=noimplicitcontext)
   Traceback (most recent call last):
     ...
   GrokError: No module-level context for <class 'manueltest.fake.noimplicitcontext.B'>, please use the 'context' directive.
@@ -124,10 +122,10 @@ There are too many possible contexts::
    class C(object):
      pass
 
-  >>> context.bind(get_default=get_default_context).get(ambiguouscontext.B)
+  >>> context.bind(get_default=get_default_context).get(ambiguouscontext.C)
   Traceback (most recent call last):
     ... 
-  GrokError: Multiple possible contexts for <class 'manueltest.fake.ambiguouscontext.B'>, please use the 'context' directive.
+  GrokError: Multiple possible contexts for <class 'manueltest.fake.ambiguouscontext.C'>, please use the 'context' directive.
 
 Let's try this with inheritance, where an implicit context is provided
 by a base class defined in another module::

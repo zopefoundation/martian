@@ -132,6 +132,8 @@ def _default(mro, get_default):
     """
     error = None
     for base in mro:
+        if base is object:
+            continue
         module_of_base = scan.resolve(base.__module__)
         try:
             if util.is_baseclass(base):
@@ -189,6 +191,8 @@ class ClassOrModuleScope(object):
         mro = inspect.getmro(component)
         # look up module-level directive for this class or its bases
         for base in mro:
+            if base is object:
+                continue
             module_of_base = scan.resolve(base.__module__)
             result = directive.store.get(directive, module_of_base,
                                          _USE_DEFAULT)
