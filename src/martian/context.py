@@ -1,5 +1,6 @@
 from martian.directive import UnknownError
 from martian.util import scan_for_classes
+import __builtin__
 
 class GetDefaultComponentFactory(object):
     def __init__(self, iface, component_name, directive_name):
