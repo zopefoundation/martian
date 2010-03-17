@@ -13,6 +13,8 @@ CREDITS
 
 * Luciano Ramalho
 
+* Chris McDonough
+
 Thank you
 ---------
 

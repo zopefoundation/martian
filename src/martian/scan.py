@@ -32,14 +32,17 @@ def is_package(path):
 class ModuleInfo(object):
     implements(IModuleInfo)
 
-    def __init__(self, path, dotted_name, exclude_filter=None):
+    def __init__(self, path, dotted_name, exclude_filter=None,
+                 ignore_nonsource=True):
         # Normalize .pyc files to .py
         if path.endswith('c'):
             path = path[:-1]
         self.path = path
         self.dotted_name = dotted_name
+        self.ignore_nonsource = ignore_nonsource
 
         if exclude_filter is None:
+            # this exclude filter receives extensionless filenames
             self.exclude_filter = lambda x: False
         else:
             self.exclude_filter = exclude_filter
@@ -72,11 +75,19 @@ class ModuleInfo(object):
         module_infos = []
         seen = []
         for entry in sorted(os.listdir(directory)):
+            # we are only interested in things that are potentially
+            # python modules or packages, and therefore start with a
+            # letter or _
+            if not entry[0].isalpha() and entry[0] != '_':
+                continue
             entry_path = os.path.join(directory, entry)
             name, ext = os.path.splitext(entry)
             dotted_name = self.dotted_name + '.' + name
             if self.exclude_filter(name):
                 continue
+            if self.ignore_nonsource:
+                if ext in ['.pyo', '.pyc']:
+                    continue
             # Case one: modules
             if (os.path.isfile(entry_path) and ext in ['.py', '.pyc']):
                 if name == '__init__':
@@ -85,16 +96,22 @@ class ModuleInfo(object):
                 if name in seen:
                     continue
                 seen.append(name)
-                module_infos.append(ModuleInfo(entry_path, dotted_name,
-                                               exclude_filter=self.exclude_filter))
+                module_infos.append(
+                    ModuleInfo(entry_path,
+                               dotted_name,
+                               exclude_filter=self.exclude_filter,
+                               ignore_nonsource=self.ignore_nonsource)
+                    )
             # Case two: packages
             elif is_package(entry_path):
                 # We can blindly use __init__.py even if only
                 # __init__.pyc exists because we never actually use
                 # that filename.
                 module_infos.append(ModuleInfo(
-                    os.path.join(entry_path, '__init__.py'), dotted_name,
-                                 exclude_filter=self.exclude_filter))
+                    os.path.join(entry_path, '__init__.py'),
+                    dotted_name,
+                    exclude_filter=self.exclude_filter,
+                    ignore_nonsource=self.ignore_nonsource))
         return module_infos
 
     def getSubModuleInfo(self, name):
@@ -102,11 +119,13 @@ class ModuleInfo(object):
         if is_package(path):
             return ModuleInfo(os.path.join(path, '__init__.py'),
                               '%s.%s' % (self.package_dotted_name, name),
-                              exclude_filter=self.exclude_filter)
+                              exclude_filter=self.exclude_filter,
+                              ignore_nonsource=self.ignore_nonsource)
         elif os.path.isfile(path + '.py') or os.path.isfile(path + '.pyc'):
                 return ModuleInfo(path + '.py',
                                   '%s.%s' % (self.package_dotted_name, name),
-                                  exclude_filter=self.exclude_filter)
+                                  exclude_filter=self.exclude_filter,
+                                  ignore_nonsource = self.ignore_nonsource)
         else:
             return None
 
@@ -158,7 +177,8 @@ class BuiltinModuleInfo(object):
     def getAnnotation(self, key, default):
         return default
 
-def module_info_from_dotted_name(dotted_name, exclude_filter=None):
+def module_info_from_dotted_name(dotted_name, exclude_filter=None,
+                                 ignore_nonsource=True):
     if dotted_name == '__builtin__':
         # in case of the use of individually grokking something during a
         # test the dotted_name being passed in could be __builtin__
@@ -166,10 +186,12 @@ def module_info_from_dotted_name(dotted_name, exclude_filter=None):
         # implements enough interface to work
         return BuiltinModuleInfo()
     module = resolve(dotted_name)
-    return ModuleInfo(module.__file__, dotted_name, exclude_filter)
+    return ModuleInfo(module.__file__, dotted_name, exclude_filter,
+                      ignore_nonsource)
 
-def module_info_from_module(module, exclude_filter=None):
-    return ModuleInfo(module.__file__, module.__name__, exclude_filter)
+def module_info_from_module(module, exclude_filter=None, ignore_nonsource=True):
+    return ModuleInfo(module.__file__, module.__name__, exclude_filter,
+                      ignore_nonsource)
 
 
 # taken from zope.dottedname.resolve
