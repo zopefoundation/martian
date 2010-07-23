@@ -83,7 +83,7 @@ class ModuleInfo(object):
             entry_path = os.path.join(directory, entry)
             name, ext = os.path.splitext(entry)
             dotted_name = self.dotted_name + '.' + name
-            if self.exclude_filter(name):
+            if self.exclude_filter(name) or name == '__main__':
                 continue
             if self.ignore_nonsource:
                 if ext in ['.pyo', '.pyc']:

@@ -197,6 +197,14 @@ nor 'ftests' we could do::
   >>> print module_info.getSubModuleInfos()
   [<ModuleInfo object for 'martian.tests.withtestsmodules.subpackage'>]
 
+By default __main__ packages are always ignored::
+
+  >>> module_info = module_info_from_dotted_name(
+  ...     'martian.tests.with__main__')
+  >>> print module_info.getSubModuleInfos()
+  [<ModuleInfo object for 'martian.tests.with__main__.package'>]
+
+
 Non-modules that look like modules
 ----------------------------------
 

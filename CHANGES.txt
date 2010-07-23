@@ -4,7 +4,10 @@ CHANGES
 0.13 (unreleased)
 =================
 
-- Nothing changed yet.
+Feature changes
+---------------
+
+* Ignore all __main__ modules.
 
 
 0.12 (2009-06-29)
