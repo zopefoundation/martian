@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.13 (unreleased)
+0.13 (2010-11-01)
 =================
 
 Feature changes
