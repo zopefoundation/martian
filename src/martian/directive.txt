@@ -226,7 +226,7 @@ Inheritance in combination with module scope
 --------------------------------------------
 
 Let's look at how our layer directive can inherit in combination with
-directive use on module scope. 
+directive use on module scope.
 
 First we define a module which defines a class that gets the ``Test``
 layer through the use of the layer directive on module scope::
@@ -255,7 +255,7 @@ Let's try it with another level of inheritance::
   ...   class Baz(inheritmodule2.Bar):
   ...       pass
   >>> from martiantest.fake import inheritmodule3
- 
+
 The layer should still be inherited::
 
   >>> layer.bind().get(inheritmodule3.Baz, inheritmodule3)
@@ -471,7 +471,7 @@ Directives on an interface
 --------------------------
 
 When you use ``zope.interface.Interface`` to define a new interface using
-the class statement, in fact a special interface instance is created, not a 
+the class statement, in fact a special interface instance is created, not a
 class. To let the directive store a value on an interface, we need to
 use a special storage (``martian.ONCE_IFACE``)::
 
@@ -479,7 +479,7 @@ use a special storage (``martian.ONCE_IFACE``)::
   >>> class skin(Directive):
   ...    scope = CLASS
   ...    store = ONCE_IFACE
-  
+
 Note that we still indicate the ``CLASS`` scope for this kind of
 directive. At some point we may introduce a special scope for
 directives on interfaces.
@@ -501,19 +501,42 @@ Computed defaults
 -----------------
 
 Often instead of just supplying the system with a default, we want to
-compute the default in some way. We define the ``name`` directive,
-which if not present, will compute its value from the name of class,
-lower-cased. Instead of passing a default value, we pass a function as the
-default argument::
+compute the default in some way. The computation of the default can be defined
+in the directive class, by the ``get_default`` classmethod.
+
+We define the ``name`` directive, which if not present, will compute its value
+from the name of class, lower-cased.
 
   >>> class name(Directive):
   ...     scope = CLASS
   ...     store = ONCE
   ...
-  >>> def default_name_lowercase(component, module, **data):
-  ...     return component.__name__.lower()
+  ...     @classmethod
+  ...     def get_default(cls, component, module=None, **data):
+  ...         return component.__name__.lower()
   ...
-  >>> bound_name = name.bind(get_default=default_name_lowercase)
+  >>> bound_name = name.bind()
+  >>>
+  >>> class Foo(object):
+  ...   name('bar')
+  ...
+  >>> bound_name.get(Foo)
+  'bar'
+
+  >>> class Foo2(object):
+  ...   pass
+  ...
+  >>> bound_name.get(Foo2)
+  'foo2'
+
+To override the default-default behaviour you can pass a function when binding
+the directive. In this case, we do not want the default behaviour of using the
+lower cased class name, but have it upper cased::
+
+  >>> def default_name_uppercase(component, module, **data):
+  ...     return component.__name__.upper()
+  ...
+  >>> bound_name = name.bind(get_default=default_name_uppercase)
 
   >>> class Foo(object):
   ...   name('bar')
@@ -524,7 +547,7 @@ default argument::
   >>> class Foo2(object):
   ...   pass
   >>> bound_name.get(Foo2)
-  'foo2'
+  'FOO2'
 
 Let's test this with a deeper inheritance hierarchy. Explicit
 directives should always trump computed defaults::
@@ -537,10 +560,7 @@ directives should always trump computed defaults::
 Now let's look at a hierarchy in which the explicit rule should
 apply::
 
-  >>> def default_name_lowercase2(component, module, **data):
-  ...     return component.__name__.lower()
-  ...
-  >>> bound_name2 = name.bind(get_default=default_name_lowercase2)
+  >>> bound_name2 = name.bind()
   >>> class Alpha(object):
   ...    pass
   >>> class Beta(Alpha):
@@ -580,7 +600,7 @@ This won't trigger for this module, as it doesn't have the character
   >>> bound_name3.get(testmodule.Foo, testmodule) is martian.UNKNOWN
   True
 
-Now we define a module which does have ``1`` in it, so the rule should 
+Now we define a module which does have ``1`` in it, so the rule should
 be triggered::
 
   >>> class testmodule1(FakeModule):
@@ -624,7 +644,7 @@ whether the right module and class was passed to compute the default::
 We don't expect the default rule to kick in as we can find an
 explicitly set value::
 
-  >>> layer.bind(get_default=immediate_get_default).get(inheritmodule2.Bar, 
+  >>> layer.bind(get_default=immediate_get_default).get(inheritmodule2.Bar,
   ...   inheritmodule2)
   'Test'
 
@@ -690,15 +710,18 @@ Let's define a simple directive with a default rule that always raises
 a ``GrokError`` if the class name doesn't start with an upper case
 letter::
 
+  >>> from martian.error import GrokError
   >>> class name(Directive):
   ...     scope = CLASS
   ...     store = ONCE
-
-  >>> from martian.error import GrokError
-  >>> def name_get_default(component, module, **data):
-  ...     if component.__name__[0].isupper():
-  ...          return component.__name__
-  ...     raise GrokError("Component %r has a name that doesn't start with upper case letter." % component, component)
+  ...
+  ...     @classmethod
+  ...     def get_default(cls, component, module, **data):
+  ...         if component.__name__[0].isupper():
+  ...              return component.__name__
+  ...         raise GrokError(
+  ...              "Component %r has a name that doesn't start with upper "
+  ...              "case letter." % component, component)
 
 Let's test it::
 
@@ -706,12 +729,13 @@ Let's test it::
   ...   pass
   >>> class b(object):
   ...   pass
-  >>> name.bind(get_default=name_get_default).get(A)
+  >>> name.bind().get(A)
   'A'
-  >>> name.bind(get_default=name_get_default).get(b)
+  >>> name.bind().get(b)
   Traceback (most recent call last):
     ...
-  GrokError: Component <class 'b'> has a name that doesn't start with upper case letter.
+  GrokError: Component <class 'b'> has a name that doesn't start with upper
+  case letter.
 
 Instead of raising ``GrokError`` we can also raise ``UnknownError`` in
 a computed default. This has the same meaning as returning
@@ -730,16 +754,23 @@ Let's test this behavior with a rule that raises an ``UnknownError``
 if there is no ``foo`` attribute on the class::
 
   >>> from martian import UnknownError
-  >>> def foo_get_default(component, module, **data):
-  ...   if not component.__dict__.has_key('foo'):
-  ...      raise UnknownError("Foo cannot be found for class %s" % component.__name__, component)
-  ...   return "Found for class %s" % component.__name__
+  >>> class name(Directive):
+  ...     scope = CLASS
+  ...     store = ONCE
+  ...
+  ...     @classmethod
+  ...     def get_default(cls, component, module, **data):
+  ...         if not component.__dict__.has_key('foo'):
+  ...             raise UnknownError(
+  ...                 "Foo cannot be found for class %s" % component.__name__,
+  ...                 component)
+  ...         return "Found for class %s" % component.__name__
 
 Let's try it on a simple class first::
 
   >>> class Test:
   ...   pass
-  >>> name.bind(get_default=foo_get_default).get(Test)
+  >>> name.bind().get(Test)
   Traceback (most recent call last):
     ...
   GrokError: Foo cannot be found for class Test
@@ -748,7 +779,7 @@ Let's try it on a new style class::
 
   >>> class Test(object):
   ...   pass
-  >>> name.bind(get_default=foo_get_default).get(Test)
+  >>> name.bind().get(Test)
   Traceback (most recent call last):
     ...
   GrokError: Foo cannot be found for class Test
@@ -759,7 +790,7 @@ Let's try it on a class where there is some inheritance::
   ...    pass
   >>> class Test2(Test1):
   ...    pass
-  >>> name.bind(get_default=foo_get_default).get(Test2)
+  >>> name.bind().get(Test2)
   Traceback (most recent call last):
     ...
   GrokError: Foo cannot be found for class Test2
@@ -776,7 +807,7 @@ during the inheritance chain::
   ...    foo = 1
   >>> class Test2(Test1):
   ...    pass
-  >>> name.bind(get_default=foo_get_default).get(Test2)
+  >>> name.bind().get(Test2)
   'Found for class Test1'
 
 Computed defaults for instances
@@ -805,7 +836,7 @@ Let's try to use the directive::
 If no directive was used on the class, we will get ``None``, the
 default default value::
 
-  >>> (name.bind().get(instancemodule.no_directive_on_this, instancemodule) is 
+  >>> (name.bind().get(instancemodule.no_directive_on_this, instancemodule) is
   ...  None)
   True
 
@@ -826,7 +857,12 @@ combination with computed defaults::
   >>> class layer2(Directive):
   ...     scope = CLASS
   ...     store = ONCE
-
+  ...     @classmethod
+  ...     def get_default(cls, component, module=None, **data):
+  ...         if '1' in module.__name__:
+  ...             return 'we found it'
+  ...         return martian.UNKNOWN
+  ...
   >>> class oldstyle1(FakeModule):
   ...    class Base:
   ...       pass
@@ -835,12 +871,7 @@ combination with computed defaults::
   ...    class Sub(oldstyle1.Base):
   ...       pass
   >>> from martiantest.fake import oldstyle2
-
-  >>> def get_default(component, module, **data):
-  ...   if '1' in module.__name__:
-  ...     return 'we found it'
-  ...   return martian.UNKNOWN    
-  >>> layer2.bind(get_default=get_default).get(oldstyle2.Sub)
+  >>> layer2.bind().get(oldstyle2.Sub)
   'we found it'
 
 And let's try it with a ``CLASS_OR_MODULE`` scope directive too::
@@ -848,7 +879,12 @@ And let's try it with a ``CLASS_OR_MODULE`` scope directive too::
   >>> class layer3(Directive):
   ...     scope = CLASS_OR_MODULE
   ...     store = ONCE
-  >>> layer3.bind(get_default=get_default).get(oldstyle2.Sub)
+  ...     @classmethod
+  ...     def get_default(cls, component, module=None, **data):
+  ...         if '1' in module.__name__:
+  ...             return 'we found it'
+  ...         return martian.UNKNOWN
+  >>> layer3.bind().get(oldstyle2.Sub)
   'we found it'
 
 A marker directive
@@ -910,8 +946,9 @@ We'll define a validation method that only expects integer numbers::
   ...     store = ONCE
   ...     def validate(self, value):
   ...         if type(value) is not int:
-  ...             raise GrokImportError("The '%s' directive can only be called with an integer." %
-  ...                                   self.name)
+  ...             raise GrokImportError(
+  ...                 "The '%s' directive can only be called with an integer." %
+  ...                 self.name)
 
   >>> class Foo(object):
   ...    number(3)
@@ -1104,11 +1141,12 @@ an object ``Context`` in the module it finds itself in and return its
   >>> class info(Directive):
   ...    scope = CLASS
   ...    store = ONCE
-  >>> def get_default(component, module, **data):
-  ...     context = getattr(module, 'Context', None)
-  ...     if context is None:
-  ...         return martian.UNKNOWN  
-  ...     return context.value
+  ...    @classmethod
+  ...    def get_default(cls, component, module, **data):
+  ...        context = getattr(module, 'Context', None)
+  ...        if context is None:
+  ...            return martian.UNKNOWN
+  ...        return context.value
 
 Let use this rule with an example where no baseclass is declared
 first::
@@ -1123,7 +1161,7 @@ first::
   ...    class B(basemodule.A):
   ...        pass
   >>> from martiantest.fake import submodule
-  >>> info.bind(get_default=get_default).get(submodule.B)
+  >>> info.bind().get(submodule.B)
   1
 
 Now let's apply the rule where ``A`` is declared to be a
@@ -1140,7 +1178,7 @@ take effect::
   ...    class B(basemodule2.A):
   ...        pass
   >>> from martiantest.fake import submodule2
-  >>> info.bind(get_default=get_default).get(submodule2.B) is martian.UNKNOWN
+  >>> info.bind().get(submodule2.B) is martian.UNKNOWN
   True
 
 If we change the default rule so we use ``UnknownError`` we see the same
@@ -1159,10 +1197,8 @@ can take effect then::
   1
 
 But we will get a ``GrokError`` when a baseclass is in play::
- 
+
   >>> info.bind(get_default=get_default).get(submodule2.B)
   Traceback (most recent call last):
     ...
   GrokError: No Context object found!
-
-

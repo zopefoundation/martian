@@ -4,8 +4,32 @@ CHANGES
 0.14 (unreleased)
 =================
 
-- Nothing changed yet.
+Feature changes
+---------------
 
+* The computation of the default value for a directive can now be defined inside
+  the directive class definition. Whenever there is a ``get_default``
+  classmethod, it is used for computing the default::
+
+      class name(Directive):
+          scope = CLASS
+          store = ONCE
+
+          @classmethod
+          def get_default(cls, component, module=None, **data):
+             return component.__name__.lower()
+
+  When binding the directive, the default-default behaviour can still be
+  overriden by passing a ``get_default`` function::
+
+      def another_default(component, module=None, **data):
+         return component.__name__.lower()
+
+      name.bind(get_default=another_default).get(some_component)
+
+  Making the default behaviour intrinsic to the directive, prevents having to
+  pass the ``get_default`` function over and over when getting values, for
+  example in the grokkers.
 
 0.13 (2010-11-01)
 =================

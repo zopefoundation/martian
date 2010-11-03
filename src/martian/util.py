@@ -94,8 +94,8 @@ def scan_for_classes(module, iface):
     for name in dir(module):
         if '.' in name:
             # This must be a module-level variable that couldn't have
-            # been set by the developer.  It must have been a
-            # module-level directive.
+            # been set by the developer.  It must have been a module-level
+            # directive.
             continue
         obj = getattr(module, name)
         if not defined_locally(obj, module.__name__) or not isclass(obj):

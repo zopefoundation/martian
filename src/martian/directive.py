@@ -68,7 +68,7 @@ class StoreMultipleTimesNoBase(StoreMultipleTimes):
 MULTIPLE_NOBASE = StoreMultipleTimesNoBase()
 
 class StoreDict(StoreOnce):
-    
+
     def get(self, directive, component, default):
         if getattr(component, directive.dotted_name(), default) is default:
             return default
@@ -196,7 +196,7 @@ class ClassOrModuleScope(object):
                 return result
         # look up default rule for this class or its bases
         return _default(mro, get_default)
-    
+
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 class ModuleScope(object):
@@ -213,8 +213,11 @@ class ModuleScope(object):
 
 MODULE = ModuleScope()
 
+_unused = object()
+
 class Directive(object):
 
+    # The BoundDirective will fallback to the directive-level default value.
     default = None
 
     def __init__(self, *args, **kw):
@@ -239,8 +242,7 @@ class Directive(object):
     # To get a correct error message, we construct a function that has
     # the same signature as factory(), but without "self".
     def check_factory_signature(self, *arguments, **kw):
-        args, varargs, varkw, defaults = inspect.getargspec(
-            self.factory)
+        args, varargs, varkw, defaults = inspect.getargspec(self.factory)
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
         exec("def signature_checker" + argspec + ": pass")
         try:
@@ -262,24 +264,30 @@ class Directive(object):
         cls.store.setattr(component, cls, value)
 
     @classmethod
-    def bind(cls, default=None, get_default=None, name=None):
+    def bind(cls, default=_unused, get_default=None, name=None):
         return BoundDirective(cls, default, get_default, name)
-
 
 class BoundDirective(object):
 
-    def __init__(self, directive, default=None, get_default=None, name=None):
+    def __init__(self, directive, default=_unused, get_default=None, name=None):
         self.directive = directive
         self.default = default
         if name is None:
             name = directive.__name__
         self.name = name
+        # Whenever the requester provides its own get_default function,
+        # it'll override the default get_default.
         if get_default is not None:
             self.get_default = get_default
 
     def get_default(self, component, module=None, **data):
-        if self.default is not None:
+        if self.default is not _unused:
             return self.default
+        # Fallback to the directive-level default value. Call the
+        # ``get_default`` classmethod when it is available, else use the
+        # ``default`` attribute.
+        if hasattr(self.directive, 'get_default'):
+            return self.directive.get_default(component, module, **data)
         return self.directive.default
 
     def get(self, component=None, module=None, **data):
