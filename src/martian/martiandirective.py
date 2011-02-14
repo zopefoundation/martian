@@ -36,6 +36,10 @@ class priority(Directive):
 
 
 class baseclass(MarkerDirective):
+    """Marker directive. Declares that a subclass of an otherwise automatically
+    configured component should not be registered, and that it serves as a base
+    class instead.
+
+    """
     scope = CLASS
     store = ONCE_NOBASE
-
