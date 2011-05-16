@@ -4,8 +4,7 @@ CHANGES
 0.15 (unreleased)
 =================
 
-- Nothing changed yet.
-
+- Fix an encoding issue under Python-2.7 in the doctests.
 
 0.14 (2010-11-03)
 =================
