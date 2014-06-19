@@ -137,7 +137,7 @@ def _default(mro, get_default):
             if util.is_baseclass(base):
                 break
             result = get_default(base, module_of_base)
-        except UnknownError, e:
+        except UnknownError as e:
             # store error if this is the first UnknownError we ran into
             if error is None:
                 error = e
@@ -246,8 +246,8 @@ class Directive(object):
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
         exec("def signature_checker" + argspec + ": pass")
         try:
-            signature_checker(*arguments, **kw)
-        except TypeError, e:
+            locals()['signature_checker'](*arguments, **kw)
+        except TypeError as e:
             message = e.args[0]
             message = message.replace("signature_checker()", self.name)
             raise TypeError(message)
@@ -335,4 +335,4 @@ def validateInterface(directive, value):
 # in the fake module being tested and not in the FakeModule base class;
 # the system cannot find it on the frame if it is in the base class.
 def is_fake_module(frame):
-    return frame.f_locals.has_key('fake_module')
+    return 'fake_module' in frame.f_locals

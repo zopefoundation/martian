@@ -1,6 +1,6 @@
 import types, inspect
 
-from zope.interface import implements
+from zope.interface import implementer
 
 from martian.interfaces import IGrokker, IMultiGrokker
 from martian import util, scan
@@ -9,8 +9,8 @@ from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
 from martian.error import GrokError
 from martian.martiandirective import component, priority
 
+@implementer(IMultiGrokker)
 class MultiGrokkerBase(GrokkerBase):
-    implements(IMultiGrokker)
 
     def register(self, grokker):
         raise NotImplementedError
@@ -35,9 +35,10 @@ class MultiGrokkerBase(GrokkerBase):
     def grokkers(self, name, obj):
         raise NotImplementedError
 
-def _grokker_sort_key((grokker, name, obj)):
+def _grokker_sort_key(args):
     """Helper function to calculate sort order of grokker.
     """
+    grokker, name, obj = args
     return priority.bind().get(grokker)
     
 class ModuleGrokker(MultiGrokkerBase):
@@ -179,7 +180,9 @@ class MultiGrokker(MultiGrokkerBase):
         self._multi_global_grokker = MultiGlobalGrokker()
 
     def grokkers(self, name, obj):
-        if isinstance(obj, (type, types.ClassType)):
+    # python3 compatible
+        if isinstance(obj, type) or (hasattr(types, 'ClassType')
+                                     and isinstance(obj, types.ClassType)):
             return self._multi_class_grokker.grokkers(name, obj)
         elif isinstance(obj, types.ModuleType):
             return self._multi_global_grokker.grokkers(name, obj)
