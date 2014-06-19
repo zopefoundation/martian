@@ -25,7 +25,9 @@ import martian
 from martian.error import GrokError, GrokImportError
 
 def not_unicode_or_ascii(value):
-    if isinstance(value, unicode):
+
+    # python3 compatibility
+    if sys.version_info<(3,) and  isinstance(value, unicode):
         return False
     if not isinstance(value, str):
         return True
@@ -36,7 +38,9 @@ is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
 def isclass(obj):
     """We cannot use ``inspect.isclass`` because it will return True
     for interfaces"""
-    return isinstance(obj, (types.ClassType, type))
+    # python3 compatible
+    return isinstance(obj, type) or (hasattr(types, 'ClassType') and
+                                     isinstance(obj, types.ClassType))
 
 
 def check_subclass(obj, class_):
