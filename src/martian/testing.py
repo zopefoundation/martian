@@ -1,9 +1,9 @@
-import new
 import sys
+from types import ModuleType
 
 def fake_import(fake_module):
     module_name = 'martiantest.fake.' + fake_module.__name__
-    module = new.module(module_name)
+    module = ModuleType(module_name)
     module_name_parts = module_name.split('.')
     module.__file__ =  '/' + '/'.join(module_name_parts)
     
@@ -47,8 +47,8 @@ def fake_import(fake_module):
             pass
 
     if not 'martiantest' in sys.modules:
-        sys.modules['martiantest'] = new.module('martiantest')
-        sys.modules['martiantest.fake'] = new.module('martiantest.fake')
+        sys.modules['martiantest'] = ModuleType('martiantest')
+        sys.modules['martiantest.fake'] = ModuleType('martiantest.fake')
         sys.modules['martiantest'].fake = sys.modules['martiantest.fake']
 
     sys.modules[module_name] = module
@@ -62,5 +62,33 @@ class FakeModuleMetaclass(type):
         fake_import(cls)
         return type.__init__(cls, classname, bases, dict_)
 
-class FakeModule(object):
-    __metaclass__ = FakeModuleMetaclass
+if sys.version_info[0] < 3:
+    class FakeModule(object):
+        __metaclass__ = FakeModuleMetaclass
+else:
+    class FakeModule(object, metaclass = FakeModuleMetaclass):
+        pass
+
+
+class FakeModuleObjectMetaclass(type):
+    """ Base metaclass to replace object in a fake Module.
+        In python 3 we need to change the class name for
+        inner classes. So all test will run in python 2 and 3.
+        
+        Without this class the name of fakemodule will be
+        shown double in the class name, like this:
+        <class 'martiantest.fake.basemodule.basemodule.A'>
+        If this class name is returned, the doctest will fail.
+    """
+
+    def __init__(cls, classname, bases, dict_):
+        normalname = cls.__qualname__.split('.')[-1:][0]
+        dict_['__qualname__'] = normalname
+        cls.__qualname__ = dict_['__qualname__']
+        return type.__init__(cls, classname, bases, dict_)
+
+
+if sys.version_info[0] >= 3:
+    class FakeModuleObject(object, metaclass = FakeModuleObjectMetaclass):
+        pass
+

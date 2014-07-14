@@ -84,10 +84,11 @@ a ``get_default`` function that associates with any class that implements
 
 We define a base class that will be automatically associated with::
 
-  >>> from zope.interface import implements
+  >>> from zope.interface import implementer
 
-  >>> class Context(object):
-  ...    implements(IContext)
+  >>> @implementer(IContext)
+  ... class Context(object):
+  ...    pass
 
 Let's experiment whether implicit context association works::
 

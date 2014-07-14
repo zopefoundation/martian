@@ -32,7 +32,7 @@ Now imagine we have the following grokker for functions:
   >>> class FunctionGrokker(martian.InstanceGrokker):
   ...     martian.component(types.FunctionType)
   ...     def grok(self, name, obj, **kw):
-  ...         print name, obj()
+  ...         print(name, obj())
   ...         return True
   ...
   >>> module_grokker = martian.ModuleGrokker()
