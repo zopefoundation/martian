@@ -113,7 +113,8 @@ def methods_from_class(class_):
     # __provides__.
     candidates = [getattr(class_, name) for name in dir(class_)
                   if name != '__provides__' ]
-    methods = [c for c in candidates if inspect.ismethod(c)]
+    # python3 compatibility need also check of function
+    methods = [c for c in candidates if inspect.ismethod(c) or inspect.isfunction(c)]
     return methods
 
 def public_methods_from_class(class_):

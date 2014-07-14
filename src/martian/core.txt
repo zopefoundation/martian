@@ -7,9 +7,9 @@ A simple framework
 Let's look at a very simple framework where files are handled by their
 extensions::
 
+  >>> import os
   >>> class filehandler(FakeModule):
   ...   import os
-  ...
   ...   def handle_txt(filepath):
   ...     return "Text file"
   ...
@@ -20,7 +20,7 @@ extensions::
   ...
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
-  ...      return extension_handlers[ext](filepath)
+  ...      return filehandler.extension_handlers[ext](filepath)
   >>> from martiantest.fake import filehandler
 
 Now let's try the ``handle`` function for a few file types::
@@ -191,7 +191,7 @@ original module and take out the manual registrations completely::
   ...
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
-  ...      return extension_handlers[ext](filepath)
+  ...      return filehandler.extension_handlers[ext](filepath)
   >>> from martiantest.fake import filehandler
 
 Let's use martian to do the registrations for us::
@@ -374,7 +374,7 @@ can be given names using the ``name`` directive::
   ...
   ...   all_animals = {}
   ...   def create_animal(name):
-  ...     return all_animals[name]()
+  ...     return animal.all_animals[name]()
   >>> from martiantest.fake import animal
 
 Let's define a grokker that can grok an ``Animal``.  We could either
@@ -398,7 +398,7 @@ Let's test our grokker::
   >>> animal_grokker = AnimalGrokker()
   >>> animal_grokker.grok('Snake', Snake)
   True
-  >>> animal.all_animals.keys()
+  >>> list(animal.all_animals)
   ['snake']
 
 We can create a snake now::
@@ -461,7 +461,7 @@ default zoological name::
   ...   martian.directive(zoologicalname, get_default=default_zoological_name)
   ...
   ...   def execute(self, class_, name, zoologicalname, **kw):
-  ...     print zoologicalname
+  ...     print(zoologicalname)
   ...     return True
   ...
   >>> class Hippopotamus(animal.Animal):
@@ -532,7 +532,7 @@ Now consider the following circus animals:
 Let's look at the results:
 
   >>> for circus_animal, methods in sorted(circus_animals.items()):
-  ...     print "%s can %s." % (circus_animal, " and ".join(sorted(methods)))
+  ...     print("%s can %s." % (circus_animal, " and ".join(sorted(methods))))
   ...
   Camel can spit and walk.
   Monkey can climb.
@@ -825,12 +825,12 @@ and instances of it::
   ...   pass
   >>> multi.grok('Robot', Robot)
   True
-  >>> oldstyle.all_machines.keys()
+  >>> list(oldstyle.all_machines.keys())
   ['Robot']
   >>> robot = Robot()
   >>> multi.grok('robot', robot)
   True
-  >>> oldstyle.all_machine_instances.keys()
+  >>> list(oldstyle.all_machine_instances.keys())
   ['robot']
 
 Grokking a package
@@ -862,7 +862,7 @@ Now let's grok the whole ``testpackage`` for animals::
 
 We should now get some animals::
 
-  >>> sorted(all_animals.keys())
+  >>> list(sorted(all_animals.keys()))
   ['Animal', 'Bear', 'Dragon', 'Lizard', 'Python', 'SpermWhale', 'Whale']
 
 Preparation and finalization
@@ -1228,8 +1228,9 @@ module annotations.  Consider the following grokker:
 
 Now let's provide a fake module:
 
-  >>> import new, sys
-  >>> annotations = new.module('annotations')
+  >>> import sys
+  >>> from types import ModuleType
+  >>> annotations = ModuleType('annotations')
   >>> annotations.__file__ = '/fake/module/annotations.py'
   >>> sys.modules['annotations'] = annotations
 
