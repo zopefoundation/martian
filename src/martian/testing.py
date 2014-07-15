@@ -88,7 +88,10 @@ class FakeModuleObjectMetaclass(type):
         return type.__init__(cls, classname, bases, dict_)
 
 
-if sys.version_info[0] >= 3:
+if sys.version_info[0] < 3:
+    class FakeModuleObject(object):
+        pass
+else:
     class FakeModuleObject(object, metaclass = FakeModuleObjectMetaclass):
         pass
 
