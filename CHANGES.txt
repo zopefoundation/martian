@@ -1,6 +1,14 @@
 CHANGES
 *******
 
+0.16 (2014-07-15)
+=================
+
+- compatibility for python 3
+- update code to work with python2 and python3
+- update doctests to work with python2 and python3
+
+
 0.15 (unreleased)
 =================
 
