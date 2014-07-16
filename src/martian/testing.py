@@ -1,5 +1,6 @@
 import sys
 from types import ModuleType
+from types import FunctionType
 
 def fake_import(fake_module):
     module_name = 'martiantest.fake.' + fake_module.__name__
@@ -38,8 +39,11 @@ def fake_import(fake_module):
             continue
         obj = getattr(module, name)
         try:
-            code = obj.func_code
-            new_func = new.function(code, glob, name)
+            if hasattr(obj, 'func_code'):
+                code = obj.func_code
+            else:
+                code = obj.__code__
+            new_func = FunctionType(code, glob, name)
             new_func.__module__ = module.__name__
             setattr(module, name, new_func)
             glob[name] = new_func
@@ -54,7 +58,6 @@ def fake_import(fake_module):
     sys.modules[module_name] = module
     setattr(sys.modules['martiantest.fake'], module_name.split('.')[-1],
             module)
-    
     return module
 
 class FakeModuleMetaclass(type):
@@ -62,36 +65,15 @@ class FakeModuleMetaclass(type):
         fake_import(cls)
         return type.__init__(cls, classname, bases, dict_)
 
-if sys.version_info[0] < 3:
-    class FakeModule(object):
-        __metaclass__ = FakeModuleMetaclass
-else:
-    class FakeModule(object, metaclass = FakeModuleMetaclass):
-        pass
-
-
-class FakeModuleObjectMetaclass(type):
-    """ Base metaclass to replace object in a fake Module.
-        In python 3 we need to change the class name for
-        inner classes. So all test will run in python 2 and 3.
-        
-        Without this class the name of fakemodule will be
-        shown double in the class name, like this:
-        <class 'martiantest.fake.basemodule.basemodule.A'>
-        If this class name is returned, the doctest will fail.
-    """
-
-    def __init__(cls, classname, bases, dict_):
-        normalname = cls.__qualname__.split('.')[-1:][0]
-        dict_['__qualname__'] = normalname
-        cls.__qualname__ = dict_['__qualname__']
-        return type.__init__(cls, classname, bases, dict_)
-
 
 if sys.version_info[0] < 3:
     class FakeModuleObject(object):
         pass
+    
+    class FakeModule(object):
+        __metaclass__ = FakeModuleMetaclass
 else:
-    class FakeModuleObject(object, metaclass = FakeModuleObjectMetaclass):
-        pass
+    from matian.testing_compat import FakeModule
+    from matian.testing_compat import FakeModuleObject
+
 
