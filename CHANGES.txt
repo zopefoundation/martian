@@ -1,17 +1,18 @@
 CHANGES
 *******
 
-0.15 (2014-07-15)
+0.16 (unreleased)
+=================
+
+- Nothing changed yet.
+
+0.15 (2014-07-16)
 =================
 
 - compatibility for python 3
 - update code to work with python2 and python3
 - update doctests to work with python2 and python3
 - adjust egg to work with newer version of setuptools
-
-0.15 (unreleased)
-=================
-
 - Fix an encoding issue under Python-2.7 in the doctests.
 
 0.14 (2010-11-03)
