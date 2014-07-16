@@ -117,7 +117,7 @@ Let's look at the framework::
   ...
   ...      Returns the rendered template
   ...      """
-  ...      template = templating.extension_handlers[extension](data)
+  ...      template = extension_handlers[extension](data)
   ...      return template.render(**kw)
 
 Since normally we cannot create modules in a doctest, we have emulated
@@ -253,7 +253,7 @@ Martian style base class and annotations::
   ...
   ...   def render(data, extension, **kw):
   ...      # this hasn't changed
-  ...      template = templating.extension_handlers[extension](data)
+  ...      template = extension_handlers[extension](data)
   ...      return template.render(**kw)
   >>> from martiantest.fake import templating
 

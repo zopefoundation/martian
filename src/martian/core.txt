@@ -20,7 +20,7 @@ extensions::
   ...
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
-  ...      return filehandler.extension_handlers[ext](filepath)
+  ...      return extension_handlers[ext](filepath)
   >>> from martiantest.fake import filehandler
 
 Now let's try the ``handle`` function for a few file types::
@@ -191,7 +191,7 @@ original module and take out the manual registrations completely::
   ...
   ...   def handle(filepath):
   ...      name, ext = os.path.splitext(filepath)
-  ...      return filehandler.extension_handlers[ext](filepath)
+  ...      return extension_handlers[ext](filepath)
   >>> from martiantest.fake import filehandler
 
 Let's use martian to do the registrations for us::
@@ -403,7 +403,7 @@ Let's test our grokker::
 
 We can create a snake now::
 
-  >>> animal.create_animal('snake')
+  >>> create_animal('snake')
   <Animal snake>
 
 Note that we can supply a different default value for the directive
