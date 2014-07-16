@@ -374,7 +374,7 @@ can be given names using the ``name`` directive::
   ...
   ...   all_animals = {}
   ...   def create_animal(name):
-  ...     return animal.all_animals[name]()
+  ...     return all_animals[name]()
   >>> from martiantest.fake import animal
 
 Let's define a grokker that can grok an ``Animal``.  We could either
@@ -403,7 +403,7 @@ Let's test our grokker::
 
 We can create a snake now::
 
-  >>> create_animal('snake')
+  >>> animal.create_animal('snake')
   <Animal snake>
 
 Note that we can supply a different default value for the directive
