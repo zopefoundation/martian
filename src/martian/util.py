@@ -33,7 +33,13 @@ def not_unicode_or_ascii(value):
         return True
     return is_not_ascii(value)
 
-is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
+
+# extra compatibility for python3.2
+if sys.version_info<(3,)
+    is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
+else:
+    is_not_ascii = re.compile(eval(r'"[\u0080-\uffff]"')).search
+
 
 def isclass(obj):
     """We cannot use ``inspect.isclass`` because it will return True
