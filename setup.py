@@ -28,6 +28,14 @@ that uses Martian is the system where it originated: Grok
 (http://grok.zope.org)
 """,
     long_description=long_description,
+    classifiers= [
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+    ],
     packages=find_packages('src'),
     package_dir = {'': 'src'},
     include_package_data = True,
