@@ -20,7 +20,7 @@ information about a module or a package. Let's take a look at the
 
   >>> module_info = module_info_from_dotted_name('martian.tests.stoneage.cave')
 
-We get a ``ModuleInfo`` object representing the ``cave module::
+We get a ``ModuleInfo`` object representing the ``cave module``::
 
   >>> module_info
   <ModuleInfo object for 'martian.tests.stoneage.cave'>
@@ -231,8 +231,13 @@ Packages which contain .pyc files only
 When a .py file in a package is renamed, an "orphaned" .pyc object is
 often left around.  By default, Martian will ignore such .pyc files:
 
-  >>> import martian.tests.withpyconly
+Note: Python 3 will always store .pyc files in __pycache__ folder. So
+we need force python to create a .pyc at the right place.
+
+  >>> from py_compile import compile
   >>> from martian.tests.withpyconly import foo
+  >>> c = compile(foo.__file__, foo.__file__ + 'c')
+  >>> import martian.tests.withpyconly
   >>> d = os.path.abspath(os.path.dirname(martian.tests.withpyconly.__file__))
   >>> os.rename(os.path.join(d, 'foo.py'), os.path.join(d, 'foo.py_aside'))
   >>> module_info = module_info_from_dotted_name(
