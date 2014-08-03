@@ -23,9 +23,9 @@ class FakeModuleObjectMetaclass(type):
         return type.__init__(cls, classname, bases, dict_)
 
 
-class FakeModuleObject(object, metaclass = FakeModuleObjectMetaclass):
+class FakeModuleObject(object, metaclass=FakeModuleObjectMetaclass):
     pass
 
 
-class FakeModule(object, metaclass = FakeModuleMetaclass):
+class FakeModule(object, metaclass=FakeModuleMetaclass):
     pass
