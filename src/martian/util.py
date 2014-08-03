@@ -22,6 +22,7 @@ import inspect
 from zope import interface
 
 import martian
+from martian.compat import CLASS_TYPES
 from martian.error import GrokError, GrokImportError
 
 def not_unicode_or_ascii(value):
@@ -44,9 +45,7 @@ else:
 def isclass(obj):
     """We cannot use ``inspect.isclass`` because it will return True
     for interfaces"""
-    # python3 compatible
-    return isinstance(obj, type) or (hasattr(types, 'ClassType') and
-                                     isinstance(obj, types.ClassType))
+    return isinstance(obj, CLASS_TYPES)
 
 
 def check_subclass(obj, class_):
