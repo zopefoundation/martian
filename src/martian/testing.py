@@ -73,7 +73,7 @@ if sys.version_info[0] < 3:
     class FakeModule(object):
         __metaclass__ = FakeModuleMetaclass
 else:
-    from martian.testing_compat import FakeModule
-    from martian.testing_compat import FakeModuleObject
+    from martian.testing_compat3 import FakeModule
+    from martian.testing_compat3 import FakeModuleObject
 
 
