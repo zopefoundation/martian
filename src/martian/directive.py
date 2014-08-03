@@ -150,7 +150,7 @@ def _default(mro, get_default):
         if sys.version_info[0] < 3:
             raise GrokError(unicode(error), error.component)
         else:
-            raise GrokError(error, error.component)
+            raise GrokError(str(error), error.component)
     return UNKNOWN
 
 class ClassScope(object):
