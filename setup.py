@@ -4,6 +4,21 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
+def alltests():
+    import os
+    import sys
+    import unittest
+    # use the zope.testrunner machinery to find all the
+    # test suites we've put under ourselves
+    import zope.testrunner.find
+    import zope.testrunner.options
+    here = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
+    args = sys.argv[:]
+    defaults = ["--test-path", here]
+    options = zope.testrunner.options.get_options(args, defaults)
+    suites = list(zope.testrunner.find.find_suites(options))
+    return unittest.TestSuite(suites)
+
 long_description = (
     read('README.txt')
     + '\n' +
@@ -41,9 +56,13 @@ that uses Martian is the system where it originated: Grok
     include_package_data = True,
     zip_safe=False,
     license='ZPL',
+    test_suite='__main__.alltests',
     install_requires=[
     'zope.interface',
     'setuptools',
+    ],
+    tests_require=[
+        'zope.testrunner',
     ],
     extras_require = dict(test=['zope.testing']),
 )
