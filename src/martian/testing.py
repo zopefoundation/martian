@@ -39,10 +39,7 @@ def fake_import(fake_module):
             continue
         obj = getattr(module, name)
         try:
-            if hasattr(obj, 'func_code'):
-                code = obj.func_code
-            else:
-                code = obj.__code__
+            code = obj.__code__
             new_func = FunctionType(code, glob, name)
             new_func.__module__ = module.__name__
             setattr(module, name, new_func)
