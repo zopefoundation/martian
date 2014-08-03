@@ -8,6 +8,7 @@ from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
                                 GlobalGrokker)
 from martian.error import GrokError
 from martian.martiandirective import component, priority
+from martian.compat import CLASS_TYPES
 
 @implementer(IMultiGrokker)
 class MultiGrokkerBase(GrokkerBase):
@@ -180,9 +181,7 @@ class MultiGrokker(MultiGrokkerBase):
         self._multi_global_grokker = MultiGlobalGrokker()
 
     def grokkers(self, name, obj):
-    # python3 compatible
-        if isinstance(obj, type) or (hasattr(types, 'ClassType')
-                                     and isinstance(obj, types.ClassType)):
+        if isinstance(obj, CLASS_TYPES):
             return self._multi_class_grokker.grokkers(name, obj)
         elif isinstance(obj, types.ModuleType):
             return self._multi_global_grokker.grokkers(name, obj)
