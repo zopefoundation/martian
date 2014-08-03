@@ -2,7 +2,6 @@ global-include *.mo
 include *.txt
 include bootstrap.py
 include buildout.cfg
-include dev.cfg
 include tox.ini
 include .travis.yml
-recursive-include src/martian *.zcml *.pt *.txt *.png *.dot *.ps *.po *.pot
+recursive-include src/martian *.txt
