@@ -17,7 +17,7 @@ class FakeModuleObjectMetaclass(type):
     """
 
     def __init__(cls, classname, bases, dict_):
-        normalname = cls.__qualname__.split('.')[-1:][0]
+        normalname = cls.__qualname__.split('.')[-1]
         dict_['__qualname__'] = normalname
         cls.__qualname__ = dict_['__qualname__']
         return type.__init__(cls, classname, bases, dict_)
