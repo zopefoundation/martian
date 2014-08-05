@@ -8,7 +8,7 @@ from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
                                 GlobalGrokker)
 from martian.error import GrokError
 from martian.martiandirective import component, priority
-from martian.compat import CLASS_TYPES
+from martian.compat3 import CLASS_TYPES
 
 @implementer(IMultiGrokker)
 class MultiGrokkerBase(GrokkerBase):

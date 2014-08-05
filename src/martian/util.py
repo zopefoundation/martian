@@ -22,7 +22,7 @@ import inspect
 from zope import interface
 
 import martian
-from martian.compat import CLASS_TYPES
+from martian.compat3 import CLASS_TYPES
 from martian.error import GrokError, GrokImportError
 
 def not_unicode_or_ascii(value):
