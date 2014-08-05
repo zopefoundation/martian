@@ -16,7 +16,7 @@
 
 import os
 
-from zope.interface import implements
+from zope.interface import implementer
 
 from martian.interfaces import IModuleInfo
 
@@ -29,8 +29,8 @@ def is_package(path):
     return os.path.isfile(init_py) or os.path.isfile(init_pyc)
 
 
+@implementer(IModuleInfo)
 class ModuleInfo(object):
-    implements(IModuleInfo)
 
     def __init__(self, path, dotted_name, exclude_filter=None,
                  ignore_nonsource=True):
@@ -151,8 +151,8 @@ class BuiltinDummyModule(object):
     """Needed for BuiltinModuleInfo"""
     pass
 
+@implementer(IModuleInfo)
 class BuiltinModuleInfo(object):
-    implements(IModuleInfo)
 
     # to let view grokking succeed in tests
     package_dotted_name = 'dummy.dotted.name'

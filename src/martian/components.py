@@ -12,15 +12,15 @@
 #
 ##############################################################################
 
-from zope.interface import implements
+from zope.interface import implementer
 
 from martian import util
 from martian.error import GrokError
 from martian.interfaces import IGrokker, IComponentGrokker
 from martian.martiandirective import directive, component
 
+@implementer(IGrokker)
 class GrokkerBase(object):
-    implements(IGrokker)
    
     def grok(self, name, obj, **kw):
         raise NotImplementedError
@@ -34,10 +34,10 @@ class GlobalGrokker(GrokkerBase):
         raise NotImplementedError
     
 
+@implementer(IComponentGrokker)
 class ClassGrokker(GrokkerBase):
     """Grokker that groks classes in a module.
     """
-    implements(IComponentGrokker)
 
     def grok(self, name, class_, module_info=None, **kw):
         module = None
@@ -92,11 +92,10 @@ class MethodGrokker(ClassGrokker):
     def execute(self, class_, method, **data):
         raise NotImplementedError
 
-
+@implementer(IComponentGrokker)
 class InstanceGrokker(GrokkerBase):
     """Grokker that groks instances in a module.
     """
-    implements(IComponentGrokker)
 
     def grok(self, name, class_, **kw):        
         return self.execute(class_, **kw)

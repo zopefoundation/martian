@@ -22,21 +22,30 @@ import inspect
 from zope import interface
 
 import martian
+from martian.compat3 import CLASS_TYPES
 from martian.error import GrokError, GrokImportError
 
 def not_unicode_or_ascii(value):
-    if isinstance(value, unicode):
+
+    # python3 compatibility
+    if sys.version_info < (3,) and  isinstance(value, unicode):
         return False
     if not isinstance(value, str):
         return True
     return is_not_ascii(value)
 
-is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
+
+# extra compatibility for python3.2
+if sys.version_info < (3,):
+    is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
+else:
+    is_not_ascii = re.compile(eval(r'"[\u0080-\uffff]"')).search
+
 
 def isclass(obj):
     """We cannot use ``inspect.isclass`` because it will return True
     for interfaces"""
-    return isinstance(obj, (types.ClassType, type))
+    return isinstance(obj, CLASS_TYPES)
 
 
 def check_subclass(obj, class_):
@@ -109,7 +118,8 @@ def methods_from_class(class_):
     # __provides__.
     candidates = [getattr(class_, name) for name in dir(class_)
                   if name != '__provides__' ]
-    methods = [c for c in candidates if inspect.ismethod(c)]
+    # python3 compatibility need also check of function
+    methods = [c for c in candidates if inspect.ismethod(c) or inspect.isfunction(c)]
     return methods
 
 def public_methods_from_class(class_):

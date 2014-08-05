@@ -20,7 +20,7 @@ information about a module or a package. Let's take a look at the
 
   >>> module_info = module_info_from_dotted_name('martian.tests.stoneage.cave')
 
-We get a ``ModuleInfo`` object representing the ``cave module::
+We get a ``ModuleInfo`` object representing the ``cave module``::
 
   >>> module_info
   <ModuleInfo object for 'martian.tests.stoneage.cave'>
@@ -73,7 +73,7 @@ A module has no sub-modules in it (only packages have this)::
 
 Trying to retrieve any sub modules will give back None::
 
-  >>> print module_info.getSubModuleInfo('doesnotexist')
+  >>> print(module_info.getSubModuleInfo('doesnotexist'))
   None
 
 Packages
@@ -119,7 +119,7 @@ Now let's go into the package and a few sub modules that are in it::
 
 Trying to retrieve non-existing sub modules gives back None::
 
-  >>> print module_info.getSubModuleInfo('doesnotexist')
+  >>> print(module_info.getSubModuleInfo('doesnotexist'))
   None
 
 It is possible to get the actual module object that the ModuleInfo
@@ -176,7 +176,7 @@ procedure to guarantee a generic behaviour::
   >>> module_info
   <ModuleInfo object for 'martian.tests.withtestspackages'>
   >>> # *Will* contain the module info for the tests and ftests packages
-  >>> print module_info.getSubModuleInfos()
+  >>> print(module_info.getSubModuleInfos())
   [...<ModuleInfo object for 'martian.tests.withtestspackages.tests'>...]
 
 You can, however, tell ``getSubmoduleInfos()`` to skip certain names
@@ -194,14 +194,14 @@ nor 'ftests' we could do::
   >>> module_info
   <ModuleInfo object for 'martian.tests.withtestsmodules'>
   >>> no_tests_filter = lambda x: x in ['tests', 'ftests']
-  >>> print module_info.getSubModuleInfos()
+  >>> print(module_info.getSubModuleInfos())
   [<ModuleInfo object for 'martian.tests.withtestsmodules.subpackage'>]
 
 By default __main__ packages are always ignored::
 
   >>> module_info = module_info_from_dotted_name(
   ...     'martian.tests.with__main__')
-  >>> print module_info.getSubModuleInfos()
+  >>> print(module_info.getSubModuleInfos())
   [<ModuleInfo object for 'martian.tests.with__main__.package'>]
 
 
@@ -231,8 +231,13 @@ Packages which contain .pyc files only
 When a .py file in a package is renamed, an "orphaned" .pyc object is
 often left around.  By default, Martian will ignore such .pyc files:
 
-  >>> import martian.tests.withpyconly
+Note: Python 3 will always store .pyc files in __pycache__ folder. So
+we need force python to create a .pyc at the right place.
+
+  >>> from py_compile import compile
   >>> from martian.tests.withpyconly import foo
+  >>> c = compile(foo.__file__, foo.__file__ + 'c')
+  >>> import martian.tests.withpyconly
   >>> d = os.path.abspath(os.path.dirname(martian.tests.withpyconly.__file__))
   >>> os.rename(os.path.join(d, 'foo.py'), os.path.join(d, 'foo.py_aside'))
   >>> module_info = module_info_from_dotted_name(

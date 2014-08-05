@@ -1,9 +1,11 @@
 import unittest, doctest
 from martian.testing import FakeModule
+from martian.testing import FakeModuleObject
 
-optionflags = doctest.NORMALIZE_WHITESPACE + doctest.ELLIPSIS
+optionflags = doctest.NORMALIZE_WHITESPACE + doctest.ELLIPSIS + doctest.IGNORE_EXCEPTION_DETAIL
 
-globs = dict(FakeModule=FakeModule)
+globs = dict(FakeModule=FakeModule,
+             object=FakeModuleObject)
 
 def test_suite():
     suite = unittest.TestSuite()
