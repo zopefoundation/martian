@@ -7,6 +7,7 @@ from zope.interface.interface import TAGGED_DATA
 from martian import util
 from martian.error import GrokImportError, GrokError
 from martian import scan
+from martian import compat3
 
 UNKNOWN = object()
 
@@ -147,10 +148,7 @@ def _default(mro, get_default):
     # if we haven't found a result, raise the first error we had as
     # a GrokError
     if error is not None:
-        if sys.version_info[0] < 3:
-            raise GrokError(unicode(error), error.component)
-        else:
-            raise GrokError(str(error), error.component)
+        raise GrokError(compat3.str(error), error.component)
     return UNKNOWN
 
 class ClassScope(object):
