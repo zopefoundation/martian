@@ -5,8 +5,6 @@ CHANGES
 =================
 
 - compatibility for python 3
-- update code to work with python2 and python3
-- update doctests to work with python2 and python3
 - adjust egg to work with newer version of setuptools
 - Fix an encoding issue under Python-2.7 in the doctests.
 

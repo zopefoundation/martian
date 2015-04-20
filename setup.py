@@ -1,6 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
+
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
@@ -17,7 +18,7 @@ long_description = (
 
 setup(
     name='martian',
-    version = '0.15.dev0',
+    version='0.15.dev0',
     author='Grok project',
     author_email='grok-dev@zope.org',
     description="""\
@@ -28,7 +29,7 @@ that uses Martian is the system where it originated: Grok
 (http://grok.zope.org)
 """,
     long_description=long_description,
-    classifiers= [
+    classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
@@ -37,14 +38,14 @@ that uses Martian is the system where it originated: Grok
         'Programming Language :: Python :: 3.4',
     ],
     packages=find_packages('src'),
-    package_dir = {'': 'src'},
-    include_package_data = True,
+    package_dir={'': 'src'},
+    include_package_data=True,
     zip_safe=False,
     license='ZPL',
     test_suite='martian.tests.test_all.test_suite',
     install_requires=[
-    'zope.interface',
-    'setuptools',
+        'zope.interface',
+        'setuptools',
     ],
-    extras_require = dict(test=['zope.testing']),
+    extras_require=dict(test=['zope.testing']),
 )
