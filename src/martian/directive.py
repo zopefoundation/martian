@@ -245,9 +245,10 @@ class Directive(object):
     def check_factory_signature(self, *arguments, **kw):
         args, varargs, varkw, defaults = inspect.getargspec(self.factory)
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
-        exec("def signature_checker" + argspec + ": pass")
+        ns = dict()
+        exec("def signature_checker" + argspec + ": pass", dict(), ns)
         try:
-            locals()['signature_checker'](*arguments, **kw)
+            ns['signature_checker'](*arguments, **kw)
         except TypeError as e:
             message = e.args[0]
             message = message.replace("signature_checker()", self.name)

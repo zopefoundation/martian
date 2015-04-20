@@ -28,7 +28,7 @@ from martian.error import GrokError, GrokImportError
 def not_unicode_or_ascii(value):
 
     # python3 compatibility
-    if sys.version_info < (3,) and  isinstance(value, unicode):
+    if sys.version_info < (3,) and isinstance(value, unicode):
         return False
     if not isinstance(value, str):
         return True
