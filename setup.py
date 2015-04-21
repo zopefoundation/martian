@@ -18,7 +18,7 @@ long_description = (
 
 setup(
     name='martian',
-    version='0.15',
+    version='0.16.dev0',
     author='Grok project',
     author_email='grok-dev@zope.org',
     description="""\
