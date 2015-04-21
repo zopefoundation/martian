@@ -1,9 +1,10 @@
-import new
 import sys
+from types import ModuleType
+from types import FunctionType
 
 def fake_import(fake_module):
     module_name = 'martiantest.fake.' + fake_module.__name__
-    module = new.module(module_name)
+    module = ModuleType(module_name)
     module_name_parts = module_name.split('.')
     module.__file__ =  '/' + '/'.join(module_name_parts)
     
@@ -38,8 +39,8 @@ def fake_import(fake_module):
             continue
         obj = getattr(module, name)
         try:
-            code = obj.func_code
-            new_func = new.function(code, glob, name)
+            code = obj.__code__
+            new_func = FunctionType(code, glob, name)
             new_func.__module__ = module.__name__
             setattr(module, name, new_func)
             glob[name] = new_func
@@ -47,14 +48,13 @@ def fake_import(fake_module):
             pass
 
     if not 'martiantest' in sys.modules:
-        sys.modules['martiantest'] = new.module('martiantest')
-        sys.modules['martiantest.fake'] = new.module('martiantest.fake')
+        sys.modules['martiantest'] = ModuleType('martiantest')
+        sys.modules['martiantest.fake'] = ModuleType('martiantest.fake')
         sys.modules['martiantest'].fake = sys.modules['martiantest.fake']
 
     sys.modules[module_name] = module
     setattr(sys.modules['martiantest.fake'], module_name.split('.')[-1],
             module)
-    
     return module
 
 class FakeModuleMetaclass(type):
@@ -62,5 +62,15 @@ class FakeModuleMetaclass(type):
         fake_import(cls)
         return type.__init__(cls, classname, bases, dict_)
 
-class FakeModule(object):
-    __metaclass__ = FakeModuleMetaclass
+
+if sys.version_info[0] < 3:
+    class FakeModuleObject(object):
+        pass
+    
+    class FakeModule(object):
+        __metaclass__ = FakeModuleMetaclass
+else:
+    from martian.testing_compat3 import FakeModule
+    from martian.testing_compat3 import FakeModuleObject
+
+

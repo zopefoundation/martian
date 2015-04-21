@@ -32,8 +32,8 @@ After setting the description, we bind the directive and obtain a
 bound directive object.  This object has means for retrieving the data
 set by the directive, in particular the ``get`` method::
 
-  >>> description.bind().get(Foo)
-  u'This is a description'
+  >>> str(description.bind().get(Foo))
+  'This is a description'
 
 Directives in different namespaces get stored differently. We'll
 define a similar directive in another namespace::
@@ -44,25 +44,25 @@ define a similar directive in another namespace::
   >>> class Foo(object):
   ...     description(u"Description1")
   ...     description2(u"Description2")
-  >>> description.bind().get(Foo)
-  u'Description1'
-  >>> description2.bind().get(Foo)
-  u'Description2'
+  >>> str(description.bind().get(Foo))
+  'Description1'
+  >>> str(description2.bind().get(Foo))
+  'Description2'
 
 If we check the value of a class without the directive, we see the
 default value for that directive, this case the empty unicode string::
 
   >>> class Foo(object):
   ...     pass
-  >>> description.bind().get(Foo)
-  u''
+  >>> str(description.bind().get(Foo))
+  ''
 
 In certain cases we need to set a value on a component as if the directive was
 actually used::
 
   >>> description.set(Foo, u'value as set')
-  >>> description.bind().get(Foo)
-  u'value as set'
+  >>> str(description.bind().get(Foo))
+  'value as set'
 
 Subclasses of the original class will inherit the properties set by the
 directive:
@@ -311,13 +311,13 @@ in the same scope::
 We can now use the directive multiple times without any errors::
 
   >>> class Foo(object):
-  ...   multi(u"Once")
-  ...   multi(u"Twice")
+  ...   multi("Once")
+  ...   multi("Twice")
 
 We can now retrieve the value and we'll get a list::
 
   >>> multi.bind().get(Foo)
-  [u'Once', u'Twice']
+  ['Once', 'Twice']
 
 The default value for a MultipleTimesDirective is an empty list::
 
@@ -330,10 +330,10 @@ Whenever the directive is used on a sub class of a component, the values set by
 directives on the base classes are combined::
 
   >>> class Qux(Foo):
-  ...     multi(u'Triple')
+  ...     multi('Triple')
   ...
   >>> multi.bind().get(Qux)
-  [u'Once', u'Twice', u'Triple']
+  ['Once', 'Twice', 'Triple']
 
 You can also create a directive that ignores the values on the base classes::
 
@@ -343,16 +343,16 @@ You can also create a directive that ignores the values on the base classes::
   ...     store = MULTIPLE_NOBASE
 
   >>> class Foo(object):
-  ...     multi(u"Once")
-  ...     multi(u"Twice")
+  ...     multi("Once")
+  ...     multi("Twice")
   >>> multi.bind().get(Foo)
-  [u'Once', u'Twice']
+  ['Once', 'Twice']
 
   >>> class Qux(Foo):
-  ...     multi(u'Triple')
-  ...     multi(u'More')
+  ...     multi('Triple')
+  ...     multi('More')
   >>> multi.bind().get(Qux)
-  [u'Triple', u'More']
+  ['Triple', 'More']
 
 Using a directive multiple times, as a dictionary
 -------------------------------------------------
@@ -371,14 +371,14 @@ key-value pair::
 We can now use the directive multiple times without any errors::
 
   >>> class Bar(object):
-  ...   multi(u"Once")
-  ...   multi(u"Twice")
+  ...   multi("Once")
+  ...   multi("Twice")
 
 We can now retrieve the value and we'll get a to the items::
 
   >>> d = multi.bind().get(Bar)
-  >>> print sorted(d.items())
-  [(u'once', u'Once'), (u'twice', u'Twice')]
+  >>> print(sorted(d.items()))
+  [('once', 'Once'), ('twice', 'Twice')]
 
 When the factory method does not return a key-value pair, an error is raised::
 
@@ -389,7 +389,7 @@ When the factory method does not return a key-value pair, an error is raised::
   ...         return None
 
   >>> class Baz(object):
-  ...   wrongmulti(u"Once")
+  ...   wrongmulti("Once")
   Traceback (most recent call last):
   ...
   GrokImportError: The factory method for the 'wrongmulti' directive should
@@ -402,7 +402,7 @@ When the factory method does not return a key-value pair, an error is raised::
   ...         return value, value, value
 
   >>> class Baz(object):
-  ...   wrongmulti2(u"Once")
+  ...   wrongmulti2("Once")
   Traceback (most recent call last):
   ...
   GrokImportError: The factory method for the 'wrongmulti2' directive should
@@ -427,7 +427,7 @@ combined::
   ...   multi(4, 'EEE')
 
   >>> d = multi.bind().get(Fropple)
-  >>> print sorted(d.items())
+  >>> print(sorted(d.items()))
   [(1, 'CCC'), (2, 'BBB'), (3, 'DDD'), (4, 'EEE')]
 
 Using MULTIPLE and DICT can also work on a module level, even though
@@ -445,7 +445,7 @@ inheritance has no meaning there::
   ...     multi('Two')
   ...
   >>> from martiantest.fake import module_with_directive
-  >>> print multi.bind().get(module_with_directive)
+  >>> print(multi.bind().get(module_with_directive))
   ['One', 'Two']
 
   >>> from martian import MODULE
@@ -464,7 +464,7 @@ inheritance has no meaning there::
   ...
   >>> from martiantest.fake import module_with_directive
   >>> d = multi.bind().get(module_with_directive)
-  >>> print sorted(d.items())
+  >>> print(sorted(d.items()))
   [(1, 'One'), (2, 'Two')]
 
 Directives on an interface
@@ -760,7 +760,7 @@ if there is no ``foo`` attribute on the class::
   ...
   ...     @classmethod
   ...     def get_default(cls, component, module, **data):
-  ...         if not component.__dict__.has_key('foo'):
+  ...         if 'foo' not in component.__dict__:
   ...             raise UnknownError(
   ...                 "Foo cannot be found for class %s" % component.__name__,
   ...                 component)

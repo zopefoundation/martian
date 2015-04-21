@@ -4,7 +4,10 @@ CHANGES
 0.15 (unreleased)
 =================
 
+- compatibility for python 3
+- adjust egg to work with newer version of setuptools
 - Fix an encoding issue under Python-2.7 in the doctests.
+
 
 0.14 (2010-11-03)
 =================

@@ -7,6 +7,7 @@ from zope.interface.interface import TAGGED_DATA
 from martian import util
 from martian.error import GrokImportError, GrokError
 from martian import scan
+from martian import compat3
 
 UNKNOWN = object()
 
@@ -137,7 +138,7 @@ def _default(mro, get_default):
             if util.is_baseclass(base):
                 break
             result = get_default(base, module_of_base)
-        except UnknownError, e:
+        except UnknownError as e:
             # store error if this is the first UnknownError we ran into
             if error is None:
                 error = e
@@ -147,7 +148,7 @@ def _default(mro, get_default):
     # if we haven't found a result, raise the first error we had as
     # a GrokError
     if error is not None:
-        raise GrokError(unicode(error), error.component)
+        raise GrokError(compat3.str(error), error.component)
     return UNKNOWN
 
 class ClassScope(object):
@@ -244,10 +245,11 @@ class Directive(object):
     def check_factory_signature(self, *arguments, **kw):
         args, varargs, varkw, defaults = inspect.getargspec(self.factory)
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
-        exec("def signature_checker" + argspec + ": pass")
+        ns = dict()
+        exec("def signature_checker" + argspec + ": pass", dict(), ns)
         try:
-            signature_checker(*arguments, **kw)
-        except TypeError, e:
+            ns['signature_checker'](*arguments, **kw)
+        except TypeError as e:
             message = e.args[0]
             message = message.replace("signature_checker()", self.name)
             raise TypeError(message)
@@ -335,4 +337,4 @@ def validateInterface(directive, value):
 # in the fake module being tested and not in the FakeModule base class;
 # the system cannot find it on the frame if it is in the base class.
 def is_fake_module(frame):
-    return frame.f_locals.has_key('fake_module')
+    return 'fake_module' in frame.f_locals

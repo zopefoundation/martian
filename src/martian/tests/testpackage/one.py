@@ -1,4 +1,4 @@
-import animal
+from martian.tests.testpackage import animal
 
 class Whale(animal.Animal):
     pass
