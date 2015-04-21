@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.15 (unreleased)
+0.15 (2015-04-21)
 =================
 
 - compatibility for python 3
