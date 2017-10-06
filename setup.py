@@ -14,11 +14,11 @@ long_description = (
     + '\n' +
     'Download\n'
     '********\n'
-    )
+)
 
 setup(
     name='martian',
-    version='0.16.dev0',
+    version='1.0.dev0',
     url='https://github.com/zopefoundation/martian',
     author='Grok project',
     author_email='grok-dev@zope.org',
@@ -31,12 +31,19 @@ that uses Martian is the system where it originated: Grok
 """,
     long_description=long_description,
     classifiers=[
+        'Development Status :: 6 - Mature',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Zope Public License',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Topic :: Utilities',
     ],
     packages=find_packages('src'),
     package_dir={'': 'src'},

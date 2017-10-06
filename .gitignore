@@ -1,5 +1,6 @@
 *.egg-info/
 *.py[co]
+.coverage
 .installed.cfg
 .tox/
 __pycache__/
