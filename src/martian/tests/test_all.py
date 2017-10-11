@@ -9,8 +9,8 @@ from martian.testing import FakeModuleObject
 
 
 optionflags = (doctest.NORMALIZE_WHITESPACE
-               + doctest.ELLIPSIS
-               + doctest.IGNORE_EXCEPTION_DETAIL)
+               | doctest.ELLIPSIS
+               | doctest.IGNORE_EXCEPTION_DETAIL)
 
 globs = dict(FakeModule=FakeModule,
              object=FakeModuleObject)

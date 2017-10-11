@@ -9,12 +9,12 @@ python:
     - pypy3
 install:
     - pip install -U pip setuptools
-    - pip install -U zope.testrunner coverage coveralls
+    - pip install -U zope.testrunner coverage
     - pip install -U -e .[test]
 script:
     - coverage run -m zope.testrunner --test-path=src
 after_success:
-    - coveralls
+    - pip install coveralls && coveralls
 notifications:
     email: false
 cache: pip
