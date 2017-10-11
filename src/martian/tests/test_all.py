@@ -1,11 +1,25 @@
-import unittest, doctest
+import doctest
+import re
+import unittest
+
+from zope.testing import renormalizing
+
 from martian.testing import FakeModule
 from martian.testing import FakeModuleObject
 
-optionflags = doctest.NORMALIZE_WHITESPACE + doctest.ELLIPSIS + doctest.IGNORE_EXCEPTION_DETAIL
+
+optionflags = (doctest.NORMALIZE_WHITESPACE
+               | doctest.ELLIPSIS
+               | doctest.IGNORE_EXCEPTION_DETAIL)
 
 globs = dict(FakeModule=FakeModule,
              object=FakeModuleObject)
+
+checker = renormalizing.RENormalizing([
+    (re.compile(r'<builtins\.'), r'<'),
+    (re.compile(r'<__builtin__\.'), r'<'),
+])
+
 
 def test_suite():
     suite = unittest.TestSuite()
@@ -13,6 +27,7 @@ def test_suite():
         doctest.DocFileSuite('README.txt',
                              package='martian',
                              globs=globs,
+                             checker=checker,
                              optionflags=optionflags),
         doctest.DocFileSuite('scan.txt',
                              package='martian',
@@ -40,5 +55,5 @@ def test_suite():
                              package='martian',
                              globs=globs,
                              optionflags=optionflags),
-        ])
+    ])
     return suite
