@@ -1,8 +1,9 @@
 global-include *.mo
+include *.rst
 include *.txt
 include bootstrap.py
 include buildout.cfg
 include tox.ini
 include .travis.yml
 include .coveragerc
-recursive-include src/martian *.txt *.pt *.py
+recursive-include src/martian *.rst *.pt *.py
