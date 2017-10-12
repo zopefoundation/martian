@@ -6,7 +6,7 @@ Martian
         :target: https://travis-ci.org/zopefoundation/martian
 
 .. image:: https://readthedocs.org/projects/martian/badge/?version=latest
-        :target: http://martian.readthedocs.org/en/latest/
+        :target: https://martian.readthedocs.org/en/latest/
         :alt: Documentation Status
 
 .. image:: https://img.shields.io/pypi/v/martian.svg
