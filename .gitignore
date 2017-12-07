@@ -7,5 +7,6 @@ __pycache__/
 bin/
 build/
 develop-eggs/
+docs/_build/
 dist/
 eggs/

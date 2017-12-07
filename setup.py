@@ -55,5 +55,13 @@ that uses Martian is the system where it originated: Grok
         'zope.interface',
         'setuptools',
     ],
-    extras_require=dict(test=['zope.testing']),
+    extras_require=dict(
+        test=[
+            'zope.testing'
+        ],
+        docs=[
+            'Sphinx',
+            'repoze.sphinx.autointerface',
+        ],
+    ),
 )
