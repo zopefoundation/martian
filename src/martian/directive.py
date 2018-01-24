@@ -243,7 +243,11 @@ class Directive(object):
     # To get a correct error message, we construct a function that has
     # the same signature as factory(), but without "self".
     def check_factory_signature(self, *arguments, **kw):
-        args, varargs, varkw, defaults = inspect.getargspec(self.factory)
+        if sys.version_info.major == 2:
+            (args, varargs, varkw, defaults) = inspect.getargspec(self.factory)
+        else:
+            (args, varargs, varkw, defaults,
+             _, __, ___) = inspect.getfullargspec(self.factory)
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
         ns = dict()
         exec("def signature_checker" + argspec + ": pass", dict(), ns)

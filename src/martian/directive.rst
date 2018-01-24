@@ -111,6 +111,15 @@ We cannot call the directive with no argument either::
     ...
   TypeError: description takes exactly 1 argument (0 given)
 
+Calling the directive with an extra keyword argument fails::
+
+  >>> class Foo(object):
+  ...   description(u"Description", foo=u"bar")
+  Traceback (most recent call last):
+    ...
+  TypeError: description got an extra keyword argument 'foo FIXME'
+
+
 Class and module scope
 ----------------------
 
