@@ -1,6 +1,6 @@
 *.egg-info/
 *.py[co]
-.coverage
+.coverage*
 .installed.cfg
 .tox/
 __pycache__/
@@ -9,3 +9,7 @@ build/
 develop-eggs/
 dist/
 eggs/
+htmlcov/
+lib/
+pip-selfcheck.json
+pyvenv.cfg
