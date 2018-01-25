@@ -4,8 +4,10 @@ CHANGES
 1.1 (unreleased)
 ================
 
-- Nothing changed yet.
+- Bypass bootstrap, add coverage to tox
 
+- Fix ``inspect.getargspec()`` deprecation in python3
+  
 
 1.0 (2017-10-19)
 ================
