@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.1 (unreleased)
+1.1 (2018-01-25)
 ================
 
 - Bypass bootstrap, add coverage to tox
