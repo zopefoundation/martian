@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.2 (unreleased)
+1.2 (2018-05-09)
 ================
 
 - Add a new directive ``martian.ignore()`` to explicitly not grok
