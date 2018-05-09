@@ -2,12 +2,13 @@ import sys
 from types import ModuleType
 from types import FunctionType
 
+
 def fake_import(fake_module):
     module_name = 'martiantest.fake.' + fake_module.__name__
     module = ModuleType(module_name)
     module_name_parts = module_name.split('.')
-    module.__file__ =  '/' + '/'.join(module_name_parts)
-    
+    module.__file__ = '/' + '/'.join(module_name_parts)
+
     glob = {}
     for name in dir(fake_module):
         if name.startswith('__') and '.' not in name:
@@ -47,7 +48,7 @@ def fake_import(fake_module):
         except AttributeError:
             pass
 
-    if not 'martiantest' in sys.modules:
+    if 'martiantest' not in sys.modules:
         sys.modules['martiantest'] = ModuleType('martiantest')
         sys.modules['martiantest.fake'] = ModuleType('martiantest.fake')
         sys.modules['martiantest'].fake = sys.modules['martiantest.fake']
@@ -57,6 +58,7 @@ def fake_import(fake_module):
             module)
     return module
 
+
 class FakeModuleMetaclass(type):
     def __init__(cls, classname, bases, dict_):
         fake_import(cls)
@@ -64,13 +66,13 @@ class FakeModuleMetaclass(type):
 
 
 if sys.version_info[0] < 3:
+
     class FakeModuleObject(object):
         pass
-    
+
     class FakeModule(object):
         __metaclass__ = FakeModuleMetaclass
+
 else:
-    from martian.testing_compat3 import FakeModule
-    from martian.testing_compat3 import FakeModuleObject
-
-
+    from martian.testing_compat3 import FakeModule  # NOQA
+    from martian.testing_compat3 import FakeModuleObject  # NOQA

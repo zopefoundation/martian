@@ -27,7 +27,7 @@ It has the following rules:
 Let's implement a context directive with this behavior::
 
   >>> import martian
-  >>> class context(martian.Directive):  
+  >>> class context(martian.Directive):
   ...   scope = martian.CLASS_OR_MODULE
   ...   store = martian.ONCE
 
@@ -126,7 +126,7 @@ There are too many possible contexts::
   >>> from martiantest.fake import ambiguouscontext
   >>> context.bind(get_default=get_default_context).get(ambiguouscontext.B)
   Traceback (most recent call last):
-    ... 
+    ...
   GrokError: Multiple possible contexts for <class 'martiantest.fake.ambiguouscontext.B'>, please use the 'context' directive.
 
 Let's try this with inheritance, where an implicit context is provided

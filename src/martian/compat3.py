@@ -9,6 +9,6 @@ else:
 
 
 if sys.version_info[0] < 3:
-    str = unicode
+    str = unicode  # NOQA
 else:
     str = str

@@ -101,12 +101,12 @@ Let's look at the framework::
   ...          return self.template.substitute(**kw)
   ...
   ...   # the registry, we plug in the two templating systems right away
-  ...   extension_handlers = { '.txt': InterpolationTemplate, 
+  ...   extension_handlers = { '.txt': InterpolationTemplate,
   ...                          '.tmpl': TemplateStringTemplate }
   ...
   ...   def render(data, extension, **kw):
   ...      """Render the template at filepath with arguments.
-  ...  
+  ...
   ...      data - the data in the file
   ...      extension - the extension of the file
   ...      keyword arguments - variables to interpolate
@@ -176,7 +176,7 @@ works now::
 Above we plug into our ``extension_handler`` registry using Python
 code. Using separate code to manually hook components into registries
 can get rather cumbersome - each time you write a plugin, you also
-need to remember you need to register it. 
+need to remember you need to register it.
 
 Doing template registration in Python code also poses a maintenance
 risk. It is tempting to start doing fancy things in Python code such
@@ -195,7 +195,7 @@ what to configure where can often be deduced from the structure of
 Python code itself, especially when it can be annotated with
 additional declarations. The idea is to make it so easy to write and
 register a plugin so that even extensive configuration does not overly
-burden the developer. 
+burden the developer.
 
 Configuration actions are executed during a separate phase ("grok
 time"), not at import time, which makes it easier to reason about and
@@ -271,7 +271,7 @@ template languages? Now we can use Martian. We define a *grokker* for
 ``Template`` that registers the template classes in the
 ``extension_handlers`` registry::
 
-  >>> class meta(FakeModule):   
+  >>> class meta(FakeModule):
   ...   class TemplateGrokker(martian.ClassGrokker):
   ...     martian.component(Template)
   ...     martian.directive(extension)
@@ -284,7 +284,7 @@ What does this do? A ``ClassGrokker`` has its ``execute`` method
 called for subclasses of what's indicated by the ``martian.component``
 directive. You can also declare what directives a ``ClassGrokker``
 expects on this component by using ``martian.directive()`` (the
-``directive`` directive!) one or more times. 
+``directive`` directive!) one or more times.
 
 The ``execute`` method takes the class to be grokked as the first
 argument, and the values of the directives used will be passed in as
@@ -390,10 +390,10 @@ class, and we want to track instances of it::
   ...   lion = Animal('lion')
   ...   animals = {}
   >>> from martiantest.fake import zoo
- 
+
 We define an ``InstanceGrokker`` subclass to grok ``Animal`` instances::
 
-  >>> class meta(FakeModule):   
+  >>> class meta(FakeModule):
   ...   class AnimalGrokker(martian.InstanceGrokker):
   ...     martian.component(Animal)
   ...     def execute(self, instance, **kw):
@@ -402,7 +402,7 @@ We define an ``InstanceGrokker`` subclass to grok ``Animal`` instances::
   >>> from martiantest.fake import meta
 
 Let's create a new registry with the ``AnimalGrokker`` in it::
-   
+
   >>> reg = martian.GrokkerRegistry()
   >>> reg.grok('meta', meta)
   True
@@ -415,9 +415,9 @@ We can now grok the ``zoo`` module::
 The animals will now be in the ``animals`` dictionary::
 
   >>> sorted(zoo.animals.items())
-  [('chicken', <Animal object at ...>), 
-   ('elephant', <Animal object at ...>), 
-   ('horse', <Animal object at ...>), 
+  [('chicken', <Animal object at ...>),
+   ('elephant', <Animal object at ...>),
+   ('horse', <Animal object at ...>),
    ('lion', <Animal object at ...>)]
 
 More information

@@ -1,14 +1,16 @@
-import types, inspect
+import types
+import inspect
 
 from zope.interface import implementer
 
-from martian.interfaces import IGrokker, IMultiGrokker
+from martian.interfaces import IMultiGrokker
 from martian import util, scan
-from martian.components import (GrokkerBase, ClassGrokker, InstanceGrokker,
-                                GlobalGrokker)
+from martian.components import GrokkerBase, ClassGrokker, InstanceGrokker
+from martian.components import GlobalGrokker
 from martian.error import GrokError
 from martian.martiandirective import component, priority
 from martian.compat3 import CLASS_TYPES
+
 
 @implementer(IMultiGrokker)
 class MultiGrokkerBase(GrokkerBase):
@@ -36,11 +38,13 @@ class MultiGrokkerBase(GrokkerBase):
     def grokkers(self, name, obj):
         raise NotImplementedError
 
+
 def _grokker_sort_key(args):
     """Helper function to calculate sort order of grokker.
     """
     grokker, name, obj = args
     return priority.bind().get(grokker)
+
 
 class ModuleGrokker(MultiGrokkerBase):
 
@@ -107,6 +111,7 @@ class ModuleGrokker(MultiGrokkerBase):
             for t in grokker.grokkers(name, obj):
                 yield t
 
+
 class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
 
     def __init__(self):
@@ -134,15 +139,20 @@ class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
                     yield grokker, name, obj
                     used_grokkers.add(grokker)
 
+
 class MultiInstanceGrokker(MultiInstanceOrClassGrokkerBase):
+
     def get_bases(self, obj):
         return inspect.getmro(obj.__class__)
 
+
 class MultiClassGrokker(MultiInstanceOrClassGrokkerBase):
+
     def get_bases(self, obj):
-        if type(obj) is types.ModuleType:
+        if isinstance(obj,  types.ModuleType):
             return []
         return inspect.getmro(obj)
+
 
 class MultiGlobalGrokker(MultiGrokkerBase):
 
@@ -161,6 +171,7 @@ class MultiGlobalGrokker(MultiGrokkerBase):
     def grokkers(self, name, module):
         for grokker in self._grokkers:
             yield grokker, name, module
+
 
 class MultiGrokker(MultiGrokkerBase):
 
@@ -190,9 +201,11 @@ class MultiGrokker(MultiGrokkerBase):
         else:
             return self._multi_instance_grokker.grokkers(name, obj)
 
+
 class MetaMultiGrokker(MultiGrokker):
     """Multi grokker which comes pre-registered with meta-grokkers.
     """
+
     def clear(self):
         super(MetaMultiGrokker, self).clear()
         # bootstrap the meta-grokkers
@@ -200,24 +213,29 @@ class MetaMultiGrokker(MultiGrokker):
         self.register(InstanceMetaGrokker(self))
         self.register(GlobalMetaGrokker(self))
 
+
 def grok_dotted_name(dotted_name, grokker, exclude_filter=None,
                      ignore_nonsource=True, **kw):
-    module_info = scan.module_info_from_dotted_name(dotted_name, exclude_filter,
-                                                    ignore_nonsource)
+    module_info = scan.module_info_from_dotted_name(
+        dotted_name, exclude_filter, ignore_nonsource)
     grok_package(module_info, grokker, **kw)
+
 
 def grok_package(module_info, grokker, **kw):
     grok_module(module_info, grokker, **kw)
     for sub_module_info in module_info.getSubModuleInfos():
         grok_package(sub_module_info, grokker, **kw)
 
+
 def grok_module(module_info, grokker, **kw):
     grokker.grok(module_info.dotted_name, module_info.getModule(),
                  module_info=module_info, **kw)
 
+
 # deep meta mode here - we define grokkers that can pick up the
 # three kinds of grokker: ClassGrokker, InstanceGrokker and ModuleGrokker
 class MetaGrokker(ClassGrokker):
+
     def __init__(self, multi_grokker):
         """multi_grokker - the grokker to register grokkers with.
         """
@@ -227,15 +245,20 @@ class MetaGrokker(ClassGrokker):
         self.multi_grokker.register(obj())
         return True
 
+
 class ClassMetaGrokker(MetaGrokker):
     component(ClassGrokker)
+
 
 class InstanceMetaGrokker(MetaGrokker):
     component(InstanceGrokker)
 
+
 class GlobalMetaGrokker(MetaGrokker):
     component(GlobalGrokker)
 
+
 class GrokkerRegistry(ModuleGrokker):
+
     def __init__(self):
         super(GrokkerRegistry, self).__init__(MetaMultiGrokker())

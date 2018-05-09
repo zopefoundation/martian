@@ -15,20 +15,18 @@
 """
 
 import re
-import types
 import sys
 import inspect
 
 from zope import interface
 
-import martian
 from martian.compat3 import CLASS_TYPES
-from martian.error import GrokError, GrokImportError
+from martian.error import GrokError
+
 
 def not_unicode_or_ascii(value):
-
     # python3 compatibility
-    if sys.version_info < (3,) and isinstance(value, unicode):
+    if sys.version_info < (3,) and isinstance(value, unicode):  # NOQA
         return False
     if not isinstance(value, str):
         return True
@@ -57,6 +55,7 @@ def check_subclass(obj, class_):
 def caller_module():
     return sys._getframe(2).f_globals['__name__']
 
+
 def is_baseclass(component):
     # this is a bit more low-level than we really want, but
     # using martian.baseclass.bind().get(component) has the unfortunate
@@ -64,6 +63,7 @@ def is_baseclass(component):
     # the implementation of directives, which we now do...
     return (isclass(component) and
             'martian.martiandirective.baseclass' in component.__dict__)
+
 
 def defined_locally(obj, dotted_name):
     obj_module = getattr(obj, '__grok_module__', None)
@@ -73,29 +73,33 @@ def defined_locally(obj, dotted_name):
 
 
 def check_implements_one(class_):
-    check_implements_one_from_list(list(interface.implementedBy(class_)),
-                                   class_)
+    check_implements_one_from_list(
+        list(interface.implementedBy(class_)), class_)
+
 
 def check_implements_one_from_list(list, class_):
     if len(list) < 1:
-        raise GrokError("%r must implement at least one interface "
-                        "(use grok.implements to specify)."
-                        % class_, class_)
+        raise GrokError(
+            "%r must implement at least one interface "
+            "(use grok.implements to specify)." % class_, class_)
     elif len(list) > 1:
-        raise GrokError("%r is implementing more than one interface "
-                        "(use grok.provides to specify which one to use)."
-                        % class_, class_)
+        raise GrokError(
+            "%r is implementing more than one interface "
+            "(use grok.provides to specify which one to use)."
+            % class_, class_)
+
 
 def check_provides_one(obj):
     provides = list(interface.providedBy(obj))
     if len(provides) < 1:
-        raise GrokError("%r must provide at least one interface "
-                        "(use zope.interface.classProvides to specify)."
-                        % obj, obj)
+        raise GrokError(
+            "%r must provide at least one interface "
+            "(use zope.interface.classProvides to specify)." % obj, obj)
     if len(provides) > 1:
-        raise GrokError("%r provides more than one interface "
-                        "(use grok.provides to specify which one to use)."
-                        % obj, obj)
+        raise GrokError(
+            "%r provides more than one interface "
+            "(use grok.provides to specify which one to use)." % obj, obj)
+
 
 def scan_for_classes(module, iface):
     """Given a module, scan for classes.
@@ -113,21 +117,26 @@ def scan_for_classes(module, iface):
         if iface.implementedBy(obj):
             yield obj
 
+
 def methods_from_class(class_):
     # XXX Problem with zope.interface here that makes us special-case
     # __provides__.
     candidates = [getattr(class_, name) for name in dir(class_)
-                  if name != '__provides__' ]
+                  if name != '__provides__']
     # python3 compatibility need also check of function
-    methods = [c for c in candidates if inspect.ismethod(c) or inspect.isfunction(c)]
+    methods = [c for c in candidates
+               if inspect.ismethod(c) or inspect.isfunction(c)]
     return methods
 
+
 def public_methods_from_class(class_):
-    return [m for m in methods_from_class(class_) if \
-            not m.__name__.startswith('_')]
+    return [m for m in methods_from_class(class_)
+            if not m.__name__.startswith('_')]
+
 
 def frame_is_module(frame):
     return frame.f_locals is frame.f_globals
+
 
 def frame_is_class(frame):
     return '__module__' in frame.f_locals

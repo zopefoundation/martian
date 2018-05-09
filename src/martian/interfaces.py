@@ -12,7 +12,8 @@
 #
 ##############################################################################
 
-from zope.interface import Interface, Attribute
+from zope.interface import Interface
+
 
 class IGrokker(Interface):
     """A grokker that groks components.
@@ -21,6 +22,7 @@ class IGrokker(Interface):
     (within a module) with which to grok. The higher the priority,
     the earlier the grokker will be executed.
     """
+
     def grok(name, obj, **kw):
         """Grok obj.
 
@@ -33,16 +35,19 @@ class IGrokker(Interface):
         Returns True if grok is attempted, False if object is filtered
         out by this grokker.
         """
-    
+
+
 class IComponentGrokker(IGrokker):
     """A grokker that groks components in a module.
 
     Use the martian.component directive to specify the component to grok.
     """
-    
+
+
 class IMultiGrokker(IComponentGrokker):
     """A grokker that is composed out of multiple grokkers.
     """
+
     def register(grokker):
         """Register a grokker.
         """
@@ -55,7 +60,9 @@ class IMultiGrokker(IComponentGrokker):
         """Iterable of all grokkers that apply to obj.
         """
 
+
 class IModuleInfo(Interface):
+
     def getModule():
         """Get the module object this module info is representing.
 
@@ -101,7 +108,6 @@ class IModuleInfo(Interface):
         with underscores and the result is pre and post-fixed by
         double underscore. For instance 'grok.name' will be translated
         to '__grok_name__'.
-        
+
         Uses default if no such annotation found.
         """
-
