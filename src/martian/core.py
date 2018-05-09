@@ -41,7 +41,7 @@ def _grokker_sort_key(args):
     """
     grokker, name, obj = args
     return priority.bind().get(grokker)
-    
+
 class ModuleGrokker(MultiGrokkerBase):
 
     def __init__(self, grokker=None, prepare=None, finalize=None):
@@ -90,9 +90,11 @@ class ModuleGrokker(MultiGrokkerBase):
         for t in grokker.grokkers(name, module):
             yield t
 
+        ignores = getattr(module, 'martian.martiandirective.ignore', [])
+
         # try to grok everything in module
         for name in dir(module):
-            if '.' in name:
+            if '.' in name or name in ignores:
                 # This must be a module-level variable that couldn't
                 # have been set by the developer.  It must have been a
                 # module-level directive.

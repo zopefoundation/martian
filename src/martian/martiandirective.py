@@ -2,8 +2,9 @@
 
 from martian.directive import (Directive, MultipleTimesDirective,
                                MarkerDirective, validateClass,
-                               CLASS, ONCE, ONCE_NOBASE)
+                               CLASS, MODULE, ONCE, ONCE_NOBASE, MULTIPLE)
 from martian.error import GrokImportError
+
 
 class component(Directive):
     scope = CLASS
@@ -43,3 +44,8 @@ class baseclass(MarkerDirective):
     """
     scope = CLASS
     store = ONCE_NOBASE
+
+
+class ignore(Directive):
+    scope = MODULE
+    store = MULTIPLE
