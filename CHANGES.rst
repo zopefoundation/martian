@@ -4,7 +4,13 @@ CHANGES
 1.2 (unreleased)
 ================
 
-- Nothing changed yet.
+- Add a new directive ``martian.ignore()`` to explicitly not grok
+  something in a module::
+
+    class Example:
+        pass
+
+    martian.ignore('Example')
 
 
 1.1 (2018-01-25)
@@ -13,7 +19,7 @@ CHANGES
 - Bypass bootstrap, add coverage to tox
 
 - Fix ``inspect.getargspec()`` deprecation in python3
-  
+
 
 1.0 (2017-10-19)
 ================

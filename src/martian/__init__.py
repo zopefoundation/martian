@@ -12,4 +12,5 @@ from martian.directive import UNKNOWN, UnknownError
 from martian.directive import (
     validateText, validateInterface, validateClass, validateInterfaceOrClass)
 from martian.martiandirective import component, directive, priority, baseclass
+from martian.martiandirective import ignore
 from martian.context import GetDefaultComponentFactory
