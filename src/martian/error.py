@@ -12,10 +12,13 @@
 #
 ##############################################################################
 
+
 class GrokError(Exception):
+
     def __init__(self, message, component):
         Exception.__init__(self, message)
         self.component = component
+
 
 class GrokImportError(ImportError):
     pass

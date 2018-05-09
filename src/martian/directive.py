@@ -10,6 +10,8 @@ from martian import scan
 from martian import compat3
 
 UNKNOWN = object()
+_unused = object()
+
 
 class StoreOnce(object):
 
@@ -26,14 +28,18 @@ class StoreOnce(object):
     def setattr(self, context, directive, value):
         setattr(context, directive.dotted_name(), value)
 
+
 ONCE = StoreOnce()
+
 
 class StoreOnceGetFromThisClassOnly(StoreOnce):
 
     def get(self, directive, component, default):
         return component.__dict__.get(directive.dotted_name(), default)
 
+
 ONCE_NOBASE = StoreOnceGetFromThisClassOnly()
+
 
 class StoreMultipleTimes(StoreOnce):
 
@@ -59,14 +65,18 @@ class StoreMultipleTimes(StoreOnce):
         values = locals_.setdefault(directive.dotted_name(), [])
         values.append(value)
 
+
 MULTIPLE = StoreMultipleTimes()
+
 
 class StoreMultipleTimesNoBase(StoreMultipleTimes):
 
     def get(self, directive, component, default):
         return component.__dict__.get(directive.dotted_name(), default)
 
+
 MULTIPLE_NOBASE = StoreMultipleTimesNoBase()
+
 
 class StoreDict(StoreOnce):
 
@@ -94,7 +104,9 @@ class StoreDict(StoreOnce):
                 "key-value pair." % directive.name)
         values_dict[key] = value
 
+
 DICT = StoreDict()
+
 
 class TaggedValueStoreOnce(StoreOnce):
     """Stores the directive value in a interface tagged value.
@@ -119,14 +131,17 @@ class TaggedValueStoreOnce(StoreOnce):
     def setattr(self, context, directive, value):
         context.setTaggedValue(directive.dotted_name(), value)
 
+
 # for now, use scope = martian.CLASS to create directives that can
 # work on interfaces (or martian.CLASS_OR_MODULE)
 ONCE_IFACE = TaggedValueStoreOnce()
 
 _USE_DEFAULT = object()
 
+
 class UnknownError(GrokError):
     pass
+
 
 def _default(mro, get_default):
     """Apply default rule to list of classes in mro.
@@ -151,6 +166,7 @@ def _default(mro, get_default):
         raise GrokError(compat3.str(error), error.component)
     return UNKNOWN
 
+
 class ClassScope(object):
     description = 'class'
 
@@ -166,7 +182,9 @@ class ClassScope(object):
             component = component.__class__
         return _default(inspect.getmro(component), get_default)
 
+
 CLASS = ClassScope()
+
 
 class ClassOrModuleScope(object):
     description = 'class or module'
@@ -198,7 +216,9 @@ class ClassOrModuleScope(object):
         # look up default rule for this class or its bases
         return _default(mro, get_default)
 
+
 CLASS_OR_MODULE = ClassOrModuleScope()
+
 
 class ModuleScope(object):
     description = 'module'
@@ -212,9 +232,9 @@ class ModuleScope(object):
             return result
         return get_default(component, component)
 
+
 MODULE = ModuleScope()
 
-_unused = object()
 
 class Directive(object):
 
@@ -226,9 +246,9 @@ class Directive(object):
 
         self.frame = frame = sys._getframe(1)
         if not self.scope.check(frame):
-            raise GrokImportError("The '%s' directive can only be used on "
-                                  "%s level." %
-                                  (self.name, self.scope.description))
+            raise GrokImportError(
+                "The '%s' directive can only be used on %s level." %
+                (self.name, self.scope.description))
 
         self.check_factory_signature(*args, **kw)
 
@@ -237,7 +257,6 @@ class Directive(object):
             validate(*args, **kw)
 
         value = self.factory(*args, **kw)
-
         self.store.set(frame.f_locals, self, value)
 
     # To get a correct error message, we construct a function that has
@@ -273,9 +292,11 @@ class Directive(object):
     def bind(cls, default=_unused, get_default=None, name=None):
         return BoundDirective(cls, default, get_default, name)
 
+
 class BoundDirective(object):
 
-    def __init__(self, directive, default=_unused, get_default=None, name=None):
+    def __init__(
+            self, directive, default=_unused, get_default=None, name=None):
         self.directive = directive
         self.default = default
         if name is None:
@@ -298,14 +319,18 @@ class BoundDirective(object):
 
     def get(self, component=None, module=None, **data):
         directive = self.directive
+
         def get_default(component, module):
             return self.get_default(component, module, **data)
-        return directive.scope.get(directive, component,
-                                   get_default=get_default)
+
+        return directive.scope.get(
+            directive, component, get_default=get_default)
+
 
 class MultipleTimesDirective(Directive):
     store = MULTIPLE
     default = []
+
 
 class MarkerDirective(Directive):
     store = ONCE
@@ -314,20 +339,24 @@ class MarkerDirective(Directive):
     def factory(self):
         return True
 
+
 def validateText(directive, value):
     if util.not_unicode_or_ascii(value):
         raise GrokImportError("The '%s' directive can only be called with "
                               "unicode or ASCII." % directive.name)
+
 
 def validateInterfaceOrClass(directive, value):
     if not (IInterface.providedBy(value) or util.isclass(value)):
         raise GrokImportError("The '%s' directive can only be called with "
                               "a class or an interface." % directive.name)
 
+
 def validateClass(directive, value):
     if not util.isclass(value):
         raise GrokImportError("The '%s' directive can only be called with "
                               "a class." % directive.name)
+
 
 def validateInterface(directive, value):
     if not (IInterface.providedBy(value)):

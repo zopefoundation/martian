@@ -23,8 +23,9 @@ class directive(MultipleTimesDirective):
         except TypeError:
             # directive is not a class, so error too
             pass
-        raise GrokImportError("The '%s' directive can only be called with "
-                              "a directive." % self.name)
+        raise GrokImportError(
+            "The '%s' directive can only be called with a directive." % (
+                self.name,))
 
     def factory(self, directive, *args, **kw):
         return directive.bind(*args, **kw)
@@ -40,12 +41,13 @@ class baseclass(MarkerDirective):
     """Marker directive. Declares that a subclass of an otherwise automatically
     configured component should not be registered, and that it serves as a base
     class instead.
-
     """
     scope = CLASS
     store = ONCE_NOBASE
 
 
 class ignore(Directive):
+    """Allow to ignore a name in a module.
+    """
     scope = MODULE
     store = MULTIPLE

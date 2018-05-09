@@ -1,7 +1,9 @@
 from martian.directive import UnknownError
 from martian.util import scan_for_classes
 
+
 class GetDefaultComponentFactory(object):
+
     def __init__(self, iface, component_name, directive_name):
         """Create a get_default_component function.
 
@@ -15,7 +17,7 @@ class GetDefaultComponentFactory(object):
         self.iface = iface
         self.component_name = component_name
         self.directive_name = directive_name
-        
+
     def __call__(self, component, module, **data):
         """Determine module-level component.
 
@@ -23,9 +25,9 @@ class GetDefaultComponentFactory(object):
 
         iface determines the kind of module-level component to look for
         (it will implement iface).
-        
+
         If there is no module-level component, raise an error.
-        
+
         If there is one module-level component, it is returned.
 
         If there are more than one module-level component, raise

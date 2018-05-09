@@ -50,13 +50,13 @@ Directive scope and default edge cases
 --------------------------------------
 
   >>> from martian import Directive, CLASS_OR_MODULE, CLASS, MODULE
-  >>> from martian import ONCE 
+  >>> from martian import ONCE
 
 MODULE scope directive on a module, with no explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_no_explicit_value(FakeModule):
   ...     fake_module = True
   >>> from martiantest.fake import module_no_explicit_value
@@ -67,7 +67,7 @@ MODULE scope directive on a module, with an explicit value::
 
   >>> class mydir2(martian.Directive):
   ...     scope = MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_with_explicit_value(FakeModule):
   ...     fake_module = True
   ...     mydir2('the explicit value')
@@ -79,7 +79,7 @@ MODULE scope directive on a module, with no explicit value, with a custom defaul
 
   >>> class mydir(martian.Directive):
   ...     scope = MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_custom_default(FakeModule):
   ...     fake_module = True
   >>> from martiantest.fake import module_custom_default
@@ -87,12 +87,12 @@ MODULE scope directive on a module, with no explicit value, with a custom defaul
   ...     return 'a custom default value'
   >>> mydir.bind(get_default=custom).get(module_custom_default)
   'a custom default value'
- 
+
 CLASS scope directive on a class, with no explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_get_from_class_no_explicit(FakeModule):
   ...     class MyClass(object):
   ...         pass
@@ -104,7 +104,7 @@ CLASS scope directive on an instance, with no explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_get_from_instance_no_explicit(FakeModule):
   ...     class MyClass(object):
   ...         pass
@@ -117,7 +117,7 @@ CLASS scope directive on a class, with an explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_get_from_class_with_explicit(FakeModule):
   ...     class MyClass(object):
   ...         mydir('explicitly set')
@@ -129,7 +129,7 @@ CLASS scope directive on an instance, with an explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_get_from_instance_with_explicit(FakeModule):
   ...     class MyClass(object):
   ...         mydir('explicitly set')
@@ -142,7 +142,7 @@ CLASS scope directive on a class, with a custom default::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_get_from_class_with_custom(FakeModule):
   ...     class MyClass(object):
   ...         pass
@@ -157,7 +157,7 @@ CLASS scope directive on an instance, with a custom default::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module_get_from_instance_with_custom(FakeModule):
   ...     class MyClass(object):
   ...         pass
@@ -171,7 +171,7 @@ CLASS_OR_MODULE scope directive on a module, with no explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     pass
@@ -183,7 +183,7 @@ CLASS_OR_MODULE scope directive on a class, with no explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     class MyClass(object):
@@ -196,7 +196,7 @@ CLASS_OR_MODULE scope directive on an instance, with no explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     class MyClass(object):
@@ -210,7 +210,7 @@ CLASS_OR_MODULE scope directive on a module, with an explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     mydir('explicitly set, see?')
@@ -222,7 +222,7 @@ CLASS_OR_MODULE scope directive on a class, with an explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     class MyClass(object):
@@ -235,7 +235,7 @@ CLASS_OR_MODULE scope directive on an instance, with an explicit value::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     class MyClass(object):
@@ -249,7 +249,7 @@ CLASS_OR_MODULE scope directive on a module, with a custom default::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   >>> from martiantest.fake import module
@@ -260,7 +260,7 @@ CLASS_OR_MODULE scope directive on a class, with a custom default::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     class MyClass(object):
@@ -273,7 +273,7 @@ CLASS_OR_MODULE scope directive on an instance, with a custom default::
 
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
-  ...     store = ONCE  
+  ...     store = ONCE
   >>> class module(FakeModule):
   ...     fake_module = True
   ...     class MyClass(object):
@@ -282,9 +282,9 @@ CLASS_OR_MODULE scope directive on an instance, with a custom default::
   >>> from martiantest.fake import module
   >>> mydir.bind(get_default=custom_get_default).get(module.obj)
   'custom default'
-  
+
   CLASS_OR_MODULE scope directive on the module, with inheritance::
-  
+
   >>> class mydir(martian.Directive):
   ...     scope = CLASS_OR_MODULE
   ...     store = ONCE
@@ -293,7 +293,7 @@ CLASS_OR_MODULE scope directive on an instance, with a custom default::
   ...     mydir('a value')
   ...     class B(object):
   ...         pass
-  >>> from martiantest.fake import module_b  
+  >>> from martiantest.fake import module_b
   >>> class module_a(FakeModule):
   ...     fake_module = True
   ...     class A(module_b.B):
@@ -301,4 +301,3 @@ CLASS_OR_MODULE scope directive on an instance, with a custom default::
   >>> from martiantest.fake import module_a
   >>> mydir.bind(get_default=custom_get_default).get(module_a.A)
   'a value'
-

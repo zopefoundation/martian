@@ -20,6 +20,7 @@ from zope.interface import implementer
 
 from martian.interfaces import IModuleInfo
 
+
 def is_package(path):
     if not os.path.isdir(path):
         return False
@@ -100,8 +101,7 @@ class ModuleInfo(object):
                     ModuleInfo(entry_path,
                                dotted_name,
                                exclude_filter=self.exclude_filter,
-                               ignore_nonsource=self.ignore_nonsource)
-                    )
+                               ignore_nonsource=self.ignore_nonsource))
             # Case two: packages
             elif is_package(entry_path):
                 # We can blindly use __init__.py even if only
@@ -117,18 +117,19 @@ class ModuleInfo(object):
     def getSubModuleInfo(self, name):
         path = os.path.join(os.path.dirname(self.path), name)
         if is_package(path):
-            return ModuleInfo(os.path.join(path, '__init__.py'),
-                              '%s.%s' % (self.package_dotted_name, name),
-                              exclude_filter=self.exclude_filter,
-                              ignore_nonsource=self.ignore_nonsource)
+            return ModuleInfo(
+                os.path.join(path, '__init__.py'),
+                '%s.%s' % (self.package_dotted_name, name),
+                exclude_filter=self.exclude_filter,
+                ignore_nonsource=self.ignore_nonsource)
         elif os.path.isfile(path + '.py') or os.path.isfile(path + '.pyc'):
-                return ModuleInfo(path + '.py',
-                                  '%s.%s' % (self.package_dotted_name, name),
-                                  exclude_filter=self.exclude_filter,
-                                  ignore_nonsource = self.ignore_nonsource)
+            return ModuleInfo(
+                path + '.py',
+                '%s.%s' % (self.package_dotted_name, name),
+                exclude_filter=self.exclude_filter,
+                ignore_nonsource=self.ignore_nonsource)
         else:
             return None
-
 
     def getAnnotation(self, key, default):
         key = key.replace('.', '_')
@@ -147,19 +148,21 @@ class ModuleInfo(object):
     def __repr__(self):
         return "<ModuleInfo object for '%s'>" % self.dotted_name
 
+
 class BuiltinDummyModule(object):
     """Needed for BuiltinModuleInfo"""
     pass
+
 
 @implementer(IModuleInfo)
 class BuiltinModuleInfo(object):
 
     # to let view grokking succeed in tests
     package_dotted_name = 'dummy.dotted.name'
-    
+
     def getModule(self):
         return BuiltinDummyModule()
-    
+
     def isPackage(self):
         return False
 
@@ -173,12 +176,13 @@ class BuiltinModuleInfo(object):
         # XXX we break the contract here. We could return
         # a link to some temp directory for testing purposes?
         return None
-    
+
     def getAnnotation(self, key, default):
         return default
 
-def module_info_from_dotted_name(dotted_name, exclude_filter=None,
-                                 ignore_nonsource=True):
+
+def module_info_from_dotted_name(
+        dotted_name, exclude_filter=None, ignore_nonsource=True):
     if dotted_name == '__builtin__':
         # in case of the use of individually grokking something during a
         # test the dotted_name being passed in could be __builtin__
@@ -189,9 +193,11 @@ def module_info_from_dotted_name(dotted_name, exclude_filter=None,
     return ModuleInfo(module.__file__, dotted_name, exclude_filter,
                       ignore_nonsource)
 
-def module_info_from_module(module, exclude_filter=None, ignore_nonsource=True):
-    return ModuleInfo(module.__file__, module.__name__, exclude_filter,
-                      ignore_nonsource)
+
+def module_info_from_module(
+        module, exclude_filter=None, ignore_nonsource=True):
+    return ModuleInfo(
+        module.__file__, module.__name__, exclude_filter, ignore_nonsource)
 
 
 # taken from zope.dottedname.resolve

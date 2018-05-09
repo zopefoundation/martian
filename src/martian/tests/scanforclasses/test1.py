@@ -2,15 +2,18 @@
 # that implements IContext class. It is used to write a scan_for_context.txt
 # test.
 
-import os
+import os  # NOQA
 
 foo = "Bar"
+
 
 class Qux(object):
     pass
 
+
 class Hallo:
     pass
+
 
 qux = Qux()
 hallo = Hallo()

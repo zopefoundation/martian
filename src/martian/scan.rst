@@ -222,7 +222,7 @@ will see that Martian will ignore these other things::
   >>> module_info = module_info_from_dotted_name(
   ...     'martian.tests.withbogusmodules')
   >>> module_info.getSubModuleInfos()
-  [<ModuleInfo object for 'martian.tests.withbogusmodules.nonbogus'>, 
+  [<ModuleInfo object for 'martian.tests.withbogusmodules.nonbogus'>,
    <ModuleInfo object for 'martian.tests.withbogusmodules.subpackage'>]
 
 Packages which contain .pyc files only

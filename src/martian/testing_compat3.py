@@ -9,7 +9,7 @@ class FakeModuleObjectMetaclass(type):
     """ Base metaclass to replace object in a fake Module.
         In python 3 we need to change the class name for
         inner classes. So all test will run in python 2 and 3.
-        
+
         Without this class the name of fakemodule will be
         shown double in the class name, like this:
         <class 'martiantest.fake.basemodule.basemodule.A'>

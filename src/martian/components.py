@@ -19,20 +19,21 @@ from martian.error import GrokError
 from martian.interfaces import IGrokker, IComponentGrokker
 from martian.martiandirective import directive, component
 
+
 @implementer(IGrokker)
 class GrokkerBase(object):
-   
+
     def grok(self, name, obj, **kw):
         raise NotImplementedError
 
-    
+
 class GlobalGrokker(GrokkerBase):
     """Grokker that groks once per module.
     """
 
     def grok(self, name, obj, **kw):
         raise NotImplementedError
-    
+
 
 @implementer(IComponentGrokker)
 class ClassGrokker(GrokkerBase):
@@ -92,14 +93,14 @@ class MethodGrokker(ClassGrokker):
     def execute(self, class_, method, **data):
         raise NotImplementedError
 
+
 @implementer(IComponentGrokker)
 class InstanceGrokker(GrokkerBase):
     """Grokker that groks instances in a module.
     """
 
-    def grok(self, name, class_, **kw):        
+    def grok(self, name, class_, **kw):
         return self.execute(class_, **kw)
 
     def execute(self, class_, **kw):
         raise NotImplementedError
-

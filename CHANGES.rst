@@ -12,6 +12,7 @@ CHANGES
 
     martian.ignore('Example')
 
+- Fix the code to be pep 8 compliant.
 
 1.1 (2018-01-25)
 ================
