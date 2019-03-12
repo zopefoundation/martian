@@ -1,4 +1,4 @@
-import sys
+import six
 import types
 
 
@@ -8,7 +8,7 @@ else:
     CLASS_TYPES = (type,)
 
 
-if sys.version_info[0] < 3:
+if six.PY2:
     str = unicode  # NOQA
 else:
     str = str

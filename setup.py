@@ -57,6 +57,7 @@ that uses Martian is the system where it originated: Grok
     install_requires=[
         'zope.interface',
         'setuptools',
+        'six',
     ],
     extras_require=dict(test=['zope.testing']),
 )
