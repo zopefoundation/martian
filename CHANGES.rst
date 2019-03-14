@@ -4,7 +4,7 @@ CHANGES
 1.4 (unreleased)
 ================
 
-- Nothing changed yet.
+- Fix rendering of PyPI page.
 
 
 1.3 (2019-03-14)

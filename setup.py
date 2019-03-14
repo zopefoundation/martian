@@ -23,13 +23,7 @@ setup(
     url='https://github.com/zopefoundation/martian',
     author='Grok project',
     author_email='grok-dev@zope.org',
-    description="""\
-Martian is a library that allows the embedding of configuration
-information in Python code. Martian can then grok the system and
-do the appropriate configuration registrations. One example of a system
-that uses Martian is the system where it originated: Grok
-(http://grok.zope.org)
-""",
+    description="Embedding of configuration information in Python code.",
     long_description=long_description,
     classifiers=[
         'Development Status :: 6 - Mature',
