@@ -34,11 +34,7 @@ def not_unicode_or_ascii(value):
     return is_not_ascii(value)
 
 
-# extra compatibility for python2.7
-if six.PY2:
-    is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
-else:
-    is_not_ascii = re.compile(eval(r'"[\u0080-\uffff]"')).search
+is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
 
 
 def isclass(obj):
