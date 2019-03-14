@@ -12,9 +12,6 @@ long_description = (
     read('src', 'martian', 'README.rst')
     + '\n' +
     read('CHANGES.rst')
-    + '\n' +
-    'Download\n'
-    '********\n'
 )
 
 setup(
