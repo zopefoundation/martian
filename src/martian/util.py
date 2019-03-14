@@ -15,6 +15,7 @@
 """
 
 import re
+import six
 import sys
 import inspect
 
@@ -26,18 +27,14 @@ from martian.error import GrokError
 
 def not_unicode_or_ascii(value):
     # python3 compatibility
-    if sys.version_info < (3,) and isinstance(value, unicode):  # NOQA
+    if six.PY2 and isinstance(value, unicode):  # NOQA
         return False
     if not isinstance(value, str):
         return True
     return is_not_ascii(value)
 
 
-# extra compatibility for python3.2
-if sys.version_info < (3,):
-    is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
-else:
-    is_not_ascii = re.compile(eval(r'"[\u0080-\uffff]"')).search
+is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
 
 
 def isclass(obj):

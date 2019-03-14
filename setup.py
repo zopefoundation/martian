@@ -42,6 +42,8 @@ that uses Martian is the system where it originated: Grok
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Utilities',
@@ -55,6 +57,7 @@ that uses Martian is the system where it originated: Grok
     install_requires=[
         'zope.interface',
         'setuptools',
+        'six',
     ],
     extras_require=dict(test=['zope.testing']),
 )

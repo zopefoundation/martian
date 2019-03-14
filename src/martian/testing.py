@@ -1,3 +1,4 @@
+import six
 import sys
 from types import ModuleType
 from types import FunctionType
@@ -65,7 +66,7 @@ class FakeModuleMetaclass(type):
         return type.__init__(cls, classname, bases, dict_)
 
 
-if sys.version_info[0] < 3:
+if six.PY2:
 
     class FakeModuleObject(object):
         pass
