@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.3 (unreleased)
+1.3 (2019-03-14)
 ================
 
 - Add support for Python 3.7 and 3.8.
