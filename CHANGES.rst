@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-1.4 (unreleased)
-================
+1.3.post1 (2019-03-14)
+======================
 
 - Fix rendering of PyPI page.
 
