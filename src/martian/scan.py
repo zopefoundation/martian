@@ -183,11 +183,11 @@ class BuiltinModuleInfo(object):
 
 def module_info_from_dotted_name(
         dotted_name, exclude_filter=None, ignore_nonsource=True):
-    if dotted_name == '__builtin__':
-        # in case of the use of individually grokking something during a
-        # test the dotted_name being passed in could be __builtin__
-        # in this case we return a special ModuleInfo that just
-        # implements enough interface to work
+    if dotted_name in {'__builtin__', 'builtins'}:
+        # In case of the use of individually grokking something during a
+        # test the dotted_name being passed in could be __builtin__ (Python
+        # 2) or builtins (Python 3).  In this case we return a special
+        # ModuleInfo that just implements enough interface to work.
         return BuiltinModuleInfo()
     module = resolve(dotted_name)
     return ModuleInfo(module.__file__, dotted_name, exclude_filter,
