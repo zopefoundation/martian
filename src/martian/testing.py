@@ -28,7 +28,7 @@ def fake_import(fake_module):
                 __module__ = obj.__module__
             except AttributeError:
                 pass
-        if __module__ is None or __module__ == '__builtin__':
+        if __module__ is None or __module__ in {'__builtin__', 'builtins'}:
             try:
                 obj.__module__ = module.__name__
             except AttributeError:

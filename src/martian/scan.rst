@@ -256,3 +256,35 @@ However, if ``ignore_nonsource=False`` is passed to
    <ModuleInfo object for 'martian.tests.withpyconly.subpackage'>]
   >>> # rename back to normal name
   >>> os.rename(os.path.join(d, 'foo.py_aside'), os.path.join(d, 'foo.py'))
+
+The built-in module
+-------------------
+
+We might be asked to grok the built-in module (``__builtin__`` on Python 2,
+or ``builtins`` on Python 3).  For example, this can happen when grokking a
+component defined in a doctest using ``grokcore.component``.  The built-in
+module doesn't have a file, so we can't do things in the usual way; instead,
+we return a special object implementing just enough of the ``IModuleInfo``
+interface to work.
+
+  >>> import sys
+  >>> module_info = module_info_from_dotted_name(
+  ...     'builtins' if sys.version_info[0] >= 3 else '__builtin__')
+
+  >>> module_info.getModule()
+  <martian.scan.BuiltinDummyModule object at ...>
+
+  >>> module_info.isPackage()
+  False
+
+  >>> module_info.getSubModuleInfos()
+  []
+
+  >>> print(module_info.getSubModuleInfo('anything'))
+  None
+
+  >>> print(module_info.getResourcePath('anything'))
+  None
+
+  >>> module_info.getAnnotation('grok.foobar', 42)
+  42
