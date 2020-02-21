@@ -4,8 +4,8 @@ CHANGES
 1.4 (unreleased)
 ================
 
-- Check for builtins (Python 3) everywhere that we check for __builtin__
-  (Python 2).
+- Check for ``builtins`` (Python 3) everywhere that we check for
+  ``__builtin__`` (Python 2).
 
 
 1.3.post1 (2019-03-14)
