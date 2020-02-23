@@ -16,7 +16,7 @@ long_description = (
 
 setup(
     name='martian',
-    version='1.4.dev0',
+    version='1.4',
     url='https://github.com/zopefoundation/martian',
     author='Grok project',
     author_email='grok-dev@zope.org',

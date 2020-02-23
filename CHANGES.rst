@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.4 (unreleased)
+1.4 (2020-02-23)
 ================
 
 - Check for ``builtins`` (Python 3) everywhere that we check for
