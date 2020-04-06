@@ -1,10 +1,17 @@
 CHANGES
 *******
 
-1.4 (unreleased)
+1.5 (unreleased)
 ================
 
 - Nothing changed yet.
+
+
+1.4 (2020-02-23)
+================
+
+- Check for ``builtins`` (Python 3) everywhere that we check for
+  ``__builtin__`` (Python 2).
 
 
 1.3.post1 (2019-03-14)
