@@ -4,7 +4,7 @@ CHANGES
 1.5 (unreleased)
 ================
 
-- Nothing changed yet.
+- Title directive now correctly handles non-ascii characters.
 
 
 1.4 (2020-02-23)
