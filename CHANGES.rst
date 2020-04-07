@@ -4,7 +4,7 @@ CHANGES
 1.5 (unreleased)
 ================
 
-- Nothing changed yet.
+- Fix test suite incompatibility with zope.interface >= 5.0.
 
 
 1.4 (2020-02-23)
