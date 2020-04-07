@@ -31,7 +31,7 @@ def fake_import(fake_module):
         if __module__ is None or __module__ in {'__builtin__', 'builtins'}:
             try:
                 obj.__module__ = module.__name__
-            except AttributeError:
+            except (AttributeError, TypeError):
                 pass
         setattr(module, name, obj)
 
