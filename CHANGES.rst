@@ -4,6 +4,8 @@ CHANGES
 1.5 (unreleased)
 ================
 
+- Title directive now correctly handles non-ascii characters.
+
 - Fix test suite incompatibility with zope.interface >= 5.0.
 
 - Drop support for Python 3.4.

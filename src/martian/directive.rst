@@ -991,7 +991,7 @@ When we pass ascii text into the directive, there is no error::
 We can also pass in a unicode string without error::
 
   >>> class Foo(object):
-  ...    title(u'Some unicode text')
+  ...    title(u'Éléphant')
 
 Let's now try it with something that's not text at all, such as a number.
 This fails::
