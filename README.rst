@@ -2,8 +2,8 @@
 Martian
 *******
 
-.. image:: https://travis-ci.org/zopefoundation/martian.svg?branch=master
-        :target: https://travis-ci.org/zopefoundation/martian
+.. image:: https://travis-ci.com/zopefoundation/martian.svg?branch=master
+        :target: https://travis-ci.com/zopefoundation/martian
 
 .. image:: https://readthedocs.org/projects/martian/badge/?version=latest
         :target: https://martian.readthedocs.org/en/latest/
