@@ -2,8 +2,8 @@
 Martian
 *******
 
-.. image:: https://travis-ci.com/zopefoundation/martian.svg?branch=master
-        :target: https://travis-ci.com/zopefoundation/martian
+.. image:: https://github.com/zopefoundation/martian/actions/workflows/tests.yml/badge.svg
+        :target: https://github.com/zopefoundation/martian/actions/workflows/tests.yml
 
 .. image:: https://img.shields.io/pypi/v/martian.svg
         :target: https://pypi.python.org/pypi/martian
