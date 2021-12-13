@@ -10,6 +10,8 @@ CHANGES
 
 - Drop support for Python 3.4.
 
+- Add support for Python 3.9 and 3.10.
+
 
 1.4 (2020-02-23)
 ================
