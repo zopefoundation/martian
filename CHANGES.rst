@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.5 (unreleased)
+1.5 (2022-02-11)
 ================
 
 - Title directive now correctly handles non-ascii characters.
