@@ -1,5 +1,6 @@
-import six
 import types
+
+import six
 
 
 if hasattr(types, 'ClassType'):

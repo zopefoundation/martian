@@ -3,6 +3,7 @@
 
 from martian.tests.scanforclasses import Context
 
+
 foo = "Bar"
 
 

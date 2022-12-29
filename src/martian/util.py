@@ -14,10 +14,11 @@
 """Martian utility functions.
 """
 
-import re
-import six
-import sys
 import inspect
+import re
+import sys
+
+import six
 
 from zope import interface
 

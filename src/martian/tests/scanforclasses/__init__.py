@@ -1,4 +1,5 @@
-from zope.interface import Interface, implementer
+from zope.interface import Interface
+from zope.interface import implementer
 
 
 class IContext(Interface):

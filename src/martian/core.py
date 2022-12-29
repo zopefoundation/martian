@@ -1,15 +1,19 @@
-import types
 import inspect
+import types
 
 from zope.interface import implementer
 
-from martian.interfaces import IMultiGrokker
-from martian import util, scan
-from martian.components import GrokkerBase, ClassGrokker, InstanceGrokker
-from martian.components import GlobalGrokker
-from martian.error import GrokError
-from martian.martiandirective import component, priority
+from martian import scan
+from martian import util
 from martian.compat3 import CLASS_TYPES
+from martian.components import ClassGrokker
+from martian.components import GlobalGrokker
+from martian.components import GrokkerBase
+from martian.components import InstanceGrokker
+from martian.error import GrokError
+from martian.interfaces import IMultiGrokker
+from martian.martiandirective import component
+from martian.martiandirective import priority
 
 
 @implementer(IMultiGrokker)

@@ -2,7 +2,9 @@
 # this module is used in a scan_for_context.txt test.
 
 from zope.interface import implementer
+
 from martian.tests.scanforclasses import IContext
+
 
 foo = "Bar"
 

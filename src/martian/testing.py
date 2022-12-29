@@ -1,7 +1,8 @@
-import six
 import sys
-from types import ModuleType
 from types import FunctionType
+from types import ModuleType
+
+import six
 
 
 def fake_import(fake_module):

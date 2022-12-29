@@ -4,6 +4,7 @@
 
 import os  # NOQA
 
+
 foo = "Bar"
 
 

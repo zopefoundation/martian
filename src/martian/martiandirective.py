@@ -1,8 +1,14 @@
 """Martian-specific directives"""
 
-from martian.directive import (Directive, MultipleTimesDirective,
-                               MarkerDirective, validateClass,
-                               CLASS, MODULE, ONCE, ONCE_NOBASE, MULTIPLE)
+from martian.directive import CLASS
+from martian.directive import MODULE
+from martian.directive import MULTIPLE
+from martian.directive import ONCE
+from martian.directive import ONCE_NOBASE
+from martian.directive import Directive
+from martian.directive import MarkerDirective
+from martian.directive import MultipleTimesDirective
+from martian.directive import validateClass
 from martian.error import GrokImportError
 
 

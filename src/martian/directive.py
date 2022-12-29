@@ -1,14 +1,17 @@
-import six
-import sys
 import inspect
+import sys
 
-from zope.interface.interfaces import IInterface
+import six
+
 from zope.interface.interface import TAGGED_DATA
+from zope.interface.interfaces import IInterface
 
-from martian import util
-from martian.error import GrokImportError, GrokError
-from martian import scan
 from martian import compat3
+from martian import scan
+from martian import util
+from martian.error import GrokError
+from martian.error import GrokImportError
+
 
 UNKNOWN = object()
 _unused = object()
