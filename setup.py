@@ -1,5 +1,7 @@
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages
+from setuptools import setup
 
 
 def read(*rnames):
@@ -16,7 +18,7 @@ long_description = (
 
 setup(
     name='martian',
-    version='1.6.dev0',
+    version='2.0.dev0',
     url='https://github.com/zopefoundation/martian',
     author='Grok project',
     author_email='grok-dev@zope.org',
@@ -27,15 +29,12 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Zope Public License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Utilities',
@@ -49,7 +48,6 @@ setup(
     install_requires=[
         'zope.interface',
         'setuptools',
-        'six',
     ],
     extras_require=dict(test=['zope.testing']),
 )

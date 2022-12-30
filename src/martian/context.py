@@ -2,7 +2,7 @@ from martian.directive import UnknownError
 from martian.util import scan_for_classes
 
 
-class GetDefaultComponentFactory(object):
+class GetDefaultComponentFactory:
 
     def __init__(self, iface, component_name, directive_name):
         """Create a get_default_component function.

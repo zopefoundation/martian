@@ -1,3 +1,0 @@
-# NOTE: versions must be in sync with buildout.cfg
-setuptools==40.8.0
-zc.buildout==2.13.1

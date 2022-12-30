@@ -1,15 +1,18 @@
-import types
 import inspect
+import types
 
 from zope.interface import implementer
 
-from martian.interfaces import IMultiGrokker
-from martian import util, scan
-from martian.components import GrokkerBase, ClassGrokker, InstanceGrokker
+from martian import scan
+from martian import util
+from martian.components import ClassGrokker
 from martian.components import GlobalGrokker
+from martian.components import GrokkerBase
+from martian.components import InstanceGrokker
 from martian.error import GrokError
-from martian.martiandirective import component, priority
-from martian.compat3 import CLASS_TYPES
+from martian.interfaces import IMultiGrokker
+from martian.martiandirective import component
+from martian.martiandirective import priority
 
 
 @implementer(IMultiGrokker)
@@ -91,8 +94,7 @@ class ModuleGrokker(MultiGrokkerBase):
     def grokkers(self, name, module):
         grokker = self._grokker
         # get any global grokkers
-        for t in grokker.grokkers(name, module):
-            yield t
+        yield from grokker.grokkers(name, module)
 
         ignores = getattr(module, 'martian.martiandirective.ignore', [])
 
@@ -108,8 +110,7 @@ class ModuleGrokker(MultiGrokkerBase):
                 continue
             if util.is_baseclass(obj):
                 continue
-            for t in grokker.grokkers(name, obj):
-                yield t
+            yield from grokker.grokkers(name, obj)
 
 
 class MultiInstanceOrClassGrokkerBase(MultiGrokkerBase):
@@ -194,7 +195,7 @@ class MultiGrokker(MultiGrokkerBase):
         self._multi_global_grokker = MultiGlobalGrokker()
 
     def grokkers(self, name, obj):
-        if isinstance(obj, CLASS_TYPES):
+        if isinstance(obj, type):
             return self._multi_class_grokker.grokkers(name, obj)
         elif isinstance(obj, types.ModuleType):
             return self._multi_global_grokker.grokkers(name, obj)
@@ -207,7 +208,7 @@ class MetaMultiGrokker(MultiGrokker):
     """
 
     def clear(self):
-        super(MetaMultiGrokker, self).clear()
+        super().clear()
         # bootstrap the meta-grokkers
         self.register(ClassMetaGrokker(self))
         self.register(InstanceMetaGrokker(self))
@@ -261,4 +262,4 @@ class GlobalMetaGrokker(MetaGrokker):
 class GrokkerRegistry(ModuleGrokker):
 
     def __init__(self):
-        super(GrokkerRegistry, self).__init__(MetaMultiGrokker())
+        super().__init__(MetaMultiGrokker())

@@ -4,10 +4,11 @@
 
 import os  # NOQA
 
+
 foo = "Bar"
 
 
-class Qux(object):
+class Qux:
     pass
 
 

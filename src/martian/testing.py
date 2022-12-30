@@ -1,7 +1,6 @@
-import six
 import sys
-from types import ModuleType
 from types import FunctionType
+from types import ModuleType
 
 
 def fake_import(fake_module):
@@ -66,14 +65,26 @@ class FakeModuleMetaclass(type):
         return type.__init__(cls, classname, bases, dict_)
 
 
-if six.PY2:
+class FakeModuleObjectMetaclass(type):
+    """ Base metaclass to replace object in a fake Module.
+        We need to change the class name for inner classes.
 
-    class FakeModuleObject(object):
-        pass
+        Without this class the name of fakemodule will be
+        shown double in the class name, like this:
+        <class 'martiantest.fake.basemodule.basemodule.A'>
+        If this class name is returned, the doctest will fail.
+    """
 
-    class FakeModule(object):
-        __metaclass__ = FakeModuleMetaclass
+    def __init__(cls, classname, bases, dict_):
+        normalname = cls.__qualname__.split('.')[-1]
+        dict_['__qualname__'] = normalname
+        cls.__qualname__ = dict_['__qualname__']
+        return type.__init__(cls, classname, bases, dict_)
 
-else:
-    from martian.testing_compat3 import FakeModule  # NOQA
-    from martian.testing_compat3 import FakeModuleObject  # NOQA
+
+class FakeModuleObject(metaclass=FakeModuleObjectMetaclass):
+    pass
+
+
+class FakeModule(metaclass=FakeModuleMetaclass):
+    pass

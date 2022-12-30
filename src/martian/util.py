@@ -14,20 +14,18 @@
 """Martian utility functions.
 """
 
-import re
-import six
-import sys
 import inspect
+import re
+import sys
 
 from zope import interface
 
-from martian.compat3 import CLASS_TYPES
 from martian.error import GrokError
 
 
 def not_unicode_or_ascii(value):
     # python3 compatibility
-    if isinstance(value, six.text_type):  # NOQA
+    if isinstance(value, str):  # NOQA
         return False
     if not isinstance(value, str):
         return True
@@ -40,7 +38,7 @@ is_not_ascii = re.compile(eval(r'u"[\u0080-\uffff]"')).search
 def isclass(obj):
     """We cannot use ``inspect.isclass`` because it will return True
     for interfaces"""
-    return isinstance(obj, CLASS_TYPES)
+    return isinstance(obj, type)
 
 
 def check_subclass(obj, class_):

@@ -231,7 +231,7 @@ Packages which contain .pyc files only
 When a .py file in a package is renamed, an "orphaned" .pyc object is
 often left around.  By default, Martian will ignore such .pyc files:
 
-Note: Python 3 will always store .pyc files in __pycache__ folder. So
+Note: Python will always store .pyc files in a ``__pycache__`` folder. So
 we need force python to create a .pyc at the right place.
 
   >>> from py_compile import compile
@@ -240,8 +240,7 @@ we need force python to create a .pyc at the right place.
   >>> import martian.tests.withpyconly
   >>> d = os.path.abspath(os.path.dirname(martian.tests.withpyconly.__file__))
   >>> os.rename(os.path.join(d, 'foo.py'), os.path.join(d, 'foo.py_aside'))
-  >>> module_info = module_info_from_dotted_name(
-  ...     'martian.tests.withpyconly')
+  >>> module_info = module_info_from_dotted_name('martian.tests.withpyconly')
   >>> module_info.getSubModuleInfos()
   [<ModuleInfo object for 'martian.tests.withpyconly.subpackage'>]
 
@@ -260,16 +259,14 @@ However, if ``ignore_nonsource=False`` is passed to
 The built-in module
 -------------------
 
-We might be asked to grok the built-in module (``__builtin__`` on Python 2,
-or ``builtins`` on Python 3).  For example, this can happen when grokking a
-component defined in a doctest using ``grokcore.component``.  The built-in
-module doesn't have a file, so we can't do things in the usual way; instead,
-we return a special object implementing just enough of the ``IModuleInfo``
-interface to work.
+We might be asked to grok the built-in module which is called ``builtins``. For
+example, this can happen when grokking a component defined in a doctest using
+``grokcore.component``.  The built-in module doesn't have a file, so we can't
+do things in the usual way; instead, we return a special object implementing
+just enough of the ``IModuleInfo`` interface to work.
 
   >>> import sys
-  >>> module_info = module_info_from_dotted_name(
-  ...     'builtins' if sys.version_info[0] >= 3 else '__builtin__')
+  >>> module_info = module_info_from_dotted_name('builtins')
 
   >>> module_info.getModule()
   <martian.scan.BuiltinDummyModule object at ...>

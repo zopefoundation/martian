@@ -1,20 +1,20 @@
-import six
-import sys
 import inspect
+import sys
 
-from zope.interface.interfaces import IInterface
 from zope.interface.interface import TAGGED_DATA
+from zope.interface.interfaces import IInterface
 
-from martian import util
-from martian.error import GrokImportError, GrokError
 from martian import scan
-from martian import compat3
+from martian import util
+from martian.error import GrokError
+from martian.error import GrokImportError
+
 
 UNKNOWN = object()
 _unused = object()
 
 
-class StoreOnce(object):
+class StoreOnce:
 
     def set(self, locals_, directive, value):
         if directive.dotted_name() in locals_:
@@ -164,11 +164,11 @@ def _default(mro, get_default):
     # if we haven't found a result, raise the first error we had as
     # a GrokError
     if error is not None:
-        raise GrokError(compat3.str(error), error.component)
+        raise GrokError(str(error), error.component)
     return UNKNOWN
 
 
-class ClassScope(object):
+class ClassScope:
     description = 'class'
 
     def check(self, frame):
@@ -187,7 +187,7 @@ class ClassScope(object):
 CLASS = ClassScope()
 
 
-class ClassOrModuleScope(object):
+class ClassOrModuleScope:
     description = 'class or module'
 
     def check(self, frame):
@@ -221,7 +221,7 @@ class ClassOrModuleScope(object):
 CLASS_OR_MODULE = ClassOrModuleScope()
 
 
-class ModuleScope(object):
+class ModuleScope:
     description = 'module'
 
     def check(self, frame):
@@ -237,7 +237,7 @@ class ModuleScope(object):
 MODULE = ModuleScope()
 
 
-class Directive(object):
+class Directive:
 
     # The BoundDirective will fallback to the directive-level default value.
     default = None
@@ -263,11 +263,7 @@ class Directive(object):
     # To get a correct error message, we construct a function that has
     # the same signature as factory(), but without "self".
     def check_factory_signature(self, *arguments, **kw):
-        if six.PY2:
-            (args, varargs, varkw, defaults) = inspect.getargspec(self.factory)
-            argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
-        else:
-            argspec = str(inspect.signature(self.factory))
+        argspec = str(inspect.signature(self.factory))
         ns = dict()
         exec("def signature_checker" + argspec + ": pass", dict(), ns)
         try:
@@ -293,7 +289,7 @@ class Directive(object):
         return BoundDirective(cls, default, get_default, name)
 
 
-class BoundDirective(object):
+class BoundDirective:
 
     def __init__(
             self, directive, default=_unused, get_default=None, name=None):

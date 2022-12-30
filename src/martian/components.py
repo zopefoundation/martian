@@ -16,12 +16,14 @@ from zope.interface import implementer
 
 from martian import util
 from martian.error import GrokError
-from martian.interfaces import IGrokker, IComponentGrokker
-from martian.martiandirective import directive, component
+from martian.interfaces import IComponentGrokker
+from martian.interfaces import IGrokker
+from martian.martiandirective import component
+from martian.martiandirective import directive
 
 
 @implementer(IGrokker)
-class GrokkerBase(object):
+class GrokkerBase:
 
     def grok(self, name, obj, **kw):
         raise NotImplementedError

@@ -1,7 +1,6 @@
-
-class Mammoth(object):
+class Mammoth:
     pass
 
 
-class Index(object):
+class Index:
     pass

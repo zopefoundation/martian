@@ -3,10 +3,11 @@
 
 from martian.tests.scanforclasses import Context
 
+
 foo = "Bar"
 
 
-class Qux(object):
+class Qux:
     pass
 
 

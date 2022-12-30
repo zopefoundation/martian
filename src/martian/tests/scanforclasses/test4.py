@@ -2,12 +2,15 @@
 # this module is used in a scan_for_context.txt test.
 
 from zope.interface import implementer
-from martian.tests.scanforclasses import IContext, Context
+
+from martian.tests.scanforclasses import Context
+from martian.tests.scanforclasses import IContext
+
 
 foo = "Bar"
 
 
-class Qux(object):
+class Qux:
     pass
 
 
@@ -16,7 +19,7 @@ class Hallo:
 
 
 @implementer(IContext)
-class MyContext(object):
+class MyContext:
     pass
 
 

@@ -1,9 +1,8 @@
-
-class Cave(object):
+class Cave:
     pass
 
 
-class Index(object):
+class Index:
     pass
 
 
