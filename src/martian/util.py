@@ -24,8 +24,7 @@ from martian.error import GrokError
 
 
 def not_unicode_or_ascii(value):
-    # python3 compatibility
-    if isinstance(value, str):  # NOQA
+    if isinstance(value, str):
         return False
     if not isinstance(value, str):
         return True
