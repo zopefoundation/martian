@@ -9,7 +9,7 @@ from martian.tests.scanforclasses import IContext
 foo = "Bar"
 
 
-class Qux(object):
+class Qux:
     pass
 
 
@@ -18,7 +18,7 @@ class Hallo:
 
 
 @implementer(IContext)
-class MyContext(object):
+class MyContext:
     pass
 
 

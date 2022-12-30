@@ -48,7 +48,6 @@ setup(
     install_requires=[
         'zope.interface',
         'setuptools',
-        'six',
     ],
     extras_require=dict(test=['zope.testing']),
 )

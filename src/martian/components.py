@@ -23,7 +23,7 @@ from martian.martiandirective import directive
 
 
 @implementer(IGrokker)
-class GrokkerBase(object):
+class GrokkerBase:
 
     def grok(self, name, obj, **kw):
         raise NotImplementedError

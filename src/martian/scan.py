@@ -31,7 +31,7 @@ def is_package(path):
 
 
 @implementer(IModuleInfo)
-class ModuleInfo(object):
+class ModuleInfo:
 
     def __init__(self, path, dotted_name, exclude_filter=None,
                  ignore_nonsource=True):
@@ -119,13 +119,13 @@ class ModuleInfo(object):
         if is_package(path):
             return ModuleInfo(
                 os.path.join(path, '__init__.py'),
-                '%s.%s' % (self.package_dotted_name, name),
+                f'{self.package_dotted_name}.{name}',
                 exclude_filter=self.exclude_filter,
                 ignore_nonsource=self.ignore_nonsource)
         elif os.path.isfile(path + '.py') or os.path.isfile(path + '.pyc'):
             return ModuleInfo(
                 path + '.py',
-                '%s.%s' % (self.package_dotted_name, name),
+                f'{self.package_dotted_name}.{name}',
                 exclude_filter=self.exclude_filter,
                 ignore_nonsource=self.ignore_nonsource)
         else:
@@ -149,13 +149,13 @@ class ModuleInfo(object):
         return "<ModuleInfo object for '%s'>" % self.dotted_name
 
 
-class BuiltinDummyModule(object):
+class BuiltinDummyModule:
     """Needed for BuiltinModuleInfo"""
     pass
 
 
 @implementer(IModuleInfo)
-class BuiltinModuleInfo(object):
+class BuiltinModuleInfo:
 
     # to let view grokking succeed in tests
     package_dotted_name = 'dummy.dotted.name'
@@ -183,11 +183,11 @@ class BuiltinModuleInfo(object):
 
 def module_info_from_dotted_name(
         dotted_name, exclude_filter=None, ignore_nonsource=True):
-    if dotted_name in {'__builtin__', 'builtins'}:
-        # In case of the use of individually grokking something during a
-        # test the dotted_name being passed in could be __builtin__ (Python
-        # 2) or builtins (Python 3).  In this case we return a special
-        # ModuleInfo that just implements enough interface to work.
+    if dotted_name == 'builtins':
+        # In case of the use of individually grokking something during a test
+        # the dotted_name being passed in is ``builtins``.  In this case we
+        # return a special ModuleInfo that just implements enough interface to
+        # work.
         return BuiltinModuleInfo()
     module = resolve(dotted_name)
     return ModuleInfo(module.__file__, dotted_name, exclude_filter,

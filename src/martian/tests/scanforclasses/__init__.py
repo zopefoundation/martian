@@ -7,5 +7,5 @@ class IContext(Interface):
 
 
 @implementer(IContext)
-class Context(object):
+class Context:
     pass

@@ -1,3 +1,2 @@
-
-class Package(object):
+class Package:
     pass
