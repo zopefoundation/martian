@@ -4,9 +4,11 @@ CHANGES
 2.0 (unreleased)
 ================
 
-* Add support for Python 3.11.
+- Add support for Python 3.11.
 
-* Drop support for Python 2.7, 3.5, 3.6.
+- Drop support for Python 2.7, 3.5, 3.6.
+
+- Fix test suite incompatibility with ``zope.interface >= 6.0``.
 
 
 1.5 (2022-02-11)

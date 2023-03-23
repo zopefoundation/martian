@@ -68,7 +68,6 @@ Let's define a Grokker to help us register the file type handler
 functions as seen in our previous example::
 
   >>> import types
-  >>> from zope.interface import implements
   >>> import martian
   >>> class FileTypeGrokker(martian.InstanceGrokker):
   ...   martian.component(types.FunctionType)
