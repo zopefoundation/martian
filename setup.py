@@ -45,6 +45,7 @@ setup(
     zip_safe=False,
     license='ZPL',
     test_suite='martian.tests.test_all.test_suite',
+    python_requires='>=3.7',
     install_requires=[
         'zope.interface',
         'setuptools',

@@ -4,7 +4,8 @@ CHANGES
 2.1 (unreleased)
 ================
 
-- Nothing changed yet.
+- Add missing ``python_requires`` in ``setup.py`` to prevent installing on too
+  old versions.
 
 
 2.0 (2023-03-23)
