@@ -150,7 +150,7 @@ class MultiInstanceGrokker(MultiInstanceOrClassGrokkerBase):
 class MultiClassGrokker(MultiInstanceOrClassGrokkerBase):
 
     def get_bases(self, obj):
-        if isinstance(obj,  types.ModuleType):
+        if isinstance(obj, types.ModuleType):
             return []
         return inspect.getmro(obj)
 
