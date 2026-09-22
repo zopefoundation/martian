@@ -27,3 +27,6 @@ additional-rules = [
     "recursive-include src *.pt",
     "recursive-include src *.rst",
     ]
+
+[pypi]
+trusted-publishing = true
