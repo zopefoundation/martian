@@ -7,6 +7,47 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "martian"
+version = "2.2.dev0"
+description = "Embedding of configuration information in Python code."
+license = "ZPL-2.1"
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Utilities",
+]
+dynamic = ["readme"]
+requires-python = ">=3.10"
+authors = [
+    {name = "Grok project",email = "grok-dev@zope.dev"},
+]
+maintainers = [
+    {name = "Plone Foundation and contributors",email = "zope-dev@zope.dev"},
+]
+dependencies = [
+    "zope.interface",
+]
+
+[project.optional-dependencies]
+test = [
+    "zope.testing"
+]
+
+[project.urls]
+Source = "https://github.com/zopefoundation/martian"
+Issues = "https://github.com/zopefoundation/martian/issues"
+Changelog = "https://raw.githubusercontent.com/zopefoundation/martian/master/CHANGES.rst"
+
 [tool.coverage.run]
 branch = true
 source = ["martian"]
@@ -29,3 +70,6 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "parts/htmlcov"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CHANGES.rst", "src/martian/README.rst"]}
