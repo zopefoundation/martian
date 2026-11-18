@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-2.2 (unreleased)
+2.2 (2026-11-18)
 ================
 
 * Add support for Python 3.15.
