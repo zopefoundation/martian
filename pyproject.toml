@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "martian"
-version = "2.2"
+version = "2.3.dev0"
 description = "Embedding of configuration information in Python code."
 license = "ZPL-2.1"
 classifiers = [
